@@ -412,7 +412,7 @@ async function buildSlides(unit) {
 
   // 첫 로드 시 URL의 slide 파라미터로 위치 복원
   if (_firstLoad) {
-    const savedSlide = parseInt(new URLSearchParams(location.search).get('slide')) || 0;
+    const savedSlide = parseInt(_params.get('slide')) || 0;  // 페이지 로드 시 캡처한 원본 파라미터 사용
     current = Math.max(0, Math.min(slides.length - 1, savedSlide));
     _firstLoad = false;
   } else {
@@ -680,7 +680,10 @@ function buildChapterButtons(chapters, patData) {
 
 async function loadChapter(ch, patData) {
   CHAPTER = ch;
-  history.replaceState(null, '', `?chapter=${ch}`);
+  // chapter만 업데이트, 나머지 파라미터(unit, slide) 보존
+  const _chUrl = new URLSearchParams(location.search);
+  _chUrl.set('chapter', ch);
+  history.replaceState(null, '', '?' + _chUrl.toString());
   document.title = `올댓아라빅 ${ch}과`;
 
   document.querySelectorAll('.ch-btn').forEach(b =>
