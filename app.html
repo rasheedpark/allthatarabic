@@ -401,20 +401,26 @@ async function buildSlides(unit) {
     const repRows = rows.filter(r => r.category === 'repertory');
     const label = patRow ? (patRow.korean || patRow.arabic) : pid;
 
-    // 패턴 슬라이드: slides/p01-1.html 있으면 커스텀, 없으면 기본
+    // 패턴 슬라이드: url_repertory 있으면 커스텀, 없으면 기본
     if (patRow) {
-      const customHtml = await loadCustomSlide(`slides/${pid}.html`);
-      if (customHtml) {
-        slides.push({ type:'custom', html:customHtml, pid, unit, label });
+      const patUrl = patRow.url_repertory;
+      if (patUrl) {
+        const customHtml = await loadCustomSlide(`repertory/${patUrl}.html`);
+        if (customHtml) {
+          slides.push({ type:'custom', html:customHtml, pid, unit, label });
+        } else {
+          slides.push({ type:'pattern', data:patRow, unit, label });
+        }
       } else {
         slides.push({ type:'pattern', data:patRow, unit, label });
       }
     }
 
-    // 레퍼토리 슬라이드: id_repertory 있으면 slides/r01-1-1.html 시도
+    // 레퍼토리 슬라이드: url_repertory 있으면 커스텀 로드
     for (const r of repRows) {
-      if (r.id_repertory) {
-        const customHtml = await loadCustomSlide(`slides/${r.id_repertory}.html`);
+      const repUrl = r.url_repertory;
+      if (repUrl) {
+        const customHtml = await loadCustomSlide(`repertory/${repUrl}.html`);
         if (customHtml) {
           slides.push({ type:'custom', html:customHtml, pid, unit, label });
           continue;
@@ -458,6 +464,13 @@ function renderSlide() {
   if (s.type === 'custom') {
     const overlay = document.getElementById('custom-overlay');
     overlay.innerHTML = s.html;
+    // innerHTML로 삽입된 <script>는 실행 안 됨 → 수동 실행
+    overlay.querySelectorAll('script').forEach(old => {
+      const ns = document.createElement('script');
+      ns.textContent = old.textContent;
+      overlay.appendChild(ns);
+      old.remove();
+    });
     overlay.classList.add('active');
     document.getElementById('main').style.visibility = 'hidden';
     document.getElementById('arabic-area').innerHTML = '';
