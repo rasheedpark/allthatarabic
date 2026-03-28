@@ -1,86 +1,85 @@
 <style>
-.p011 {
-  width: 100%;
-  height: 62vh;
+/* 전체화면 오버레이 — 코너 요소(z-index:10) 아래 */
+.r-wrap {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 8;
+  background: #111827;
   display: flex;
   flex-direction: row;
-  direction: rtl;            /* ب ت ث ن ي → 오른쪽부터 표시 */
-  position: relative;
-}
-
-/* 청록 기준선 */
-.p011-baseline {
-  position: absolute;
-  left: 0; right: 0;
-  top: 52%;
-  height: 2px;
-  background: #16988d;
-  z-index: 2;
-  box-shadow: 0 0 8px rgba(22,152,141,0.5);
+  direction: rtl;
 }
 
 /* 컬럼 */
-.p011-col {
+.r-col {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;   /* 기준선 기준 정렬 */
+  justify-content: center;
   position: relative;
-  border-right: 1px solid rgba(130, 100, 220, 0.35);
+  border-right: 1px solid rgba(120, 90, 210, 0.35);
+  gap: 0;
+  padding-bottom: 4vh;
 }
-.p011-col:last-child { border-right: none; }
+.r-col:last-child { border-right: none; }
 
-/* 아랍어 글자 — 기준선 위에 앉도록 */
-.p011-letter {
+/* 아랍어 글자 */
+.r-letter {
   font-family: 'Noto Sans Arabic', serif;
-  font-size: clamp(4.5rem, 10vw, 11rem);
+  font-size: min(14vw, 11rem);
   font-weight: 700;
   color: #ffffff;
   line-height: 1;
-  position: absolute;
-  /* top 52% = 기준선, translateY로 글자 몸통 바닥을 기준선에 맞춤 */
-  top: 52%;
-  transform: translateY(-72%);
-  z-index: 3;
-  text-align: center;
+  display: block;
 }
 
-/* 로마자 발음 — 기준선 아래 */
-.p011-label {
-  position: absolute;
-  top: 52%;
-  margin-top: 1.4rem;
-  font-size: clamp(0.75rem, 1.6vw, 1.3rem);
+/* 발음 */
+.r-label {
+  font-size: clamp(0.85rem, 1.6vw, 1.35rem);
   color: #8E95A0;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
+  margin-top: clamp(1rem, 3vh, 2rem);
   font-family: 'Spoqa Han Sans Neo', sans-serif;
-  z-index: 3;
+  display: block;
+}
+
+/* 청록 기준선 — 글자 베이스라인 위치에 */
+.r-line {
+  position: fixed;
+  left: 0; right: 0;
+  height: 2px;
+  background: #16988d;
+  box-shadow: 0 0 12px rgba(22,152,141,0.5);
+  z-index: 9;
+  pointer-events: none;
+  top: calc(50% - 1vh);  /* 시각적 기준선 위치 */
 }
 </style>
 
-<div class="p011">
-  <div class="p011-baseline"></div>
+<!-- 기준선 -->
+<div class="r-line"></div>
 
-  <!-- RTL: 오른쪽이 ب, 왼쪽이 ي -->
-  <div class="p011-col">
-    <div class="p011-letter">ي</div>
-    <div class="p011-label">ya</div>
+<!-- 5컬럼 — RTL이므로 ي ن ث ت ب 순서로 -->
+<div class="r-wrap">
+  <div class="r-col">
+    <span class="r-letter">ي</span>
+    <span class="r-label">ya</span>
   </div>
-  <div class="p011-col">
-    <div class="p011-letter">ن</div>
-    <div class="p011-label">nun</div>
+  <div class="r-col">
+    <span class="r-letter">ن</span>
+    <span class="r-label">nun</span>
   </div>
-  <div class="p011-col">
-    <div class="p011-letter">ث</div>
-    <div class="p011-label">th[θ]a</div>
+  <div class="r-col">
+    <span class="r-letter">ث</span>
+    <span class="r-label">th[θ]a</span>
   </div>
-  <div class="p011-col">
-    <div class="p011-letter">ت</div>
-    <div class="p011-label">ta</div>
+  <div class="r-col">
+    <span class="r-letter">ت</span>
+    <span class="r-label">ta</span>
   </div>
-  <div class="p011-col">
-    <div class="p011-letter">ب</div>
-    <div class="p011-label">ba</div>
+  <div class="r-col">
+    <span class="r-letter">ب</span>
+    <span class="r-label">ba</span>
   </div>
 </div>
