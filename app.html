@@ -58,6 +58,17 @@ body {
   text-align: right; line-height: 1.2;
 }
 
+/* ── 커스텀 오버레이 ── */
+#custom-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 5;
+  background: var(--bg);
+}
+#custom-overlay.active { display: block; }
+
 /* ── 진행바 ── */
 #progress {
   position: fixed; top: 0; left: 0;
@@ -270,6 +281,9 @@ body {
   <div id="text-area"></div>
 </div>
 
+<!-- 커스텀 슬라이드 전용 오버레이 -->
+<div id="custom-overlay"></div>
+
 <!-- 단축키 바 -->
 <div id="toolbar">
   <button class="tb-btn" id="btn-menu"><span class="kb">M</span> 메뉴</button>
@@ -442,10 +456,17 @@ function renderSlide() {
 
   // ── 커스텀 슬라이드 ──
   if (s.type === 'custom') {
-    document.getElementById('arabic-area').innerHTML = `<div style="width:100%">${s.html}</div>`;
+    const overlay = document.getElementById('custom-overlay');
+    overlay.innerHTML = s.html;
+    overlay.classList.add('active');
+    document.getElementById('main').style.visibility = 'hidden';
+    document.getElementById('arabic-area').innerHTML = '';
     document.getElementById('text-area').innerHTML = '';
     updateIndex(); return;
   }
+  // 커스텀가 아닌 경우 오버레이 닫기
+  document.getElementById('custom-overlay').classList.remove('active');
+  document.getElementById('main').style.visibility = '';
 
   // ── 나스 슬라이드 ──
   if (s.type === 'nass') {
