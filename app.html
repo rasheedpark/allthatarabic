@@ -342,7 +342,7 @@ function parseText(str) {
   if (!str) return '';
   return str
     .replace(/<br\s*\/?>/gi, '<br>')          // 시트의 <br> 태그 인식
-    .replace(/\\n/g, '<br>')                  // 백슬래시n도 줄바꿈 처리
+    .replace(/\n|\r\n|\r/g, '<br>')        // 시트 실제 개행문자 처리
     .replace(/_([^_\n]+)_/g, '<span class="highlight-box">$1</span>')
     .replace(/\*([^*\n]+)\*/g, '<span class="highlight-text">$1</span>');
 }
