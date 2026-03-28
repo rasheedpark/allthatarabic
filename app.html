@@ -290,6 +290,8 @@ body {
 const SHEET_ID = '1U8mOSsJG206Z3kzdjKmP69bJOBi8oxSVq6NrXRJRWd8';
 const _params  = new URLSearchParams(location.search);
 let CHAPTER    = parseInt(_params.get('chapter')) || 1;
+const GCS_BASE = 'https://storage.googleapis.com/all-that-arabic-14';
+
 const TABS = { pattern:'pattern', drill:'drill', expression:'expression', nass:'nass' };
 const TYPE_EN  = { pattern:'PATTERN', repertory:'PATTERN', drill:'DRILL', exp:'EXPRESSION', nass:'NASS', custom:'PATTERN' };
 const TYPE_KO  = { pattern:'패턴', repertory:'패턴', drill:'드릴', exp:'익스프레션', nass:'나스', custom:'패턴' };
@@ -559,10 +561,21 @@ function buildUnitButtons(units, ch) {
 }
 
 // ── 오디오 ────────────────────────────────────────
+function getAudioUrl(s) {
+  if (!s) return '';
+  // 시트에 audio_url 있으면 우선 사용
+  if (s.data?.audio_url) return s.data.audio_url;
+  // nass: GCS에서 id_lc 기반 자동 매핑
+  if (s.type === 'nass' && s.data?.id_lc)
+    return `${GCS_BASE}/nass/${s.data.id_lc}.mp3`;
+  // 기타: 기존 컬럼
+  return s.data?.audiourl1 || s.data?.url_expression || '';
+}
+
 function toggleAudio() {
   const audio = document.getElementById('slide-audio');
   const s = slides[current];
-  const url = s?.data?.audiourl1 || s?.data?.url_expression || '';
+  const url = getAudioUrl(s);
   if (audioPlaying) {
     audio.pause(); audio.currentTime = 0;
     audioPlaying = false;
@@ -582,6 +595,9 @@ function toggleAudio() {
 // ── 내비게이션 ────────────────────────────────────
 function goTo(n) {
   if (!slides.length) return;
+  // 슬라이드 이동 시 재생 중인 오디오 정지
+  const audio = document.getElementById('slide-audio');
+  if (audioPlaying) { audio.pause(); audio.currentTime = 0; audioPlaying = false; document.getElementById('btn-audio').classList.remove('active'); }
   current = Math.max(0, Math.min(slides.length - 1, n));
   nassTextVisible = false;
   renderSlide();
