@@ -477,7 +477,10 @@ function renderNass(s) {
 
   document.getElementById('arabic-area').innerHTML =
     nassTextVisible ? (nassTextHtml + promptHtml) : promptHtml;
-  document.getElementById('text-area').innerHTML = '';
+
+  // note는 nass에서도 항상 표시
+  document.getElementById('text-area').innerHTML =
+    d.note ? `<div class="note">${parseText(d.note)}</div>` : '';
 }
 
 // ── 의미 토글 (전역 지속) ───────────────────────────
