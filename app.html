@@ -401,9 +401,9 @@ async function buildSlides(unit) {
     const repRows = rows.filter(r => r.category === 'repertory');
     const label = patRow ? (patRow.korean || patRow.arabic) : pid;
 
-    // 패턴 슬라이드: url_repertory 있으면 커스텀, 없으면 기본
+    // 패턴 슬라이드: url_repertory → id_repertory 순으로 커스텀 시도
     if (patRow) {
-      const patUrl = patRow.url_repertory;
+      const patUrl = patRow.url_repertory || patRow.id_repertory;
       if (patUrl) {
         const customHtml = await loadCustomSlide(`repertory/${patUrl}.html`);
         if (customHtml) {
@@ -416,9 +416,9 @@ async function buildSlides(unit) {
       }
     }
 
-    // 레퍼토리 슬라이드: url_repertory 있으면 커스텀 로드
+    // 레퍼토리 슬라이드: url_repertory → id_repertory 순으로 커스텀 시도
     for (const r of repRows) {
-      const repUrl = r.url_repertory;
+      const repUrl = r.url_repertory || r.id_repertory;
       if (repUrl) {
         const customHtml = await loadCustomSlide(`repertory/${repUrl}.html`);
         if (customHtml) {
