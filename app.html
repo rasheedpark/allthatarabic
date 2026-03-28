@@ -449,7 +449,7 @@ function renderSlide() {
 
   document.getElementById('text-area').innerHTML = `
     <div class="korean ${showMeaning?'':'hidden-k'}">${parseText(d.korean||'')}</div>
-    ${d.note ? `<div class="note ${showMeaning?'':'hidden-k'}">${parseText(d.note)}</div>` : ''}
+    ${d.note ? `<div class="note">${parseText(d.note)}</div>` : ''}
   `;
 
   if (!showMeaning) {
@@ -486,7 +486,7 @@ function toggleMeaning() {
   document.getElementById('btn-meaning').classList.toggle('active', !meaningVisible);
   const s = slides[current];
   if (!s || s.type === 'nass') return;
-  document.querySelectorAll('#text-area .korean, #text-area .note').forEach(el => {
+  document.querySelectorAll('#text-area .korean').forEach(el => {
     el.style.opacity = meaningVisible ? '1' : '0';
   });
 }
