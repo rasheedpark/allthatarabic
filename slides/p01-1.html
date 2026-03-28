@@ -1,0 +1,86 @@
+<style>
+.p011 {
+  width: 100%;
+  height: 62vh;
+  display: flex;
+  flex-direction: row;
+  direction: rtl;            /* ب ت ث ن ي → 오른쪽부터 표시 */
+  position: relative;
+}
+
+/* 청록 기준선 */
+.p011-baseline {
+  position: absolute;
+  left: 0; right: 0;
+  top: 52%;
+  height: 2px;
+  background: #16988d;
+  z-index: 2;
+  box-shadow: 0 0 8px rgba(22,152,141,0.5);
+}
+
+/* 컬럼 */
+.p011-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;   /* 기준선 기준 정렬 */
+  position: relative;
+  border-right: 1px solid rgba(130, 100, 220, 0.35);
+}
+.p011-col:last-child { border-right: none; }
+
+/* 아랍어 글자 — 기준선 위에 앉도록 */
+.p011-letter {
+  font-family: 'Noto Sans Arabic', serif;
+  font-size: clamp(4.5rem, 10vw, 11rem);
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1;
+  position: absolute;
+  /* top 52% = 기준선, translateY로 글자 몸통 바닥을 기준선에 맞춤 */
+  top: 52%;
+  transform: translateY(-72%);
+  z-index: 3;
+  text-align: center;
+}
+
+/* 로마자 발음 — 기준선 아래 */
+.p011-label {
+  position: absolute;
+  top: 52%;
+  margin-top: 1.4rem;
+  font-size: clamp(0.75rem, 1.6vw, 1.3rem);
+  color: #8E95A0;
+  letter-spacing: 0.05em;
+  font-family: 'Spoqa Han Sans Neo', sans-serif;
+  z-index: 3;
+}
+</style>
+
+<div class="p011">
+  <div class="p011-baseline"></div>
+
+  <!-- RTL: 오른쪽이 ب, 왼쪽이 ي -->
+  <div class="p011-col">
+    <div class="p011-letter">ي</div>
+    <div class="p011-label">ya</div>
+  </div>
+  <div class="p011-col">
+    <div class="p011-letter">ن</div>
+    <div class="p011-label">nun</div>
+  </div>
+  <div class="p011-col">
+    <div class="p011-letter">ث</div>
+    <div class="p011-label">th[θ]a</div>
+  </div>
+  <div class="p011-col">
+    <div class="p011-letter">ت</div>
+    <div class="p011-label">ta</div>
+  </div>
+  <div class="p011-col">
+    <div class="p011-letter">ب</div>
+    <div class="p011-label">ba</div>
+  </div>
+</div>
