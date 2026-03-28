@@ -257,6 +257,7 @@ body {
       <li><span class="key">T</span> 지문 보기/가리기 (나스)</li>
       <li><span class="key">S</span> 오디오 재생/정지</li>
       <li><span class="key">←  →</span> 이전 / 다음</li>
+      <li><span class="key">Home</span> 처음으로 &nbsp; <span class="key">End</span> 마지막으로</li>
     </ul>
   </div>
   <div class="sb-units" id="sb-chapters" style="border-bottom:none; padding-bottom:0.2rem;">
@@ -301,6 +302,7 @@ let slides = [], current = 0;
 let meaningVisible = true;   // true = 해석 보임
 let nassTextVisible = false; // 나스 지문 기본 숨김
 let sidebarOpen = false;
+let _firstLoad = true;  // 첫 로드 시 슬라이드 위치 복원용
 let audioPlaying = false;
 let currentUnit = 1;
 
@@ -408,7 +410,14 @@ async function buildSlides(unit) {
   // 나스
   nRows.forEach(r => slides.push({ type:'nass', data:r, unit, label:'Nass' }));
 
-  current = 0;
+  // 첫 로드 시 URL의 slide 파라미터로 위치 복원
+  if (_firstLoad) {
+    const savedSlide = parseInt(new URLSearchParams(location.search).get('slide')) || 0;
+    current = Math.max(0, Math.min(slides.length - 1, savedSlide));
+    _firstLoad = false;
+  } else {
+    current = 0;
+  }
   buildIndex();
   renderSlide();
 }
@@ -547,7 +556,10 @@ function buildUnitButtons(units, ch) {
     btn.textContent = `Unit ${u}`;
     btn.dataset.u = u;
     btn.onclick = async () => {
-      history.replaceState(null, '', `?chapter=${ch}&unit=${u}`);
+      _firstLoad = false;  // 유닛 변경은 복원 아님
+      const _u = new URLSearchParams(location.search);
+      _u.set('chapter', ch); _u.set('unit', u); _u.delete('slide');
+      history.replaceState(null, '', '?' + _u.toString());
       document.getElementById('loading').style.display = 'flex';
       document.querySelectorAll('#sb-units .unit-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -599,6 +611,10 @@ function goTo(n) {
   const audio = document.getElementById('slide-audio');
   if (audioPlaying) { audio.pause(); audio.currentTime = 0; audioPlaying = false; document.getElementById('btn-audio').classList.remove('active'); }
   current = Math.max(0, Math.min(slides.length - 1, n));
+  // URL에 현재 슬라이드 저장 (새로고침 복원용)
+  const _sp = new URLSearchParams(location.search);
+  _sp.set('slide', current);
+  history.replaceState(null, '', '?' + _sp.toString());
   nassTextVisible = false;
   renderSlide();
 }
@@ -614,6 +630,8 @@ document.addEventListener('keydown', e => {
     case 't': case 'T': if(slides[current]?.type==='nass') toggleNass(); break;
     case 's': case 'S': toggleAudio(); break;
     case 'Escape': if(sidebarOpen) toggleSidebar(); break;
+    case 'End':  e.preventDefault(); goTo(slides.length - 1); break;
+    case 'Home': e.preventDefault(); goTo(0); break;
   }
 });
 
@@ -673,8 +691,11 @@ async function loadChapter(ch, patData) {
   )].sort((a,b) => a - b);
 
   buildUnitButtons(units, ch);
+  // 첫 로드 시 URL의 unit 파라미터 복원
+  const savedUnit = parseInt(_params.get('unit'));
+  const targetUnit = (savedUnit && units.includes(savedUnit)) ? savedUnit : (units[0] || 1);
   document.getElementById('loading').style.display = 'flex';
-  await buildSlides(units[0] || 1);
+  await buildSlides(targetUnit);
   document.getElementById('loading').style.display = 'none';
 }
 
