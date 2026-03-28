@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arabic Letter Base - r0111</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #101020; /* 어두운 남색 배경 */
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            direction: rtl; /* 아랍어는 오른쪽에서 왼쪽으로 */
+        }
+
+        .container {
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+            height: 60%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        /* 아랍어 거대 글자 스타일 */
+        .arabic-letters-wrapper {
+            display: flex;
+            width: 100%;
+            justify-content: center;
+            align-items: flex-end; /* 글자는 기준선 위에 배치 */
+            z-index: 1;
+        }
+
+        .arabic-letter-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 40px; /* 글자 사이 간격 */
+            position: relative;
+        }
+
+        .arabic-letter {
+            font-size: 160px; /* 거대한 아랍어 글자 */
+            color: #FFFFFF; /* 흰색 글자 */
+            line-height: 1;
+            transform: translateY(20px); /* 기준선 위에 살짝 뜨게 정밀 조정 */
+        }
+
+        /* 청록색 기준선 스타일 */
+        .baseline {
+            position: absolute;
+            top: calc(50% + 20px); /* 글자의 대략적인 중간 위치 정밀 조정 */
+            left: 5%;
+            right: 5%;
+            height: 2px;
+            background-color: #00C0C0; /* 청록색 기준선 */
+            z-index: 0;
+        }
+
+        /* 회색 발음 표시 스타일 */
+        .pronunciation {
+            font-size: 28px;
+            color: #808080; /* 회색 발음 표시 */
+            margin-top: 10px; /* 글자 바로 밑에 배치 */
+            direction: ltr; /* 발음은 왼쪽에서 오른쪽으로 */
+        }
+
+        /* 오른쪽 하단 로고 스타일 */
+        .logo {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            font-size: 24px;
+            color: #FFFFFF;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .logo .center-text {
+            color: #FFFFFF;
+            margin-right: 5px;
+        }
+
+        .logo .marakaz-text {
+            color: #FF0080; /* 핫핑크색 مركز */
+        }
+
+        /* 모바일 대응 (반응형) */
+        @media (max-width: 1024px) {
+            .arabic-letter {
+                font-size: 100px;
+            }
+            .pronunciation {
+                font-size: 18px;
+            }
+            .arabic-letter-item {
+                margin: 0 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="baseline"></div>
+
+        <div class="arabic-letters-wrapper">
+            <div class="arabic-letter-item">
+                <div class="arabic-letter">ب</div>
+                <div class="pronunciation">ba</div>
+            </div>
+            <div class="arabic-letter-item">
+                <div class="arabic-letter">ت</div>
+                <div class="pronunciation">ta</div>
+            </div>
+            <div class="arabic-letter-item">
+                <div class="arabic-letter">ث</div>
+                <div class="pronunciation">th[θ]a</div>
+            </div>
+            <div class="arabic-letter-item">
+                <div class="arabic-letter">ن</div>
+                <div class="pronunciation">nun</div>
+            </div>
+            <div class="arabic-letter-item">
+                <div class="arabic-letter">ي</div>
+                <div class="pronunciation">ya</div>
+            </div>
+        </div>
+
+        <div class="logo">
+            <span class="center-text">CENTER</span>
+            <span class="marakaz-text">مركز</span>
+        </div>
+    </div>
+
+</body>
+</html>
