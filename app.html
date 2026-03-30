@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@500;700&family=Noto+Kufi+Arabic:wght@400;500&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/gh/spoqa/spoqa-han-sans@latest/css/SpoqaHanSansNeo.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://unpkg.com/html-to-image@1.11.11/dist/html-to-image.js"></script>
 <style>
 /* ── 리셋 & 변수 ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -59,9 +59,9 @@ body {
 
 /* ── 강의 모드 ── */
 body.lecture-mode #main {
-  left: 62.5vw;
+  left: 65vw;
   transform: translateX(-50%);
-  width: min(72vw, 1100px);
+  width: min(68vw, 1050px);
 }
 #export-overlay {
   position: fixed; inset: 0;
@@ -741,7 +741,7 @@ document.getElementById('btn-export').addEventListener('click', exportSlides);
 
 async function exportSlides() {
   if (!slides.length) { alert('슬라이드를 먼저 로드하세요.'); return; }
-  if (typeof JSZip === 'undefined' || typeof html2canvas === 'undefined') {
+  if (typeof JSZip === 'undefined' || typeof htmlToImage === 'undefined') {
     alert('라이브러리 로딩 중입니다. 잠시 후 다시 시도하세요.'); return;
   }
   const overlay = document.getElementById('export-overlay');
@@ -767,12 +767,11 @@ async function exportSlides() {
     await new Promise(r => setTimeout(r, 350));
     progEl.textContent = (i + 1) + ' / ' + total;
     await document.fonts.ready;
-    const canvas = await html2canvas(document.body, {
-      backgroundColor: '#111827', scale: 2, useCORS: true, logging: false,
-      imageTimeout: 0,
-      ignoreElements: el => el.id === 'export-overlay'
+    const blob = await htmlToImage.toBlob(document.body, {
+      backgroundColor: '#111827',
+      pixelRatio: 2,
+      filter: node => node.id !== 'export-overlay'
     });
-    const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
     const num  = String(i + 1).padStart(3, '0');
     zip.file(num + '_' + (slides[i]?.type || 'slide') + '.png', blob);
   }
