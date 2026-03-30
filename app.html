@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@500;700&family=Noto+Kufi+Arabic:wght@400;500&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/gh/spoqa/spoqa-han-sans@latest/css/SpoqaHanSansNeo.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 /* ── 리셋 & 변수 ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -54,6 +56,22 @@ body {
   font-weight: bold; color: var(--text);
   text-align: right; line-height: 1.2;
 }
+
+/* ── 강의 모드 ── */
+body.lecture-mode #main {
+  left: 67.5vw;
+  transform: translateX(-50%);
+  width: min(60vw, 920px);
+}
+#export-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.88);
+  display: none; align-items: center; justify-content: center;
+  flex-direction: column; gap: 1.2rem; z-index: 2000;
+}
+#export-overlay.active { display: flex; }
+#export-msg { font-size: 1.3rem; font-weight: bold; color: #fff; }
+#export-prog { font-size: 1rem; color: var(--sub); }
 
 /* ── 진행바 ── */
 #progress {
@@ -282,6 +300,14 @@ body {
   <button class="tb-btn" id="btn-audio"><span class="kb">S</span> 오디오</button>
   <button class="tb-btn" id="btn-meaning"><span class="kb">Space</span> 해석</button>
   <button class="tb-btn" id="btn-nass"><span class="kb">T</span> 지문</button>
+  <button class="tb-btn" id="btn-lecture">🎓 강의모드</button>
+  <button class="tb-btn" id="btn-export">📸 내보내기</button>
+</div>
+
+<!-- 내보내기 오버레이 -->
+<div id="export-overlay">
+  <div id="export-msg">슬라이드 쪳찼 중...</div>
+  <div id="export-prog">0 / 0</div>
 </div>
 
 <audio id="slide-audio"></audio>
@@ -708,6 +734,70 @@ async function loadChapter(ch, patData) {
 }
 
 init();
+
+// ── 강의 모드 토글 ──
+let lectureMode = false;
+document.getElementById('btn-lecture').addEventListener('click', () => {
+  lectureMode = !lectureMode;
+  document.body.classList.toggle('lecture-mode', lectureMode);
+  const btn = document.getElementById('btn-lecture');
+  btn.textContent = lectureMode ? '🖥️ 일반모드' : '🎓 강의모드';
+  btn.style.color = lectureMode ? 'var(--accent)' : '';
+});
+
+// ── 슬라이드 내보내기 ──
+document.getElementById('btn-export').addEventListener('click', exportSlides);
+
+async function exportSlides() {
+  if (!slides.length) { alert('슬라이드를 먼저 로드하세요.'); return; }
+  if (typeof JSZip === 'undefined' || typeof html2canvas === 'undefined') {
+    alert('라이브러리 로딩 중입니다. 잠시 후 다시 시도하세요.'); return;
+  }
+  const overlay = document.getElementById('export-overlay');
+  const msgEl   = document.getElementById('export-msg');
+  const progEl  = document.getElementById('export-prog');
+  const toolbar = document.getElementById('toolbar');
+  const sidebar = document.getElementById('sidebar');
+  const logo    = document.querySelector('img[src="ata-logo.png"]');
+
+  document.body.classList.add('lecture-mode');
+  toolbar.style.visibility = 'hidden';
+  sidebar.style.display    = 'none';
+  if (logo) logo.style.display = 'none';
+  overlay.classList.add('active');
+
+  const zip       = new JSZip();
+  const savedIdx  = current;
+  const total     = slides.length;
+  const unitLabel = slides[0]?.unit || 'unit';
+
+  for (let i = 0; i < total; i++) {
+    goTo(i);
+    await new Promise(r => setTimeout(r, 350));
+    progEl.textContent = (i + 1) + ' / ' + total;
+    const canvas = await html2canvas(document.body, {
+      backgroundColor: '#111827', scale: 1, useCORS: true, logging: false,
+      ignoreElements: el => el.id === 'export-overlay'
+    });
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+    const num  = String(i + 1).padStart(3, '0');
+    zip.file(num + '_' + (slides[i]?.type || 'slide') + '.png', blob);
+  }
+
+  msgEl.textContent = 'ZIP 파일 생성 중...';
+  const zipBlob = await zip.generateAsync({ type: 'blob' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(zipBlob);
+  a.download = 'slides_' + unitLabel + '.zip';
+  a.click();
+
+  overlay.classList.remove('active');
+  toolbar.style.visibility = '';
+  sidebar.style.display    = '';
+  if (logo) logo.style.display = '';
+  if (!lectureMode) document.body.classList.remove('lecture-mode');
+  goTo(savedIdx);
+}
 </script>
 
 <img src="ata-logo.png" alt="ATA logo" style="position:fixed;bottom:16px;right:16px;width:72px;height:72px;object-fit:contain;opacity:0.9;z-index:999;pointer-events:none;">
