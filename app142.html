@@ -261,7 +261,7 @@ body {
     </ul>
   </div>
   <div class="sb-pgroups" id="sb-pgroups">
-    <span style="font-size:0.7rem;color:var(--sub);width:100%;display:block;margin-bottom:4px;">패턴 그룹</span>
+    <span style="font-size:0.7rem;color:var(--sub);width:100%;display:block;margin-bottom:4px;">유닛</span>
   </div>
   <ul id="index-list"></ul>
 </div>
@@ -297,6 +297,7 @@ let nassTextVisible = false;
 let sidebarOpen = false;
 let _firstLoad = true;
 let audioPlaying = false;
+let currentPg = null;
 
 // ── JSONP 데이터 로더 ──────────────────────────────
 const _cache = {};
@@ -349,10 +350,11 @@ function parseText(str) {
     .replace(/\*([^*\n]+)\*/g, '<span class="highlight-text">$1</span>');
 }
 
-// ── buildSlides ────────────────────────────────────
-async function buildSlides() {
+// ── buildSlides: 유닛 하나의 슬라이드만 빌드 ──────────
+async function buildSlides(pg) {
   slides = [];
   nassTextVisible = false;
+  currentPg = pg;
 
   const [patRaw, repRaw, drillRaw, expRaw, nassRaw] = await Promise.all([
     fetchSheetData('pattern'),
@@ -362,57 +364,45 @@ async function buildSlides() {
     fetchSheetData('nass'),
   ]);
 
-  // p-그룹 목록: repertory와 drill의 U열에서 수집 (p1, p2, p3...)
-  const pgFromRep   = repRaw.map(r => r.u).filter(u => /^p\d+$/i.test(u));
-  const pgFromDrill = drillRaw.map(r => r.u).filter(u => /^p\d+$/i.test(u));
-  const allPGroups  = [...new Set([...pgFromRep, ...pgFromDrill])]
-    .sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
+  const pNum = parseInt(pg.slice(1));                 // "p1" → 1
+  const pId  = 'P' + String(pNum).padStart(2, '0');  // 1 → "P01"
 
-  for (const pg of allPGroups) {
-    const pNum = parseInt(pg.slice(1));                          // "p1" → 1
-    const pId  = 'P' + String(pNum).padStart(2, '0');           // 1 → "P01"
+  // 이 유닛의 서브패턴: P01, P01a, P01b, P01c... (알파벳 순)
+  const patRegex = new RegExp(`^${pId}([a-z]*)$`, 'i');
+  const patterns = patRaw
+    .filter(r => r.category === 'pattern' && patRegex.test(r.id_pattern || ''))
+    .sort((a, b) => (a.id_pattern || '').localeCompare(b.id_pattern || ''));
 
-    // 이 p-그룹에 속한 패턴: id_pattern이 P01, P01a, P01b, P01c... 형식
-    const patRegex = new RegExp(`^${pId}([a-z]*)$`, 'i');
-    const patterns = patRaw
-      .filter(r => r.category === 'pattern' && patRegex.test(r.id_pattern || ''))
-      .sort((a, b) => (a.id_pattern || '').localeCompare(b.id_pattern || ''));
+  const groupLabel = patterns[0]?.arabic || pId;
 
-    // 그룹 레이블: 대표 패턴의 arabic (없으면 pId)
-    const groupLabel = patterns[0]?.arabic || pId;
+  // 서브패턴별로: 패턴 → 레퍼토리 → 드릴
+  for (const pat of patterns) {
+    const subId = pat.id_pattern; // "P01", "P01a", "P01b"...
 
-    // 서브패턴별로 순서대로 처리: 패턴 → 레퍼토리 → 드릴
-    for (const pat of patterns) {
-      const subId = pat.id_pattern; // e.g. "P01", "P01a", "P01b"
+    slides.push({ type: 'pattern', data: pat, pg, label: groupLabel });
 
-      // 패턴 슬라이드
-      slides.push({ type: 'pattern', data: pat, pg, label: groupLabel });
+    repRaw
+      .filter(r => (r.id_pattern || '').toUpperCase() === subId.toUpperCase())
+      .sort((a, b) => (a.id_repertory || '').localeCompare(b.id_repertory || ''))
+      .forEach(r => slides.push({ type: 'repertory', data: r, pg, label: groupLabel }));
 
-      // 레퍼토리: id_pattern = 이 서브패턴
-      repRaw
-        .filter(r => (r.id_pattern || '').toUpperCase() === subId.toUpperCase())
-        .sort((a, b) => (a.id_repertory || '').localeCompare(b.id_repertory || ''))
-        .forEach(r => slides.push({ type: 'repertory', data: r, pg, label: groupLabel }));
-
-      // 드릴: id_pattern = 이 서브패턴
-      drillRaw
-        .filter(r => (r.id_pattern || '').toUpperCase() === subId.toUpperCase())
-        .sort((a, b) => (a.id_drill || '').localeCompare(b.id_drill || ''))
-        .forEach(r => slides.push({ type: 'drill', data: r, pg, label: groupLabel }));
-    }
-
-    // 이 유닛의 익스프레션 (expression U열 = pNum, 예: p1 → U=1)
-    expRaw
-      .filter(r => (r.arabic || r.korean) && parseInt(r.u) === pNum)
-      .sort((a, b) => (a.id_expression || '').localeCompare(b.id_expression || ''))
-      .forEach(r => slides.push({ type: 'exp', data: r, pg, label: groupLabel }));
-
-    // 이 유닛의 나스 (nass U열 = pNum)
-    nassRaw
-      .filter(r => (r.arabic || r.sual) && parseInt(r.u) === pNum)
-      .sort((a, b) => (a.id_words || '').localeCompare(b.id_words || ''))
-      .forEach(r => slides.push({ type: 'nass', data: r, pg, label: groupLabel }));
+    drillRaw
+      .filter(r => (r.id_pattern || '').toUpperCase() === subId.toUpperCase())
+      .sort((a, b) => (a.id_drill || '').localeCompare(b.id_drill || ''))
+      .forEach(r => slides.push({ type: 'drill', data: r, pg, label: groupLabel }));
   }
+
+  // 이 유닛의 익스프레션 (expression U열 숫자 = pNum)
+  expRaw
+    .filter(r => (r.arabic || r.korean) && parseInt(r.u) === pNum)
+    .sort((a, b) => (a.id_expression || '').localeCompare(b.id_expression || ''))
+    .forEach(r => slides.push({ type: 'exp', data: r, pg, label: groupLabel }));
+
+  // 이 유닛의 나스 (nass U열 숫자 = pNum)
+  nassRaw
+    .filter(r => (r.arabic || r.sual) && parseInt(r.u) === pNum)
+    .sort((a, b) => (a.id_words || '').localeCompare(b.id_words || ''))
+    .forEach(r => slides.push({ type: 'nass', data: r, pg, label: groupLabel }));
 
   if (_firstLoad) {
     const savedSlide = parseInt(new URLSearchParams(location.search).get('slide')) || 0;
@@ -422,9 +412,12 @@ async function buildSlides() {
     current = 0;
   }
 
-  buildPGroupButtons(allPGroups);
   buildIndex();
   renderSlide();
+  // 유닛 버튼 활성 상태 업데이트
+  document.querySelectorAll('#sb-pgroups .unit-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.pg === pg)
+  );
 }
 
 // ── renderSlide ────────────────────────────────────
@@ -552,10 +545,9 @@ function updateIndex() {
   if (active) active.scrollIntoView({ block:'nearest', behavior:'smooth' });
 }
 
-// ── p-그룹 버튼 ───────────────────────────────────
-function buildPGroupButtons(groups) {
+// ── 유닛 버튼 (클릭 시 해당 유닛 슬라이드로 전환) ────
+function buildUnitButtons(groups) {
   const c = document.getElementById('sb-pgroups');
-  // 라벨 스팬 유지 후 버튼 추가
   const label = c.querySelector('span');
   c.innerHTML = '';
   if (label) c.appendChild(label);
@@ -565,22 +557,11 @@ function buildPGroupButtons(groups) {
     btn.className = 'unit-btn';
     btn.textContent = pg.toUpperCase();
     btn.dataset.pg = pg;
-    btn.onclick = () => {
-      const idx = slides.findIndex(s => s.pg === pg);
-      if (idx >= 0) { current = idx; renderSlide(); updateIndex(); }
-      if (sidebarOpen) toggleSidebar();
-    };
-    c.appendChild(btn);
-  });
-
-  // Expression / Nass 점프 버튼
-  ['exp', 'nass'].forEach(type => {
-    const btn = document.createElement('button');
-    btn.className = 'unit-btn';
-    btn.textContent = TYPE_KO[type] || type;
-    btn.onclick = () => {
-      const idx = slides.findIndex(s => s.type === type);
-      if (idx >= 0) { current = idx; renderSlide(); updateIndex(); }
+    btn.onclick = async () => {
+      if (currentPg === pg) { if (sidebarOpen) toggleSidebar(); return; }
+      document.getElementById('loading').style.display = 'flex';
+      await buildSlides(pg);
+      document.getElementById('loading').style.display = 'none';
       if (sidebarOpen) toggleSidebar();
     };
     c.appendChild(btn);
@@ -659,7 +640,19 @@ document.getElementById('btn-nass').onclick    = toggleNass;
 // ── 초기화 ────────────────────────────────────────
 async function init() {
   try {
-    await buildSlides();
+    // 유닛 목록은 repertory U열에서 감지
+    const repRaw = await fetchSheetData('repertory');
+    const units = [...new Set(
+      repRaw.map(r => r.u).filter(u => /^p\d+$/i.test(u))
+    )].sort((a, b) => parseInt(a.slice(1)) - parseInt(b.slice(1)));
+
+    buildUnitButtons(units);
+
+    // URL에 unit 파라미터 있으면 복원, 없으면 첫 유닛
+    const savedPg = new URLSearchParams(location.search).get('unit');
+    const startPg = (savedPg && units.includes(savedPg)) ? savedPg : (units[0] || 'p1');
+
+    await buildSlides(startPg);
   } catch(e) {
     document.getElementById('loading').textContent = '로딩 실패: ' + e.message;
     console.error(e); return;
