@@ -395,25 +395,19 @@ async function buildSlides() {
       .filter(r => (r.u || '').toLowerCase() === pg.toLowerCase())
       .sort((a, b) => (a.id_drill || '').localeCompare(b.id_drill || ''))
       .forEach(r => slides.push({ type: 'drill', data: r, pg, label: groupLabel }));
+
+    // 이 유닛의 익스프레션 (expression U열 = pNum, 예: p1 → U=1)
+    expRaw
+      .filter(r => (r.arabic || r.korean) && parseInt(r.u) === pNum)
+      .sort((a, b) => (a.id_expression || '').localeCompare(b.id_expression || ''))
+      .forEach(r => slides.push({ type: 'exp', data: r, pg, label: groupLabel }));
+
+    // 이 유닛의 나스 (nass U열 = pNum)
+    nassRaw
+      .filter(r => (r.arabic || r.sual) && parseInt(r.u) === pNum)
+      .sort((a, b) => (a.id_words || '').localeCompare(b.id_words || ''))
+      .forEach(r => slides.push({ type: 'nass', data: r, pg, label: groupLabel }));
   }
-
-  // 익스프레션: 모든 드릴 끝난 뒤, B열(U) 순서
-  expRaw
-    .filter(r => r.arabic || r.korean)
-    .sort((a, b) =>
-      (parseInt(a.u || '0') - parseInt(b.u || '0')) ||
-      (a.id_expression || '').localeCompare(b.id_expression || '')
-    )
-    .forEach(r => slides.push({ type: 'exp', data: r, pg: null, label: 'Expression' }));
-
-  // 나스: U열 순서
-  nassRaw
-    .filter(r => r.arabic || r.sual)
-    .sort((a, b) =>
-      (parseInt(a.u || '0') - parseInt(b.u || '0')) ||
-      (a.id_words || '').localeCompare(b.id_words || '')
-    )
-    .forEach(r => slides.push({ type: 'nass', data: r, pg: null, label: 'Nass' }));
 
   if (_firstLoad) {
     const savedSlide = parseInt(new URLSearchParams(location.search).get('slide')) || 0;
