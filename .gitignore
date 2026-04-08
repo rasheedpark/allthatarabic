@@ -1,0 +1,8 @@
+.DS_Store
+*.gsheet
+*.pdf
+ata-audio-pipeline/
+서버시작.command
+ata1.4_index.html
+chapter1.html
+audio/
