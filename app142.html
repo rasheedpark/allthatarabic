@@ -381,20 +381,25 @@ async function buildSlides() {
     // 그룹 레이블: 대표 패턴의 arabic (없으면 pId)
     const groupLabel = patterns[0]?.arabic || pId;
 
-    // 패턴 슬라이드
-    patterns.forEach(r => slides.push({ type: 'pattern', data: r, pg, label: groupLabel }));
+    // 서브패턴별로 순서대로 처리: 패턴 → 레퍼토리 → 드릴
+    for (const pat of patterns) {
+      const subId = pat.id_pattern; // e.g. "P01", "P01a", "P01b"
 
-    // 레퍼토리 슬라이드 (U = pg, id_repertory 순)
-    repRaw
-      .filter(r => (r.u || '').toLowerCase() === pg.toLowerCase())
-      .sort((a, b) => (a.id_repertory || '').localeCompare(b.id_repertory || ''))
-      .forEach(r => slides.push({ type: 'repertory', data: r, pg, label: groupLabel }));
+      // 패턴 슬라이드
+      slides.push({ type: 'pattern', data: pat, pg, label: groupLabel });
 
-    // 드릴 슬라이드 (U = pg, id_drill 순)
-    drillRaw
-      .filter(r => (r.u || '').toLowerCase() === pg.toLowerCase())
-      .sort((a, b) => (a.id_drill || '').localeCompare(b.id_drill || ''))
-      .forEach(r => slides.push({ type: 'drill', data: r, pg, label: groupLabel }));
+      // 레퍼토리: id_pattern = 이 서브패턴
+      repRaw
+        .filter(r => (r.id_pattern || '').toUpperCase() === subId.toUpperCase())
+        .sort((a, b) => (a.id_repertory || '').localeCompare(b.id_repertory || ''))
+        .forEach(r => slides.push({ type: 'repertory', data: r, pg, label: groupLabel }));
+
+      // 드릴: id_pattern = 이 서브패턴
+      drillRaw
+        .filter(r => (r.id_pattern || '').toUpperCase() === subId.toUpperCase())
+        .sort((a, b) => (a.id_drill || '').localeCompare(b.id_drill || ''))
+        .forEach(r => slides.push({ type: 'drill', data: r, pg, label: groupLabel }));
+    }
 
     // 이 유닛의 익스프레션 (expression U열 = pNum, 예: p1 → U=1)
     expRaw
