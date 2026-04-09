@@ -392,15 +392,21 @@ async function buildSlides(pg) {
       .forEach(r => slides.push({ type: 'drill', data: r, pg, label: groupLabel }));
   }
 
-  // 이 유닛의 익스프레션 (expression U열 숫자 = pNum)
+  // 이 유닛의 익스프레션
+  // U열이 "1" 또는 "p1" 두 형식 모두 대응
+  const matchUnit = u => {
+    const v = (u || '').toString().toLowerCase().trim();
+    return v === String(pNum) || v === pg.toLowerCase();
+  };
+
   expRaw
-    .filter(r => (r.arabic || r.korean) && parseInt(r.u) === pNum)
+    .filter(r => (r.arabic || r.korean) && matchUnit(r.u))
     .sort((a, b) => (a.id_expression || '').localeCompare(b.id_expression || ''))
     .forEach(r => slides.push({ type: 'exp', data: r, pg, label: groupLabel }));
 
-  // 이 유닛의 나스 (nass U열 숫자 = pNum)
+  // 이 유닛의 나스
   nassRaw
-    .filter(r => (r.arabic || r.sual) && parseInt(r.u) === pNum)
+    .filter(r => (r.arabic || r.sual) && matchUnit(r.u))
     .sort((a, b) => (a.id_words || '').localeCompare(b.id_words || ''))
     .forEach(r => slides.push({ type: 'nass', data: r, pg, label: groupLabel }));
 
