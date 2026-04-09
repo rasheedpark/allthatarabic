@@ -285,7 +285,8 @@ body {
 
 <script>
 // ── 설정 ──────────────────────────────────────────
-const SHEET_ID = '1ZRSqvWf1kRRv6s-ifa56Pud1puQKdzbAGzLIstlN_M0';
+const SHEET_ID   = '1ZRSqvWf1kRRv6s-ifa56Pud1puQKdzbAGzLIstlN_M0';
+const AUDIO_BASE = 'https://storage.googleapis.com/all-that-arabic-14';
 
 const TYPE_EN = { pattern:'PATTERN', repertory:'REPERTORY', drill:'DRILL', exp:'EXPRESSION', nass:'NASS' };
 const TYPE_KO = { pattern:'패턴', repertory:'레퍼토리', drill:'드릴', exp:'익스프레션', nass:'나스' };
@@ -404,10 +405,10 @@ async function buildSlides(pg) {
     .sort((a, b) => (a.id_expression || '').localeCompare(b.id_expression || ''))
     .forEach(r => slides.push({ type: 'exp', data: r, pg, label: groupLabel }));
 
-  // 이 유닛의 나스
+  // 이 유닛의 나스 (id_nass 우선, 없으면 id_words fallback)
   nassRaw
     .filter(r => (r.arabic || r.sual) && matchUnit(r.u))
-    .sort((a, b) => (a.id_words || '').localeCompare(b.id_words || ''))
+    .sort((a, b) => (a.id_nass || a.id_words || '').localeCompare(b.id_nass || b.id_words || ''))
     .forEach(r => slides.push({ type: 'nass', data: r, pg, label: groupLabel }));
 
   if (_firstLoad) {
@@ -443,15 +444,18 @@ function renderSlide() {
 
   // 상단 우측: 슬라이드 타입
   if (s.type === 'nass') {
-    const nassMatch = (s.data?.id_words || '').match(/(\d+)$/);
+    const nassId = s.data?.id_nass || s.data?.id_words || '';
+    const nassMatch = nassId.match(/(\d+)$/);
     const nassNum = nassMatch ? parseInt(nassMatch[1], 10) : '';
     document.getElementById('ui-tr').textContent = 'NASS' + (nassNum ? ' · ' + nassNum : '');
   } else {
     document.getElementById('ui-tr').textContent = TYPE_EN[s.type] || s.type.toUpperCase();
   }
 
-  // 나스 버튼 표시
+  // 나스 지문 버튼: 나스 슬라이드에서만 표시
   document.getElementById('btn-nass').style.display = s.type === 'nass' ? 'flex' : 'none';
+  // 오디오 버튼: 패턴 슬라이드에서는 숨김
+  document.getElementById('btn-audio').style.display = s.type === 'pattern' ? 'none' : '';
 
   // ── 나스 슬라이드 ──
   if (s.type === 'nass') {
@@ -474,7 +478,7 @@ function renderSlide() {
 
 function renderNass(s) {
   const d = s.data;
-  const nassId = d.id_words || '';
+  const nassId = d.id_nass || d.id_words || '';
   const sual   = d.sual || '';
 
   const promptHtml = `
@@ -531,7 +535,7 @@ function buildIndex() {
     li.dataset.idx = i;
     const tag = TYPE_KO[s.type] || s.type;
     const preview = s.type === 'nass'
-      ? (s.data?.id_words || s.data?.sual || '나스').substring(0, 18)
+      ? (s.data?.id_nass || s.data?.id_words || s.data?.sual || '나스').substring(0, 18)
       : (s.data?.arabic || '').substring(0, 18);
     li.innerHTML = `<span class="idx-tag">${tag}</span><span class="idx-ar">${preview}</span>`;
     li.onclick = () => {
@@ -575,13 +579,31 @@ function buildUnitButtons(groups) {
 }
 
 // ── 오디오 ────────────────────────────────────────
+// GCS 규칙: AUDIO_BASE/{type}/{id}.mp3
+// 시트에 url 컬럼이 있으면 우선 사용, 없으면 ID 기반 자동 생성
 function getAudioUrl(s) {
   if (!s) return '';
   if (s.data?.audio_url) return s.data.audio_url;
-  if (s.type === 'nass')      return s.data?.url_nass || '';
-  if (s.type === 'exp')       return s.data?.url_expression || '';
-  if (s.type === 'repertory') return s.data?.url_repertory || '';
-  if (s.type === 'drill')     return s.data?.url_drill || '';
+  if (s.type === 'nass') {
+    if (s.data?.url_nass) return s.data.url_nass;
+    const id = s.data?.id_nass || s.data?.id_words || '';
+    return id ? `${AUDIO_BASE}/nass/${id}.mp3` : '';
+  }
+  if (s.type === 'exp') {
+    if (s.data?.url_expression) return s.data.url_expression;
+    const id = s.data?.id_expression || '';
+    return id ? `${AUDIO_BASE}/expression/${id}.mp3` : '';
+  }
+  if (s.type === 'repertory') {
+    if (s.data?.url_repertory) return s.data.url_repertory;
+    const id = s.data?.id_repertory || '';
+    return id ? `${AUDIO_BASE}/repertory/${id}.mp3` : '';
+  }
+  if (s.type === 'drill') {
+    if (s.data?.url_drill) return s.data.url_drill;
+    const id = s.data?.id_drill || '';
+    return id ? `${AUDIO_BASE}/drill/${id}.mp3` : '';
+  }
   return '';
 }
 
@@ -595,10 +617,18 @@ function toggleAudio() {
     document.getElementById('btn-audio').classList.remove('active');
   } else if (url) {
     audio.src = url;
-    audio.play().catch(() => {});
+    audio.play().catch(() => {
+      // 파일 없음 or 재생 불가 — 버튼 원복
+      audioPlaying = false;
+      document.getElementById('btn-audio').classList.remove('active');
+    });
     audioPlaying = true;
     document.getElementById('btn-audio').classList.add('active');
     audio.onended = () => {
+      audioPlaying = false;
+      document.getElementById('btn-audio').classList.remove('active');
+    };
+    audio.onerror = () => {
       audioPlaying = false;
       document.getElementById('btn-audio').classList.remove('active');
     };
