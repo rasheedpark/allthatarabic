@@ -757,7 +757,9 @@ async function init() {
     silentAudio.src = '';
     silentAudio.play().catch(() => {});
     overlay.style.display = 'none';
-    document.body.focus();
+    // tabIndex를 주고 포커스 → 키보드 이벤트 즉시 작동
+    document.documentElement.tabIndex = -1;
+    document.documentElement.focus();
   };
   overlay.addEventListener('click', dismiss, { once: true });
 }
