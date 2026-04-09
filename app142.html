@@ -143,10 +143,20 @@ body {
   width: 100%; padding: 0 clamp(1rem,5vw,4rem);
 }
 .nass-arabic-wrap .arabic {
+  font-family: 'Noto Kufi Arabic', 'Noto Sans Arabic', serif;
   font-size: clamp(1.4rem, 3.8vw, 4.5rem);
   text-align: center;
   direction: rtl;
   line-height: 2;
+}
+.nass-sual-note {
+  font-family: 'Noto Kufi Arabic', 'Noto Sans Arabic', serif;
+  font-size: clamp(0.75rem, 1.5vw, 1.3rem);
+  color: var(--sub);
+  direction: rtl;
+  text-align: center;
+  margin-top: 0.3em;
+  opacity: 0.8;
 }
 
 /* ── 사이드바 ── */
@@ -486,7 +496,6 @@ function renderNass(s) {
   const promptHtml = `
     <div class="nass-prompt">
       ${nassId ? `<div class="nass-id">${nassId}</div>` : ''}
-      ${sual ? `<div class="nass-sual" dir="rtl">${parseText(sual)}</div>` : ''}
     </div>`;
 
   const nassTextHtml = `
@@ -497,8 +506,10 @@ function renderNass(s) {
   document.getElementById('arabic-area').innerHTML =
     nassTextVisible ? (nassTextHtml + promptHtml) : promptHtml;
 
-  document.getElementById('text-area').innerHTML =
-    d.note ? `<div class="note">${parseText(d.note)}</div>` : '';
+  document.getElementById('text-area').innerHTML = `
+    ${d.note ? `<div class="note">${parseText(d.note)}</div>` : ''}
+    ${sual ? `<div class="nass-sual-note">${parseText(sual)}</div>` : ''}
+  `;
 }
 
 // ── 의미 토글 ──────────────────────────────────────
