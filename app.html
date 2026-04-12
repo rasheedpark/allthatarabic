@@ -420,7 +420,9 @@ function fetchRepertoryData() {
       if (script.parentNode) script.parentNode.removeChild(script);
       try {
         if (!resp?.table) throw new Error('No data: repertory');
-        const rows = (resp.table.rows||[])
+        const allRows = resp.table.rows || [];
+        // headers=0 이므로 첫 행이 컬럼 헤더 — 스킵
+        const rows = allRows.slice(1)
           .map(row => {
             const v = i => {
               const c = row.c?.[i];
@@ -436,7 +438,7 @@ function fetchRepertoryData() {
       } catch(e) { reject(e); }
     };
     const script = document.createElement('script');
-    script.src = `https://docs.google.com/spreadsheets/d/${REPERTORY_SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}&sheet=repertory`;
+    script.src = `https://docs.google.com/spreadsheets/d/${REPERTORY_SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}&sheet=repertory&headers=0`;
     script.onerror = () => { clearTimeout(timer); delete window[cb]; reject(new Error('Fail: repertory')); };
     document.head.appendChild(script);
   });
