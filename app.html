@@ -693,7 +693,7 @@ function buildIndex() {
 }
 
 function updateIndex() {
-  document.querySelectorAll('.idx-item').forEack(el => {
+  document.querySelectorAll('.idx-item').forEach(el => {
     el.classList.toggle('active', +el.dataset.idx === current);
   });
   const active = document.querySelector('.idx-item.active');
