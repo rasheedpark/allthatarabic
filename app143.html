@@ -608,9 +608,10 @@ function renderNass(s) {
   document.getElementById('arabic-area').innerHTML =
     showArabic ? (nassTextHtml + promptHtml) : promptHtml;
 
+  const op = meaningVisible ? '1' : '0';
   document.getElementById('text-area').innerHTML = `
-    ${d.korean ? `<div class="nass-korean-hint">${parseText(d.korean)}</div>` : ''}
-    ${d.note ? `<div class="note">${parseText(d.note)}</div>` : ''}
+    ${d.korean ? `<div class="nass-korean-hint" style="opacity:${op}">${parseText(d.korean)}</div>` : ''}
+    ${d.note ? `<div class="note" style="opacity:${op}">${parseText(d.note)}</div>` : ''}
     ${sual ? `<div class="nass-sual-note">${parseText(sual)}</div>` : ''}
   `;
 }
@@ -620,11 +621,15 @@ function toggleMeaning() {
   meaningVisible = !meaningVisible;
   document.getElementById('btn-meaning').classList.toggle('active', !meaningVisible);
   const s = slides[current];
-  if (!s || s.type === 'nass') return;
+  if (!s) return;
   const op = meaningVisible ? '1' : '0';
-  document.querySelectorAll('#text-area .korean, #text-area .note').forEach(el => {
-    el.style.opacity = op;
-  });
+  if (s.type === 'nass') {
+    renderNass(s);
+  } else {
+    document.querySelectorAll('#text-area .korean, #text-area .note').forEach(el => {
+      el.style.opacity = op;
+    });
+  }
 }
 
 // ── 나스 지문 토글 ─────────────────────────────────────
@@ -699,7 +704,7 @@ function buildUnitButtons(baseUnits) {
 function getAudioUrl(s) {
   if (!s) return '';
   const d = s.data;
-  if (d?.url) return d.url;
+  if (d?.url) return d.url.trim();
   const id = getRowId(d);
   if (!id) return '';
   const typeMap = { pattern:'pattern', repertory:'repertory', drill:'drill', exp:'expression', nass:'nass' };
@@ -710,26 +715,20 @@ function toggleAudio() {
   const audio = document.getElementById('slide-audio');
   const s = slides[current];
   const url = getAudioUrl(s);
+  const btn = document.getElementById('btn-audio');
   if (audioPlaying) {
     audio.pause(); audio.currentTime = 0;
     audioPlaying = false;
-    document.getElementById('btn-audio').classList.remove('active');
+    btn.classList.remove('active');
   } else if (url) {
+    const onEnd = () => { audioPlaying = false; btn.classList.remove('active'); };
+    audio.onended = onEnd;
+    audio.onerror = onEnd;
     audio.src = url;
-    audio.play().catch(() => {
-      audioPlaying = false;
-      document.getElementById('btn-audio').classList.remove('active');
-    });
+    audio.load();
+    audio.play().catch(onEnd);
     audioPlaying = true;
-    document.getElementById('btn-audio').classList.add('active');
-    audio.onended = () => {
-      audioPlaying = false;
-      document.getElementById('btn-audio').classList.remove('active');
-    };
-    audio.onerror = () => {
-      audioPlaying = false;
-      document.getElementById('btn-audio').classList.remove('active');
-    };
+    btn.classList.add('active');
   }
 }
 
