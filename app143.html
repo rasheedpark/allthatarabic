@@ -707,19 +707,18 @@ function toggleAudio() {
     btn.classList.remove('active');
   } else if (urls.length) {
     const onEnd = () => { audioPlaying = false; btn.classList.remove('active'); };
-    let idx = 0;
-    const tryNext = () => {
-      idx++;
-      if (idx >= urls.length) { onEnd(); return; }
-      audio.src = urls[idx];
+    // onerror와 play().catch가 동시에 발화할 수 있으므로 guard flag 사용
+    const tryPlay = (i) => {
+      if (i >= urls.length) { onEnd(); return; }
+      let fired = false;
+      const advance = () => { if (!fired) { fired = true; tryPlay(i + 1); } };
+      audio.onended = onEnd;
+      audio.onerror = advance;
+      audio.src = urls[i];
       audio.load();
-      audio.play().catch(tryNext);
+      audio.play().catch(advance);
     };
-    audio.onended = onEnd;
-    audio.onerror = tryNext;
-    audio.src = urls[0];
-    audio.load();
-    audio.play().catch(tryNext);
+    tryPlay(0);
     audioPlaying = true;
     btn.classList.add('active');
   }
