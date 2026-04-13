@@ -467,6 +467,10 @@ async function buildSlides(baseUnit) {
   slides = [];
   nassTextVisible = false;
   currentPg = baseUnit;
+  // 현재 유닛을 URL에 저장 → 새로고침 시 복원
+  const _usp = new URLSearchParams(location.search);
+  _usp.set('unit', baseUnit);
+  history.replaceState(null, '', '?' + _usp.toString());
 
   const [dsRaw, nassTabRaw] = await Promise.all([
     fetchSheetData(TAB_DATASHEET),
