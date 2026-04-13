@@ -684,33 +684,42 @@ function buildUnitButtons(baseUnits) {
 }
 
 // ── 오디오 URL ─────────────────────────────────────────
-// datasheet url 컬럼 우선, 없으면 GCS 자동 경로
-function getAudioUrl(s) {
-  if (!s) return '';
+// datasheet url 컬럼 우선, 없으면 GCS 자동 경로 (mp3 → wav 순으로 시도)
+function getAudioUrls(s) {
+  if (!s) return [];
   const d = s.data;
-  if (d?.url) return d.url.trim();
+  if (d?.url) return [d.url.trim()];
   const id = getRowId(d);
-  if (!id) return '';
+  if (!id) return [];
   const typeMap = { pattern:'pattern', repertory:'repertory', drill:'drill', exp:'expression', nass:'nass' };
-  return `${AUDIO_BASE}/${typeMap[s.type] || s.type}/${id}.mp3`;
+  const base = `${AUDIO_BASE}/${typeMap[s.type] || s.type}/${id}`;
+  return [base + '.mp3', base + '.wav'];
 }
 
 function toggleAudio() {
   const audio = document.getElementById('slide-audio');
   const s = slides[current];
-  const url = getAudioUrl(s);
+  const urls = getAudioUrls(s);
   const btn = document.getElementById('btn-audio');
   if (audioPlaying) {
     audio.pause(); audio.currentTime = 0;
     audioPlaying = false;
     btn.classList.remove('active');
-  } else if (url) {
+  } else if (urls.length) {
     const onEnd = () => { audioPlaying = false; btn.classList.remove('active'); };
+    let idx = 0;
+    const tryNext = () => {
+      idx++;
+      if (idx >= urls.length) { onEnd(); return; }
+      audio.src = urls[idx];
+      audio.load();
+      audio.play().catch(tryNext);
+    };
     audio.onended = onEnd;
-    audio.onerror = onEnd;
-    audio.src = url;
+    audio.onerror = tryNext;
+    audio.src = urls[0];
     audio.load();
-    audio.play().catch(onEnd);
+    audio.play().catch(tryNext);
     audioPlaying = true;
     btn.classList.add('active');
   }
