@@ -24,7 +24,7 @@
   --accent:    #0d8a7f;
   --accent-bg: #e8f5f4;
   --r-sm: 8px; --r-md: 12px; --r-lg: 18px;
-  --max-w: 600px;
+  --max-w: 760px;
   --font-kr: 'Spoqa Han Sans Neo', 'Apple SD Gothic Neo', sans-serif;
   --font-ar: 'Noto Sans Arabic', serif;
 }
@@ -40,6 +40,7 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
   max-width: var(--max-w);
   margin: 0 auto;
   background: var(--surface);
+  container-type: inline-size;
 }
 @media (min-width: 640px) {
   .app {
@@ -101,7 +102,7 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 /* ── 아랍어 ── */
 .arabic-text {
   font-family: var(--font-ar);
-  font-size: clamp(3.5rem, 9vw, 8.5rem);
+  font-size: clamp(3.5rem, 9cqi, 8.5rem);
   font-weight: 700;
   line-height: 1.6;
   text-align: center; direction: rtl;
@@ -109,12 +110,12 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 }
 .arabic-text.writing-font {
   font-family: 'Dongol', var(--font-ar);
-  font-size: clamp(2.5rem, 8vw, 6rem);
+  font-size: clamp(2.5rem, 8cqi, 6rem);
   font-weight: normal;
 }
 /* 나스 지문: 문단 크기 */
 .arabic-text.nass-passage {
-  font-size: clamp(1rem, 3.5vw, 1.7rem);
+  font-size: clamp(1rem, 3.5cqi, 1.7rem);
   font-weight: 400; line-height: 2;
 }
 
