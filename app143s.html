@@ -586,15 +586,13 @@ async function buildSlides(baseUnit) {
   const firstPattern = dsRows.find(r => normalizeType(r.type) === 'pattern');
   dsRows.forEach(r => slides.push({ type: normalizeType(r.type), data: r, unit: baseUnit }));
 
-  // 나스탭: ptn_key 또는 u열로 매핑
-  const ptnKey  = firstPattern?.ptn_key || '';
-  const unitNum = baseUnit.replace(/^[A-Za-z]+0*/, '');
+  // 나스: type=nass + getRowU(id_nass 기반)로 유닛 매핑
   nassRaw
     .filter(r => {
+      if (normalizeType(r.type) !== 'nass') return false;
       const s = (r.status || '').toLowerCase();
       if (s !== '' && s !== 'confirmed') return false;
-      if (ptnKey) return r.ptn_key === ptnKey;
-      return r.u === unitNum || r.u === ('p' + unitNum.toLowerCase());
+      return getRowU(r).toUpperCase() === baseUnit.toUpperCase();
     })
     .sort((a, b) => getRowId(a).localeCompare(getRowId(b)))
     .forEach(r => slides.push({ type: 'nass', data: r, unit: baseUnit }));
