@@ -257,6 +257,17 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 }
 .nav-btn:active  { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
 .nav-btn:disabled { color: var(--border); border-color: var(--border); cursor: default; }
+/* 단축키 힌트 */
+.kbd {
+  display: inline-block;
+  font-size: 10px; font-weight: 500;
+  padding: 1px 5px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  opacity: 0.55;
+  vertical-align: middle;
+  letter-spacing: 0;
+}
 /* 해석 보기 버튼 */
 .meaning-btn {
   flex: 1; height: 44px;
@@ -271,13 +282,14 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
   border-color: var(--accent);
   color: var(--accent);
 }
-/* 오디오 버튼 (작게) */
+/* 오디오 버튼 */
 .audio-btn {
-  width: 44px; height: 44px; flex-shrink: 0;
-  border-radius: 50%;
+  height: 44px; flex-shrink: 0;
+  padding: 0 14px;
+  border-radius: 22px;
   background: var(--accent); color: #fff;
-  font-size: 18px;
-  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center; gap: 4px;
   transition: opacity .12s;
 }
 .audio-btn:active  { opacity: .82; }
@@ -429,8 +441,8 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
   </div>
 </div>
 
-<!-- meaning-hidden 클래스로 시작 (해석 기본 숨김) -->
-<div class="app meaning-hidden" id="app" style="display:none">
+<!-- 해석 기본 표시 -->
+<div class="app" id="app" style="display:none">
   <div class="top-bar">
     <div class="meta">
       <span class="unit-label" id="unit-label">P01</span>
@@ -448,8 +460,8 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
       <button class="nav-btn" id="prev-btn">◀</button>
       <button class="nav-btn" id="next-btn">▶</button>
     </div>
-    <button class="meaning-btn" id="meaning-btn">보기</button>
-    <button class="audio-btn" id="audio-btn">♪</button>
+    <button class="meaning-btn active" id="meaning-btn">가리기 <span class="kbd">space</span></button>
+    <button class="audio-btn" id="audio-btn">♪ <span class="kbd">S</span></button>
   </div>
 </div>
 
@@ -476,7 +488,7 @@ let currentUnit = null;
 let audioPlaying = false;
 let sidebarOpen  = false;
 let _firstLoad   = true;
-let meaningVisible     = false; // 전역: 해석 보기/가리기
+let meaningVisible     = true;  // 전역: 해석 보기/가리기 (기본: 표시)
 let nassPassageVisible = false; // 슬라이드별: 나스 지문
 
 /* ━━━━ JSONP 로더 ━━━━ */
@@ -682,21 +694,22 @@ function renderNormal(area, s) {
 /* ━━━━ 나스 슬라이드 렌더링 ━━━━ */
 function renderNass(area, s) {
   area.innerHTML = '';
-  nassPassageVisible = true;  // 기본: 지문 표시
+  nassPassageVisible = false; // 기본: 지문 숨김
   const d = s.data;
 
-  // 지문 닫기 버튼 + arabic — 맨 위, arabic 있을 때만
+  // 지문 보기 버튼 + arabic — 맨 위, arabic 있을 때만
   if (d.arabic) {
     const passBtn = document.createElement('button');
-    passBtn.className = 'passage-btn active';
+    passBtn.className = 'passage-btn';
     passBtn.id = 'passage-btn';
-    passBtn.textContent = '지문 닫기';
+    passBtn.textContent = '지문 보기';
     passBtn.addEventListener('click', togglePassage);
     area.appendChild(passBtn);
 
     const passageDiv = document.createElement('div');
     passageDiv.className = 'passage-content';
     passageDiv.id = 'passage-content';
+    passageDiv.style.display = 'none';
     const arEl = document.createElement('div');
     arEl.className = 'arabic-text nass-passage';
     arEl.innerHTML = parseText(d.arabic);
@@ -764,7 +777,7 @@ function toggleMeaning() {
   document.getElementById('app').classList.toggle('meaning-hidden', !meaningVisible);
   const btn = document.getElementById('meaning-btn');
   btn.classList.toggle('active', meaningVisible);
-  btn.textContent = meaningVisible ? '가리기' : '보기';
+  btn.innerHTML = (meaningVisible ? '가리기' : '보기') + ' <span class="kbd">space</span>';
 }
 
 /* ━━━━ 나스 지문 토글 (슬라이드별) ━━━━ */
