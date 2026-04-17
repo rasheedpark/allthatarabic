@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>올댓아라빅 복습 · v1.43</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/spoqa/spoqa-han-sans@latest/css/SpoqaHanSansNeo.css" rel="stylesheet">
+<style>
+
+@font-face {
+  font-family: 'Dongol';
+  src: url('https://storage.googleapis.com/all-that-arabic-14/fonts/Dongol-Regular.otf') format('opentype');
+  font-display: swap;
+}
+
+:root {
+  --bg:        #f5f5f4;
+  --surface:   #ffffff;
+  --border:    #e5e7eb;
+  --text:      #1a1a1a;
+  --text-sub:  #6b7280;
+  --accent:    #0d8a7f;
+  --accent-bg: #e8f5f4;
+  --r-sm: 8px; --r-md: 12px; --r-lg: 18px;
+  --max-w: 600px;
+  --font-kr: 'Spoqa Han Sans Neo', 'Apple SD Gothic Neo', sans-serif;
+  --font-ar: 'Noto Sans Arabic', serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-kr); font-size: 16px; -webkit-text-size-adjust: 100%; }
+button { font-family: var(--font-kr); cursor: pointer; border: none; }
+
+/* ── 앱 레이아웃 ── */
+.app {
+  display: flex; flex-direction: column;
+  height: 100dvh;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  background: var(--surface);
+}
+@media (min-width: 640px) {
+  .app {
+    margin-top: 28px; margin-bottom: 28px;
+    height: calc(100dvh - 56px);
+    border-radius: var(--r-lg);
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 20px rgba(0,0,0,.07);
+    overflow: hidden;
+  }
+}
+
+/* ── Korean/Note 전역 토글 ── */
+/* 기본 상태: 해석 숨김 (.app.meaning-hidden) */
+.app.meaning-hidden .korean-text,
+.app.meaning-hidden .note-text,
+.app.meaning-hidden .korean-hint { display: none; }
+
+/* ── 상단 바 ── */
+.top-bar {
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px; height: 48px;
+  border-bottom: 1px solid var(--border);
+}
+.meta { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-sub); }
+.unit-label { font-weight: 700; color: var(--text); font-size: 14px; }
+.type-badge {
+  font-size: 10px; font-weight: 700; letter-spacing: .05em;
+  padding: 2px 8px; border-radius: 999px;
+  background: var(--accent-bg); color: var(--accent);
+  text-transform: uppercase;
+}
+.progress-counter {
+  font-size: 12px; color: var(--text-sub);
+  margin-left: auto; margin-right: 8px;
+  white-space: nowrap;
+}
+.menu-btn {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; color: var(--text-sub);
+  font-size: 20px; border-radius: var(--r-sm);
+  transition: background .12s, color .12s;
+}
+.menu-btn:active { background: var(--accent-bg); color: var(--accent); }
+
+/* ── 슬라이드 영역 ── */
+.slide-area {
+  flex: 1; overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  display: flex; flex-direction: column;
+  justify-content: center;
+  padding: 28px 24px 20px;
+  gap: 16px;
+}
+
+/* ── 아랍어 ── */
+.arabic-text {
+  font-family: var(--font-ar);
+  font-size: clamp(3.5rem, 9vw, 8.5rem);
+  font-weight: 700;
+  line-height: 1.6;
+  text-align: center; direction: rtl;
+  color: var(--text);
+}
+.arabic-text.writing-font {
+  font-family: 'Dongol', var(--font-ar);
+  font-size: clamp(2.5rem, 8vw, 6rem);
+  font-weight: normal;
+}
+/* 나스 지문: 문단 크기 */
+.arabic-text.nass-passage {
+  font-size: clamp(1rem, 3.5vw, 1.7rem);
+  font-weight: 400; line-height: 2;
+}
+
+/* ── 요약 (summary) — 항상 표시, 슬라이드 맨 아래 ── */
+.summary-text {
+  font-size: 13px;
+  color: var(--text-sub);
+  line-height: 1.7;
+  text-align: center;
+  margin-top: 32px;
+}
+
+/* ── 한국어 / 노트 / 힌트 ── */
+.korean-text {
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
+  color: var(--text);
+  line-height: 1.55;
+  text-align: center;
+}
+.note-text {
+  font-size: clamp(.85rem, 2vw, 1rem);
+  color: var(--text-sub);
+  line-height: 1.55;
+  text-align: center;
+}
+.korean-hint {
+  font-size: 14px; color: var(--text-sub);
+  line-height: 1.55; text-align: center;
+}
+
+/* ── 나스 질문 (sual) — 항상 표시, Arabic 폰트, rtl ── */
+.nass-sual {
+  font-family: var(--font-ar);
+  font-size: clamp(0.9rem, 3.5vw, 1.2rem);
+  font-weight: 500;
+  color: var(--text-sub);
+  direction: rtl;
+  text-align: center;
+  line-height: 1.8;
+  white-space: pre-line;
+  opacity: 0.85;
+}
+/* ── 나스 한국어 힌트 — 작게, 해석 토글 따름 ── */
+.nass-korean-hint {
+  font-size: clamp(0.75rem, 2.5vw, 0.95rem);
+  color: var(--text-sub);
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* ── 지문 보기 버튼 (nass 슬라이드용 per-slide 토글) ── */
+.passage-btn {
+  display: block; width: 100%;
+  padding: 11px 16px;
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text-sub);
+  font-size: 14px; font-weight: 600;
+  text-align: center;
+  transition: border-color .15s, color .15s;
+}
+.passage-btn.active { border-color: var(--accent); color: var(--accent); }
+
+/* ── 지문 내용 (Arabic만) ── */
+.passage-content {
+  padding: 16px;
+  background: #f9fafb;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  text-align: center;
+}
+
+/* ── 퀴즈 선택지 (1열) ── */
+.choices { display: flex; flex-direction: column; gap: 8px; }
+.choice {
+  position: relative;
+  display: flex; align-items: center; gap: 10px;
+  min-height: 58px; padding: 13px 14px;
+  background: #f9fafb;
+  border: 1.5px solid var(--border); border-radius: var(--r-md);
+  color: var(--text); cursor: pointer; direction: rtl;
+  transition: background .15s, border-color .15s, opacity .2s;
+}
+.choice-label { font-family: var(--font-ar); font-size: 14px; font-weight: 700; color: var(--text-sub); flex-shrink: 0; min-width: 22px; text-align: center; }
+.choice-text  { font-family: var(--font-ar); font-size: clamp(16px, 4.5vw, 22px); line-height: 1.6; flex: 1; text-align: center; white-space: pre-line; }
+.choice-mark  { position: absolute; top: 9px; left: 12px; font-size: 14px; font-family: sans-serif; }
+.choice:hover:not(:disabled) { background: var(--accent-bg); border-color: var(--accent); }
+.choice.correct { background: #f0fdf4; border-color: #22c55e; color: #166534; }
+.choice.wrong   { background: #fff5f5; border-color: #ef4444; color: #991b1b; }
+.choice.answer  { background: #f0fdf4; border-color: #22c55e; color: #166534; }
+.choice.dimmed  { opacity: .3; cursor: default; }
+.choice:disabled { cursor: default; }
+.choice.correct .choice-mark::after { content: '✓'; color: #22c55e; }
+.choice.wrong   .choice-mark::after { content: '✗'; color: #ef4444; }
+.choice.answer  .choice-mark::after { content: '✓'; color: #22c55e; }
+.reset-btn {
+  align-self: center; padding: 8px 22px;
+  background: none; border: 1px solid var(--border);
+  border-radius: 999px; color: var(--text-sub);
+  font-size: 13px; display: none;
+  transition: border-color .15s, color .15s;
+}
+.reset-btn.visible { display: block; }
+.reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── 강조 마크업 ── */
+.hl-box {
+  display: inline-block;
+  border: 2.5px solid var(--accent);
+  background: rgba(13,138,127,0.10);
+  border-radius: 10px;
+  padding: 0.15em 0.4em;
+  margin: 0 0.1em;
+  vertical-align: middle;
+  line-height: 1.3;
+}
+.hl-bold { font-weight: 700; color: var(--accent); }
+
+/* ── 진행 표시 ── */
+.progress-text { font-size: 12px; color: var(--text-sub); text-align: center; margin-top: 4px; }
+
+/* ── 하단 버튼바 ── */
+.bottom-bar {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  padding-bottom: max(10px, calc(10px + env(safe-area-inset-bottom, 0px)));
+  border-top: 1px solid var(--border);
+}
+/* 이전/다음 그룹 */
+.nav-group { display: flex; gap: 6px; flex-shrink: 0; }
+.nav-btn {
+  width: 44px; height: 44px;
+  border: 1.5px solid var(--border); border-radius: 50%;
+  background: var(--surface); color: var(--text); font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .1s, border-color .1s;
+}
+.nav-btn:active  { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+.nav-btn:disabled { color: var(--border); border-color: var(--border); cursor: default; }
+/* 해석 보기 버튼 */
+.meaning-btn {
+  flex: 1; height: 44px;
+  border: 1.5px solid var(--border);
+  border-radius: 22px;
+  background: var(--surface); color: var(--text-sub);
+  font-size: 14px; font-weight: 600;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.meaning-btn.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+/* 오디오 버튼 (작게) */
+.audio-btn {
+  width: 44px; height: 44px; flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity .12s;
+}
+.audio-btn:active  { opacity: .82; }
+.audio-btn.playing { background: var(--accent-bg); color: var(--accent); border: 1.5px solid var(--accent); }
+.audio-btn:disabled { background: var(--border); cursor: default; }
+
+/* ── 사이드바 ── */
+.sidebar-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; pointer-events: none; opacity: 0;
+  transition: opacity .2s;
+}
+.sidebar-overlay.open { pointer-events: auto; opacity: 1; }
+.sidebar-backdrop { flex: 1; background: rgba(0,0,0,.35); }
+.sidebar-panel {
+  width: min(300px, 82vw); height: 100%;
+  background: var(--surface);
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  display: flex; flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform .22s ease;
+  border-right: 1px solid var(--border);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.sidebar-overlay.open .sidebar-panel { transform: translateX(0); }
+.sidebar-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px 12px; border-bottom: 1px solid var(--border);
+}
+.sidebar-header h2 { font-size: 16px; font-weight: 700; }
+.sidebar-close { background: none; color: var(--text-sub); font-size: 20px; padding: 4px; }
+.sb-section { padding: 13px 20px 5px; font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text-sub); }
+.unit-chips { padding: 4px 12px 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.unit-chip {
+  padding: 5px 14px; border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: none; font-size: 13px; font-weight: 600;
+  color: var(--text-sub); transition: all .12s;
+}
+.unit-chip.active { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+#index-list { flex: 1; overflow-y: auto; list-style: none; padding: 3px 0; }
+.idx-item {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 9px 20px; font-size: 14px; color: var(--text-sub);
+  cursor: pointer; border-left: 3px solid transparent;
+  transition: background .1s;
+}
+.idx-item:hover { background: var(--accent-bg); color: var(--text); }
+.idx-item.active { background: var(--accent-bg); color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
+.idx-tag { font-size: 10px; color: var(--accent); background: var(--accent-bg); padding: 1px 6px; border-radius: 4px; flex-shrink: 0; text-transform: uppercase; font-weight: 700; }
+.idx-ar { font-family: var(--font-ar); direction: rtl; font-size: 15px; }
+.sidebar-ver { margin-top: auto; padding: 13px 20px; font-size: 12px; color: var(--text-sub); border-top: 1px solid var(--border); }
+
+/* ── 온보딩 ── */
+.onboarding-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.55);
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.onboarding-card {
+  width: 100%; max-width: var(--max-w);
+  background: var(--surface);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  padding: 28px 24px;
+  padding-bottom: max(28px, calc(28px + env(safe-area-inset-bottom, 0px)));
+}
+@media (min-width: 640px) {
+  .onboarding-overlay { align-items: center; }
+  .onboarding-card { border-radius: var(--r-lg); max-width: 400px; margin-bottom: 28px; }
+}
+.onboarding-card h2 { margin-bottom: 22px; font-size: 17px; font-weight: 700; text-align: center; }
+.hint-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.hint-row:last-of-type { border-bottom: none; margin-bottom: 4px; }
+.hint-icon { font-size: 20px; width: 32px; text-align: center; flex-shrink: 0; }
+.hint-text { font-size: 14px; line-height: 1.5; }
+.hint-text strong { font-weight: 700; display: block; }
+.hint-text span { font-size: 13px; color: var(--text-sub); }
+.start-btn {
+  display: block; width: 100%; margin-top: 20px; padding: 16px;
+  background: var(--accent); color: #fff; border-radius: var(--r-md);
+  font-size: 16px; font-weight: 700; transition: opacity .12s;
+}
+.start-btn:active { opacity: .85; }
+
+/* ── 로딩 ── */
+.loading-screen {
+  position: fixed; inset: 0;
+  background: var(--surface);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 16px; z-index: 300;
+}
+.loading-screen p { font-size: 14px; color: var(--text-sub); }
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loading">
+  <div class="spinner"></div>
+  <p>데이터 로딩 중...</p>
+</div>
+
+<div class="onboarding-overlay" id="onboarding" style="display:none">
+  <div class="onboarding-card">
+    <h2>올댓아라빅 복습 앱</h2>
+    <div class="hint-row">
+      <div class="hint-icon">↔</div>
+      <div class="hint-text">
+        <strong>스와이프</strong>
+        <span>좌우로 밀면 슬라이드가 이동합니다</span>
+      </div>
+    </div>
+    <div class="hint-row">
+      <div class="hint-icon">📖</div>
+      <div class="hint-text">
+        <strong>보기 / 가리기</strong>
+        <span>버튼을 누르면 한국어 해석이 표시됩니다</span>
+      </div>
+    </div>
+    <div class="hint-row">
+      <div class="hint-icon">♪</div>
+      <div class="hint-text">
+        <strong>듣기</strong>
+        <span>아랍어 발음을 들을 수 있습니다</span>
+      </div>
+    </div>
+    <button class="start-btn" id="start-btn">시작하기</button>
+  </div>
+</div>
+
+<div class="sidebar-overlay" id="sidebar">
+  <div class="sidebar-backdrop" id="sb-backdrop"></div>
+  <div class="sidebar-panel">
+    <div class="sidebar-header">
+      <h2>목차</h2>
+      <button class="sidebar-close" id="sb-close">✕</button>
+    </div>
+    <div class="sb-section">유닛</div>
+    <div class="unit-chips" id="unit-chips"></div>
+    <div class="sb-section">슬라이드</div>
+    <ul id="index-list"></ul>
+    <div class="sidebar-ver">올댓아라빅 v1.43</div>
+  </div>
+</div>
+
+<!-- meaning-hidden 클래스로 시작 (해석 기본 숨김) -->
+<div class="app meaning-hidden" id="app" style="display:none">
+  <div class="top-bar">
+    <div class="meta">
+      <span class="unit-label" id="unit-label">P01</span>
+      <span style="color:var(--border)">·</span>
+      <span class="type-badge" id="type-badge">패턴</span>
+    </div>
+    <span class="progress-counter" id="progress-counter"></span>
+    <button class="menu-btn" id="menu-btn">☰</button>
+  </div>
+
+  <div class="slide-area" id="slide-area"></div>
+
+  <div class="bottom-bar">
+    <div class="nav-group">
+      <button class="nav-btn" id="prev-btn">◀</button>
+      <button class="nav-btn" id="next-btn">▶</button>
+    </div>
+    <button class="meaning-btn" id="meaning-btn">보기</button>
+    <button class="audio-btn" id="audio-btn">♪</button>
+  </div>
+</div>
+
+<audio id="slide-audio"></audio>
+
+<script>
+
+/* ━━━━ 설정 ━━━━ */
+const SHEET_ID   = '16lEfx8CSJsU5EuDmF-9xlP9E_SGPa6TTcNhEeBg9ycg';
+const AUDIO_BASE = 'https://storage.googleapis.com/all-that-arabic-14';
+const TAB_DS     = 'datasheet';
+const GID_NASS   = '847423907';
+
+const TYPE_KO = {
+  pattern:'패턴', repertory:'래퍼토리', writing:'쓰기', drill:'드릴', exp:'익스프레션',
+  nass:'나스', repetition:'따라하기', question_response:'묻고답하기',
+  dialogue_completion:'빈칸채우기', listening:'듣고고르기',
+  incomplete:'불완전문장', reading:'독해'
+};
+
+/* ━━━━ 상태 ━━━━ */
+let slides = [], current = 0;
+let currentUnit = null;
+let audioPlaying = false;
+let sidebarOpen  = false;
+let _firstLoad   = true;
+let meaningVisible     = false; // 전역: 해석 보기/가리기
+let nassPassageVisible = false; // 슬라이드별: 나스 지문
+
+/* ━━━━ JSONP 로더 ━━━━ */
+const _cache = {};
+function fetchSheet(nameOrGid, isGid = false) {
+  const key = isGid ? 'gid:' + nameOrGid : nameOrGid;
+  if (_cache[key]) return Promise.resolve(_cache[key]);
+  return new Promise((resolve, reject) => {
+    const cb = '__gviz_' + key.replace(/\W/g, '') + '_' + Date.now();
+    const timer = setTimeout(() => { delete window[cb]; reject(new Error('Timeout')); }, 15000);
+    window[cb] = resp => {
+      clearTimeout(timer);
+      delete window[cb];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      try {
+        if (!resp?.table) throw new Error('데이터 없음');
+        const headers = resp.table.cols.map(c => (c.label || c.id || '').toLowerCase().trim());
+        const rows = (resp.table.rows || []).map(row => {
+          const obj = {};
+          headers.forEach((h, i) => {
+            if (!h) return;
+            const cell = row.c?.[i];
+            const val = cell && cell.v != null
+              ? (cell.f != null && (typeof cell.v === 'number' || String(cell.v).startsWith('Date(')) ? cell.f : cell.v)
+              : null;
+            obj[h] = val != null ? String(val).trim() : '';
+          });
+          return obj;
+        }).filter(r => Object.values(r).some(v => v !== ''));
+        _cache[key] = rows; resolve(rows);
+      } catch(e) { reject(e); }
+    };
+    const script = document.createElement('script');
+    const param = isGid ? `gid=${nameOrGid}` : `sheet=${encodeURIComponent(nameOrGid)}`;
+    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}&${param}&headers=1`;
+    script.onerror = () => { clearTimeout(timer); delete window[cb]; reject(new Error('로드 실패')); };
+    document.head.appendChild(script);
+  });
+}
+
+/* ━━━━ 유틸 ━━━━ */
+function normalizeType(t) {
+  const s = (t || '').toLowerCase().trim();
+  if (s.startsWith('pattern')) return 'pattern';
+  if (s === 'repertorie' || s === 'repertory') return 'repertory';
+  if (s === 'drill')   return 'drill';
+  if (s === 'exp' || s === 'expression') return 'exp';
+  if (s === 'nass')    return 'nass';
+  if (s === 'writing') return 'writing';
+  return s;
+}
+function getRowId(r) { return r.id || r.id_datasheet || r.id_nass || ''; }
+function getRowU(r)  { return r.u || getRowId(r).split('-')[0] || ''; }
+function getBaseUnit(u) { return (u || '').replace(/[a-z]+$/, ''); }
+
+function parseText(str) {
+  if (!str) return '';
+  return str
+    .replace(/<br\s*\/?>/gi, '<br>')
+    .replace(/\n|\r\n|\r/g, '<br>')
+    .replace(/_([^_\n]+)_/g, '<span class="hl-box">$1</span>')
+    .replace(/\*([^*\n]+)\*/g, '<span class="hl-bold">$1</span>');
+}
+
+function getChoice(d, key) {
+  return d['ch_' + key] || d['choice_' + key] || d[key] || '';
+}
+
+/* ━━━━ buildSlides ━━━━ */
+async function buildSlides(baseUnit) {
+  slides = []; currentUnit = baseUnit;
+  nassPassageVisible = false;
+
+  const sp = new URLSearchParams(location.search);
+  sp.set('unit', baseUnit);
+  history.replaceState(null, '', '?' + sp.toString());
+
+  const [dsRaw, nassRaw] = await Promise.all([
+    fetchSheet(TAB_DS),
+    fetchSheet(GID_NASS, true),
+  ]);
+
+  const escaped = baseUnit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const subReg  = new RegExp('^' + escaped + '[a-z]?$', 'i');
+  const validTypes = new Set(['pattern', 'repertory', 'writing', 'drill', 'exp']);
+
+  const dsRows = dsRaw.filter(r => {
+    const t = normalizeType(r.type);
+    if (!validTypes.has(t)) return false;
+    if (!subReg.test(getRowU(r))) return false;
+    const s = (r.status || '').toLowerCase();
+    return s === '' || s === 'confirmed';
+  });
+
+  const firstPattern = dsRows.find(r => normalizeType(r.type) === 'pattern');
+  dsRows.forEach(r => slides.push({ type: normalizeType(r.type), data: r, unit: baseUnit }));
+
+  // 나스탭: ptn_key 또는 u열로 매핑
+  const ptnKey  = firstPattern?.ptn_key || '';
+  const unitNum = baseUnit.replace(/^[A-Za-z]+0*/, '');
+  nassRaw
+    .filter(r => {
+      const s = (r.status || '').toLowerCase();
+      if (s !== '' && s !== 'confirmed') return false;
+      if (ptnKey) return r.ptn_key === ptnKey;
+      return r.u === unitNum || r.u === ('p' + unitNum.toLowerCase());
+    })
+    .sort((a, b) => getRowId(a).localeCompare(getRowId(b)))
+    .forEach(r => slides.push({ type: 'nass', data: r, unit: baseUnit }));
+
+  if (_firstLoad) {
+    const saved = parseInt(new URLSearchParams(location.search).get('slide')) || 0;
+    current = Math.max(0, Math.min(slides.length - 1, saved));
+    _firstLoad = false;
+  } else {
+    current = 0;
+  }
+
+  buildIndex();
+  renderSlide();
+  document.querySelectorAll('.unit-chip').forEach(b =>
+    b.classList.toggle('active', b.dataset.unit === baseUnit)
+  );
+}
+
+/* ━━━━ renderSlide ━━━━ */
+function renderSlide() {
+  if (!slides.length) return;
+  const s = slides[current];
+
+  // 상단 바
+  document.getElementById('unit-label').textContent = s.unit;
+  const displayType = s.type === 'nass'
+    ? (() => { const m = getRowId(s.data).match(/(\d+)$/); return '나스 ' + (m ? m[1] : ''); })()
+    : (TYPE_KO[s.type] || s.type);
+  document.getElementById('type-badge').textContent = displayType;
+
+  // 페이지 번호 (상단바)
+  document.getElementById('progress-counter').textContent = `${current + 1} / ${slides.length}`;
+
+  // 이전/다음 버튼
+  document.getElementById('prev-btn').disabled = current === 0;
+  document.getElementById('next-btn').disabled = current === slides.length - 1;
+
+  // 오디오 버튼
+  const audioBtn = document.getElementById('audio-btn');
+  if (audioPlaying) {
+    document.getElementById('slide-audio').pause();
+    audioPlaying = false;
+    audioBtn.classList.remove('playing');
+    audioBtn.textContent = '♪';
+  }
+  audioBtn.disabled = !(s.data?.url || getRowId(s.data));
+
+  // 슬라이드 영역 렌더링
+  const area = document.getElementById('slide-area');
+  area.scrollTop = 0;
+
+  if (s.type === 'nass') renderNass(area, s);
+  else                   renderNormal(area, s);
+
+  updateIndex();
+}
+
+/* ━━━━ 일반 슬라이드 렌더링 ━━━━ */
+function renderNormal(area, s) {
+  area.innerHTML = '';
+  const d = s.data;
+  const isWriting = s.type === 'writing';
+
+  // 아랍어
+  const arEl = document.createElement('div');
+  arEl.className = 'arabic-text' + (isWriting ? ' writing-font' : '');
+  arEl.innerHTML = parseText(d.arabic || '');
+  area.appendChild(arEl);
+
+  // 한국어 (.app.meaning-hidden에서 CSS로 숨김)
+  if (d.korean) {
+    const krEl = document.createElement('div');
+    krEl.className = 'korean-text';
+    krEl.innerHTML = parseText(d.korean);
+    area.appendChild(krEl);
+  }
+
+  // 노트
+  if (d.note) {
+    const noteEl = document.createElement('div');
+    noteEl.className = 'note-text';
+    noteEl.innerHTML = parseText(d.note);
+    area.appendChild(noteEl);
+  }
+
+  // 요약 (summary) — 항상 표시, 맨 아래 (위쪽에 틸 선)
+  if (d.summary && (s.type === 'pattern' || s.type === 'repertory')) {
+    const sumEl = document.createElement('div');
+    sumEl.className = 'summary-text';
+    sumEl.innerHTML = parseText(d.summary);
+    area.appendChild(sumEl);
+  }
+
+}
+
+/* ━━━━ 나스 슬라이드 렌더링 ━━━━ */
+function renderNass(area, s) {
+  area.innerHTML = '';
+  nassPassageVisible = true;  // 기본: 지문 표시
+  const d = s.data;
+
+  // 지문 닫기 버튼 + arabic — 맨 위, arabic 있을 때만
+  if (d.arabic) {
+    const passBtn = document.createElement('button');
+    passBtn.className = 'passage-btn active';
+    passBtn.id = 'passage-btn';
+    passBtn.textContent = '지문 닫기';
+    passBtn.addEventListener('click', togglePassage);
+    area.appendChild(passBtn);
+
+    const passageDiv = document.createElement('div');
+    passageDiv.className = 'passage-content';
+    passageDiv.id = 'passage-content';
+    const arEl = document.createElement('div');
+    arEl.className = 'arabic-text nass-passage';
+    arEl.innerHTML = parseText(d.arabic);
+    passageDiv.appendChild(arEl);
+    area.appendChild(passageDiv);
+  }
+
+  // 한국어 힌트 — 해석 토글 따름 (korean-hint 클래스)
+  if (d.korean) {
+    const krEl = document.createElement('div');
+    krEl.className = 'korean-hint nass-korean-hint';
+    krEl.innerHTML = parseText(d.korean);
+    area.appendChild(krEl);
+  }
+
+  // 노트 — 해석 토글 따름
+  if (d.note) {
+    const noteEl = document.createElement('div');
+    noteEl.className = 'note-text korean-hint';
+    noteEl.innerHTML = parseText(d.note);
+    area.appendChild(noteEl);
+  }
+
+  // 질문 (sual) — 항상 표시, 맨 아래
+  if (d.sual) {
+    const sualEl = document.createElement('div');
+    sualEl.className = 'nass-sual';
+    sualEl.innerHTML = parseText(d.sual);
+    area.appendChild(sualEl);
+  }
+
+  // 퀴즈 선택지
+  const KEYS   = ['alif', 'ba', 'jim', 'dal'];
+  const LABELS = ['أ.', 'ب.', 'ج.', 'د.'];
+  const choices = KEYS.map(k => getChoice(d, k));
+  if (choices.some(c => !!c)) {
+    const jawab = (d.jawab || '').toLowerCase().trim();
+    const choicesEl = document.createElement('div');
+    choicesEl.className = 'choices';
+    choicesEl.id = 'nass-choices';
+    choicesEl.dataset.jawab = jawab;
+    KEYS.forEach((key, i) => {
+      if (!choices[i]) return;
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.dataset.key = key;
+      btn.innerHTML = `<span class="choice-label">${LABELS[i]}</span><span class="choice-text">${parseText(choices[i])}</span><span class="choice-mark"></span>`;
+      btn.addEventListener('click', () => pickChoice(btn));
+      choicesEl.appendChild(btn);
+    });
+    area.appendChild(choicesEl);
+    const resetBtn = document.createElement('button');
+    resetBtn.className = 'reset-btn';
+    resetBtn.id = 'nass-reset';
+    resetBtn.textContent = '다시 풀기';
+    resetBtn.addEventListener('click', resetQuiz);
+    area.appendChild(resetBtn);
+  }
+}
+
+
+/* ━━━━ 해석 토글 (전역, CSS 클래스 방식 — 재렌더 불필요) ━━━━ */
+function toggleMeaning() {
+  meaningVisible = !meaningVisible;
+  document.getElementById('app').classList.toggle('meaning-hidden', !meaningVisible);
+  const btn = document.getElementById('meaning-btn');
+  btn.classList.toggle('active', meaningVisible);
+  btn.textContent = meaningVisible ? '가리기' : '보기';
+}
+
+/* ━━━━ 나스 지문 토글 (슬라이드별) ━━━━ */
+function togglePassage() {
+  nassPassageVisible = !nassPassageVisible;
+  const btn = document.getElementById('passage-btn');
+  const el  = document.getElementById('passage-content');
+  if (btn && el) {
+    el.style.display = nassPassageVisible ? '' : 'none';
+    btn.textContent = nassPassageVisible ? '지문 닫기' : '지문 보기';
+    btn.classList.toggle('active', nassPassageVisible);
+  }
+}
+
+/* ━━━━ 퀴즈 ━━━━ */
+function pickChoice(btn) {
+  const container = document.getElementById('nass-choices');
+  if (!container || container.dataset.answered) return;
+  container.dataset.answered = '1';
+  const jawab = container.dataset.jawab;
+  const isCorrect = btn.dataset.key === jawab;
+  if (isCorrect) {
+    btn.classList.add('correct');
+  } else {
+    btn.classList.add('wrong');
+    const ans = container.querySelector('[data-key="' + jawab + '"]');
+    if (ans) ans.classList.add('answer');
+  }
+  container.querySelectorAll('.choice').forEach(c => {
+    if (!c.classList.contains('correct') && !c.classList.contains('wrong') && !c.classList.contains('answer')) {
+      c.classList.add('dimmed');
+    }
+    c.disabled = true;
+  });
+  const rb = document.getElementById('nass-reset');
+  if (rb) rb.classList.add('visible');
+}
+
+function resetQuiz() {
+  const container = document.getElementById('nass-choices');
+  if (!container) return;
+  delete container.dataset.answered;
+  container.querySelectorAll('.choice').forEach(c => {
+    c.classList.remove('correct', 'wrong', 'answer', 'dimmed');
+    c.disabled = false;
+  });
+  const rb = document.getElementById('nass-reset');
+  if (rb) rb.classList.remove('visible');
+}
+
+/* ━━━━ 오디오 ━━━━ */
+function getAudioUrls(s) {
+  if (!s) return [];
+  const d = s.data;
+  if (d?.url) return [d.url.trim()];
+  const id = getRowId(d);
+  if (!id) return [];
+  const dir = { pattern:'pattern', repertory:'repertory', writing:'writing', drill:'drill', exp:'expression', nass:'nass' };
+  const base = `${AUDIO_BASE}/${dir[s.type] || s.type}/${id}`;
+  return [base + '.mp3', base + '.wav'];
+}
+
+function toggleAudio() {
+  const audio = document.getElementById('slide-audio');
+  const btn   = document.getElementById('audio-btn');
+  if (audioPlaying) {
+    audio.pause(); audio.currentTime = 0;
+    audioPlaying = false;
+    btn.classList.remove('playing'); btn.textContent = '♪';
+    return;
+  }
+  const urls = getAudioUrls(slides[current]);
+  if (!urls.length) return;
+  const onEnd = () => { audioPlaying = false; btn.classList.remove('playing'); btn.textContent = '♪'; };
+  const tryPlay = i => {
+    if (i >= urls.length) { onEnd(); return; }
+    let fired = false;
+    const next = () => { if (!fired) { fired = true; tryPlay(i + 1); } };
+    audio.onended = onEnd; audio.onerror = next;
+    audio.src = urls[i]; audio.load(); audio.play().catch(next);
+  };
+  tryPlay(0);
+  audioPlaying = true;
+  btn.classList.add('playing'); btn.textContent = '■';
+}
+
+/* ━━━━ 내비게이션 ━━━━ */
+function goTo(n) {
+  if (!slides.length) return;
+  n = Math.max(0, Math.min(slides.length - 1, n));
+  if (n === current) return;
+  if (audioPlaying) {
+    document.getElementById('slide-audio').pause();
+    audioPlaying = false;
+    document.getElementById('audio-btn').classList.remove('playing');
+    document.getElementById('audio-btn').textContent = '♪';
+  }
+  nassPassageVisible = false;
+  current = n;
+  const sp = new URLSearchParams(location.search);
+  sp.set('slide', current);
+  history.replaceState(null, '', '?' + sp.toString());
+  renderSlide();
+}
+
+/* ━━━━ 사이드바 ━━━━ */
+function openSidebar()  { sidebarOpen = true;  document.getElementById('sidebar').classList.add('open'); }
+function closeSidebar() { sidebarOpen = false; document.getElementById('sidebar').classList.remove('open'); }
+
+/* ━━━━ 인덱스 ━━━━ */
+function buildIndex() {
+  const list = document.getElementById('index-list');
+  list.innerHTML = '';
+  slides.forEach((s, i) => {
+    const li = document.createElement('li');
+    li.className = 'idx-item'; li.dataset.idx = i;
+    const tag = TYPE_KO[s.type] || s.type;
+    const preview = s.type === 'nass'
+      ? (s.data?.sual || s.data?.korean || '나스').substring(0, 20)
+      : (s.data?.arabic || '').substring(0, 18);
+    li.innerHTML = `<span class="idx-tag">${tag}</span><span class="idx-ar">${preview}</span>`;
+    li.addEventListener('click', () => { current = i; renderSlide(); closeSidebar(); });
+    list.appendChild(li);
+  });
+}
+function updateIndex() {
+  document.querySelectorAll('.idx-item').forEach(el =>
+    el.classList.toggle('active', +el.dataset.idx === current)
+  );
+  const active = document.querySelector('.idx-item.active');
+  if (active) active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+/* ━━━━ 유닛 버튼 ━━━━ */
+function buildUnitChips(units) {
+  const chips = document.getElementById('unit-chips');
+  chips.innerHTML = '';
+  units.forEach(u => {
+    const btn = document.createElement('button');
+    btn.className = 'unit-chip'; btn.textContent = u; btn.dataset.unit = u;
+    btn.classList.toggle('active', u === currentUnit);
+    btn.addEventListener('click', async () => {
+      if (currentUnit === u) { closeSidebar(); return; }
+      document.getElementById('loading').style.display = 'flex';
+      await buildSlides(u);
+      document.getElementById('loading').style.display = 'none';
+      closeSidebar();
+    });
+    chips.appendChild(btn);
+  });
+}
+
+/* ━━━━ 온보딩 ━━━━ */
+function hideOnboarding() {
+  document.getElementById('onboarding').style.display = 'none';
+  try { localStorage.setItem('ata_onboarded', '1'); } catch(_) {}
+}
+
+/* ━━━━ 초기화 ━━━━ */
+async function init() {
+  try {
+    const dsRaw = await fetchSheet(TAB_DS);
+    const baseUnits = [...new Set(
+      dsRaw.filter(r => normalizeType(r.type) === 'pattern')
+        .map(r => getBaseUnit(getRowU(r))).filter(Boolean)
+    )].sort((a, b) => {
+      const rank = u => u[0].toUpperCase() === 'P' ? '0' : u[0].toUpperCase() === 'G' ? '1' : '2';
+      return (rank(a) + a).localeCompare(rank(b) + b, undefined, { numeric: true });
+    });
+
+    buildUnitChips(baseUnits);
+    const savedUnit = new URLSearchParams(location.search).get('unit');
+    const startUnit = (savedUnit && baseUnits.includes(savedUnit)) ? savedUnit : (baseUnits[0] || 'P01');
+    await buildSlides(startUnit);
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+
+    let onboarded = false;
+    try { onboarded = !!localStorage.getItem('ata_onboarded'); } catch(_) {}
+    if (!onboarded) document.getElementById('onboarding').style.display = 'flex';
+
+  } catch(e) {
+    document.getElementById('loading').querySelector('p').textContent = '로딩 실패: ' + e.message;
+    console.error(e);
+  }
+}
+
+/* ━━━━ 이벤트 바인딩 ━━━━ */
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('prev-btn').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('next-btn').addEventListener('click', () => goTo(current + 1));
+  document.getElementById('audio-btn').addEventListener('click', toggleAudio);
+  document.getElementById('meaning-btn').addEventListener('click', toggleMeaning);
+  document.getElementById('menu-btn').addEventListener('click', openSidebar);
+  document.getElementById('sb-close').addEventListener('click', closeSidebar);
+  document.getElementById('sb-backdrop').addEventListener('click', closeSidebar);
+  document.getElementById('start-btn').addEventListener('click', hideOnboarding);
+
+  // 스와이프
+  const area = document.getElementById('slide-area');
+  let tx = null, ty = null;
+  area.addEventListener('touchstart', e => {
+    tx = e.touches[0].clientX; ty = e.touches[0].clientY;
+  }, { passive: true });
+  area.addEventListener('touchend', e => {
+    if (tx === null) return;
+    const dx = e.changedTouches[0].clientX - tx;
+    const dy = e.changedTouches[0].clientY - ty;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      dx < 0 ? goTo(current + 1) : goTo(current - 1);
+    }
+    tx = null; ty = null;
+  }, { passive: true });
+
+  // 키보드 단축키 (데스크톱)
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    switch(e.key) {
+      case 'ArrowRight': case 'ArrowDown': e.preventDefault(); goTo(current + 1); break;
+      case 'ArrowLeft':  case 'ArrowUp':   e.preventDefault(); goTo(current - 1); break;
+      case ' ':          e.preventDefault(); toggleMeaning(); break;
+      case 'm': case 'M': sidebarOpen ? closeSidebar() : openSidebar(); break;
+      case 's': case 'S': toggleAudio(); break;
+      case 't': case 'T':
+        if (document.getElementById('passage-btn')) togglePassage();
+        break;
+      case 'Escape': if (sidebarOpen) closeSidebar(); break;
+      case 'End':   e.preventDefault(); goTo(slides.length - 1); break;
+      case 'Home':  e.preventDefault(); goTo(0); break;
+    }
+  });
+
+  init();
+});
+
+</script>
+</body>
+</html>

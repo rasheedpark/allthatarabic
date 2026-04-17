@@ -402,9 +402,9 @@ function getRowU(r) {
   return id.split('-')[0] || '';
 }
 
-// 행의 ID값: id > id_datasheet > id_nass 순
+// 행의 ID값: id > id_datasheet > id_nass > id_words 순
 function getRowId(r) {
-  return r.id || r.id_datasheet || r.id_nass || '';
+  return r.id || r.id_datasheet || r.id_nass || r.id_words || '';
 }
 
 // ── JSONP 데이터 로더 ──────────────────────────────────
@@ -516,7 +516,6 @@ async function buildSlides(baseUnit) {
     nassTabRaw
       .filter(r => {
         if (r.ptn_key !== unitPtnKey) return false;
-        if (normalizeType(r.type) !== 'nass') return false;
         const s = (r.status || '').toLowerCase();
         return s === '' || s === 'confirmed';
       })
@@ -548,11 +547,13 @@ function renderSlide() {
   document.getElementById('progress').style.width = ((current+1)/slides.length*100)+'%';
 
   // 중앙 타입 레이블 업데이트
-  document.getElementById('ui-tr').textContent = TYPE_EN[s.type] || s.type.toUpperCase();
+  const typeLabel = TYPE_EN[s.type] || s.type.toUpperCase();
+  const nassNum = s.type === 'nass' ? (() => { const m = getRowId(s.data).match(/(\d+)$/); return m ? ' · nass-' + m[1] : ''; })() : '';
+  document.getElementById('ui-tr').textContent = typeLabel + nassNum;
 
   // 상단 좌측: 유닛명 · 아랍어 레이블
   const tl = document.getElementById('ui-tl');
-  tl.innerHTML = `<div id="ui-tr-inner" style="font-size:clamp(0.55rem,0.85vw,0.75rem);text-transform:uppercase;letter-spacing:2.5px;color:var(--sub);opacity:0.65;margin-bottom:0.3rem;">${TYPE_EN[s.type] || s.type.toUpperCase()}</div>`
+  tl.innerHTML = `<div id="ui-tr-inner" style="font-size:clamp(0.55rem,0.85vw,0.75rem);text-transform:uppercase;letter-spacing:2.5px;color:var(--sub);opacity:0.65;margin-bottom:0.3rem;">${typeLabel + nassNum}</div>`
     + `<div>${s.pg || ''} · ${s.label || ''}</div>`;
 
   // 나스 지문 버튼: 나스 슬라이드에서만 표시
@@ -571,7 +572,8 @@ function renderSlide() {
   document.getElementById('arabic-area').innerHTML =
     `<div class="arabic${isWriting ? ' arabic-writing' : ''}">${parseText(d.arabic || '')}</div>`;
 
-  const op = meaningVisible ? '1' : '0';
+  // 래퍼토리: 해석 항상 표시 / 그 외: 전역 meaningVisible 상태 따름
+  const op = (s.type === 'repertory' || meaningVisible) ? '1' : '0';
   document.getElementById('text-area').innerHTML = `
     <div class="korean" style="opacity:${op}">${parseText(d.korean || '')}</div>
     ${d.note ? `<div class="note" style="opacity:${op}">${parseText(d.note)}</div>` : ''}
@@ -604,8 +606,9 @@ function renderNass(s) {
   `;
 }
 
-// ── 의미 토글 ──────────────────────────────────────────
+// ── 의미 토글 — 래퍼토리는 무시 ─────────────────────────
 function toggleMeaning() {
+  if (slides[current]?.type === 'repertory') return;
   meaningVisible = !meaningVisible;
   document.getElementById('btn-meaning').classList.toggle('active', !meaningVisible);
   const s = slides[current];
@@ -692,12 +695,14 @@ function buildUnitButtons(baseUnits) {
 function getAudioUrls(s) {
   if (!s) return [];
   const d = s.data;
-  if (d?.url) return [d.url.trim()];
   const id = getRowId(d);
-  if (!id) return [];
-  const typeMap = { pattern:'pattern', repertory:'repertory', drill:'drill', exp:'expression', nass:'nass' };
-  const base = `${AUDIO_BASE}/${typeMap[s.type] || s.type}/${id}`;
-  return [base + '.mp3', base + '.wav'];
+  if (id) {
+    const typeMap = { pattern:'pattern', repertory:'repertory', drill:'drill', exp:'expression', nass:'nass' };
+    const base = `${AUDIO_BASE}/${typeMap[s.type] || s.type}/${id}`;
+    return [base + '.mp3', base + '.wav'];
+  }
+  if (d?.url) return [d.url.trim().replace(/\.[^./]+$/, m => m.toLowerCase())];
+  return [];
 }
 
 function toggleAudio() {
