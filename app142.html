@@ -632,7 +632,7 @@ function buildUnitButtons(groups) {
 }
 
 // ── 오디오 ────────────────────────────────────────
-// GCS 규칙: AUDIO_BASE/{type}/{id}.mp3
+// GCS 규칙: AUDIO_BASE/listening/{id}.mp3
 // 시트에 url 컬럼이 있으면 우선 사용, 없으면 ID 기반 자동 생성
 function getAudioUrl(s) {
   if (!s) return '';
@@ -640,22 +640,22 @@ function getAudioUrl(s) {
   if (s.type === 'nass') {
     if (s.data?.url_nass) return s.data.url_nass;
     const id = s.data?.id_nass || s.data?.id_words || '';
-    return id ? `${AUDIO_BASE}/nass/${id}.mp3` : '';
+    return id ? `${AUDIO_BASE}/listening/${id}.mp3` : '';
   }
   if (s.type === 'exp') {
     if (s.data?.url_expression) return s.data.url_expression;
     const id = s.data?.id_expression || '';
-    return id ? `${AUDIO_BASE}/expression/${id}.mp3` : '';
+    return id ? `${AUDIO_BASE}/listening/${id}.mp3` : '';
   }
   if (s.type === 'repertory') {
     if (s.data?.url_repertory) return s.data.url_repertory;
     const id = s.data?.id_repertory || '';
-    return id ? `${AUDIO_BASE}/repertory/${id}.mp3` : '';
+    return id ? `${AUDIO_BASE}/listening/${id}.mp3` : '';
   }
   if (s.type === 'drill') {
     if (s.data?.url_drill) return s.data.url_drill;
     const id = s.data?.id_drill || '';
-    return id ? `${AUDIO_BASE}/drill/${id}.mp3` : '';
+    return id ? `${AUDIO_BASE}/listening/${id}.mp3` : '';
   }
   return '';
 }
