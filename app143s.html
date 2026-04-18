@@ -58,6 +58,8 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 .app.meaning-hidden .korean-text,
 .app.meaning-hidden .note-text,
 .app.meaning-hidden .korean-hint { display: none; }
+/* 서머리 슬라이드: 한국어 항상 표시 */
+.app.meaning-hidden .summary-always { display: block !important; }
 
 /* ── 상단 바 ── */
 .top-bar {
@@ -120,12 +122,38 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 }
 
 /* ── 요약 (summary) — 항상 표시, 슬라이드 맨 아래 ── */
-.summary-text {
-  font-size: 13px;
+/* ── 서머리 슬라이드 ── */
+.summary-card {
+  width: 100%;
+  display: flex; flex-direction: column;
+  gap: 0;
+}
+.summary-item {
+  display: flex; align-items: baseline;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.summary-item:last-child { border-bottom: none; }
+.summary-arabic {
+  font-family: var(--font-ar);
+  font-size: clamp(1.3rem, 4cqi, 2rem);
+  font-weight: 700;
+  direction: rtl;
+  flex-shrink: 0;
+  color: var(--text);
+}
+.summary-korean {
+  font-size: 14px;
   color: var(--text-sub);
-  line-height: 1.7;
-  text-align: center;
-  margin-top: 32px;
+  line-height: 1.6;
+  flex: 1;
+}
+.summary-note {
+  font-size: 12px;
+  color: var(--text-sub);
+  opacity: 0.7;
+  margin-top: 2px;
 }
 
 /* ── 한국어 / 노트 / 힌트 ── */
@@ -476,7 +504,7 @@ const TAB_DS     = 'datasheet';
 const GID_NASS   = '847423907';
 
 const TYPE_KO = {
-  pattern:'패턴', repertory:'래퍼토리', writing:'쓰기', drill:'드릴', exp:'익스프레션',
+  pattern:'패턴', summary:'서머리', repertory:'래퍼토리', writing:'쓰기', drill:'드릴', exp:'익스프레션',
   nass:'나스', repetition:'따라하기', question_response:'묻고답하기',
   dialogue_completion:'빈칸채우기', listening:'듣고고르기',
   incomplete:'불완전문장', reading:'독해'
@@ -533,6 +561,7 @@ function fetchSheet(nameOrGid, isGid = false) {
 function normalizeType(t) {
   const s = (t || '').toLowerCase().trim();
   if (s.startsWith('pattern')) return 'pattern';
+  if (s === 'summary')  return 'summary';
   if (s === 'repertorie' || s === 'repertory') return 'repertory';
   if (s === 'drill')   return 'drill';
   if (s === 'exp' || s === 'expression') return 'exp';
@@ -573,7 +602,8 @@ async function buildSlides(baseUnit) {
 
   const escaped = baseUnit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const subReg  = new RegExp('^' + escaped + '[a-z]?$', 'i');
-  const validTypes = new Set(['pattern', 'repertory', 'writing', 'drill', 'exp']);
+  // 학생용: 레퍼토리 제외, 서머리 포함
+  const validTypes = new Set(['summary', 'pattern', 'writing', 'drill', 'exp']);
 
   const dsRows = dsRaw.filter(r => {
     const t = normalizeType(r.type);
@@ -583,8 +613,12 @@ async function buildSlides(baseUnit) {
     return s === '' || s === 'confirmed';
   });
 
-  const firstPattern = dsRows.find(r => normalizeType(r.type) === 'pattern');
-  dsRows.forEach(r => slides.push({ type: normalizeType(r.type), data: r, unit: baseUnit }));
+  // 서머리를 맨 앞으로, 나머지는 시트 순서 유지
+  const summarySlides = dsRows.filter(r => normalizeType(r.type) === 'summary');
+  const otherSlides   = dsRows.filter(r => normalizeType(r.type) !== 'summary');
+  [...summarySlides, ...otherSlides].forEach(r =>
+    slides.push({ type: normalizeType(r.type), data: r, unit: baseUnit })
+  );
 
   // 나스: type=nass + getRowU(id_nass 기반)로 유닛 매핑
   nassRaw
@@ -639,14 +673,15 @@ function renderSlide() {
     audioBtn.classList.remove('playing');
     audioBtn.textContent = '♪';
   }
-  audioBtn.disabled = !(s.data?.url || getRowId(s.data));
+  audioBtn.disabled = s.type === 'summary' || !(s.data?.url || getRowId(s.data));
 
   // 슬라이드 영역 렌더링
   const area = document.getElementById('slide-area');
   area.scrollTop = 0;
 
-  if (s.type === 'nass') renderNass(area, s);
-  else                   renderNormal(area, s);
+  if (s.type === 'nass')    renderNass(area, s);
+  else if (s.type === 'summary') renderSummary(area, s);
+  else                      renderNormal(area, s);
 
   updateIndex();
 }
@@ -679,14 +714,41 @@ function renderNormal(area, s) {
     area.appendChild(noteEl);
   }
 
-  // 요약 (summary) — 항상 표시, 맨 아래 (위쪽에 틸 선)
-  if (d.summary && (s.type === 'pattern' || s.type === 'repertory')) {
-    const sumEl = document.createElement('div');
-    sumEl.className = 'summary-text';
-    sumEl.innerHTML = parseText(d.summary);
-    area.appendChild(sumEl);
-  }
+}
 
+/* ━━━━ 서머리 슬라이드 렌더링 ━━━━ */
+function renderSummary(area, s) {
+  area.innerHTML = '';
+  const d = s.data;
+
+  // arabic이 있으면 플래시카드 스타일, 없으면 텍스트 목록 스타일
+  if (d.arabic) {
+    // 단일 카드 — 아랍어 크게, 한국어/노트 아래
+    const arEl = document.createElement('div');
+    arEl.className = 'arabic-text';
+    arEl.innerHTML = parseText(d.arabic);
+    area.appendChild(arEl);
+
+    if (d.korean) {
+      const krEl = document.createElement('div');
+      krEl.className = 'korean-text summary-always';
+      krEl.innerHTML = parseText(d.korean);
+      area.appendChild(krEl);
+    }
+    if (d.note) {
+      const noteEl = document.createElement('div');
+      noteEl.className = 'note-text summary-always';
+      noteEl.innerHTML = parseText(d.note);
+      area.appendChild(noteEl);
+    }
+  } else if (d.note) {
+    // arabic 없이 노트만 있는 경우 — 텍스트 설명 카드
+    const noteEl = document.createElement('div');
+    noteEl.className = 'note-text summary-always';
+    noteEl.style.cssText = 'font-size:1rem;line-height:1.9;color:var(--text);text-align:center;padding:0 8px;';
+    noteEl.innerHTML = parseText(d.note);
+    area.appendChild(noteEl);
+  }
 }
 
 /* ━━━━ 나스 슬라이드 렌더링 ━━━━ */
@@ -895,7 +957,9 @@ function buildIndex() {
     const tag = TYPE_KO[s.type] || s.type;
     const preview = s.type === 'nass'
       ? (s.data?.sual || s.data?.korean || '나스').substring(0, 20)
-      : (s.data?.arabic || '').substring(0, 18);
+      : s.type === 'summary'
+        ? (s.data?.arabic || s.data?.note || '서머리').substring(0, 18)
+        : (s.data?.arabic || '').substring(0, 18);
     li.innerHTML = `<span class="idx-tag">${tag}</span><span class="idx-ar">${preview}</span>`;
     li.addEventListener('click', () => { current = i; renderSlide(); closeSidebar(); });
     list.appendChild(li);
