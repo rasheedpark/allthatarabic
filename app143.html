@@ -697,8 +697,7 @@ function getAudioUrls(s) {
   const d = s.data;
   const id = getRowId(d);
   if (id) {
-    const typeMap = { pattern:'pattern', repertory:'repertory', drill:'drill', exp:'expression', nass:'nass' };
-    const base = `${AUDIO_BASE}/${typeMap[s.type] || s.type}/${id}`;
+    const base = `${AUDIO_BASE}/listening/${id}`;
     return [base + '.mp3', base + '.wav'];
   }
   if (d?.url) return [d.url.trim().replace(/\.[^./]+$/, m => m.toLowerCase())];
