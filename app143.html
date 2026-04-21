@@ -688,15 +688,14 @@ function buildUnitButtons(baseUnits) {
 }
 
 // ── 오디오 URL ─────────────────────────────────────────
-// datasheet url 컬럼 우선, 없으면 GCS 자동 경로 (mp3 → wav 순으로 시도)
+// datasheet url 컬럼 우선, 없으면 GCS listening/ 경로 (mp3 → wav 순으로 시도)
 function getAudioUrls(s) {
   if (!s) return [];
   const d = s.data;
   if (d?.url) return [d.url.trim()];
   const id = getRowId(d);
   if (!id) return [];
-  const typeMap = { pattern:'pattern', repertory:'repertory', drill:'drill', exp:'expression', nass:'nass' };
-  const base = `${AUDIO_BASE}/${typeMap[s.type] || s.type}/${id}`;
+  const base = `${AUDIO_BASE}/listening/${id}`;
   return [base + '.mp3', base + '.wav'];
 }
 
