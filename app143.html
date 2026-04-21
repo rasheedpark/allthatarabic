@@ -510,19 +510,17 @@ async function buildSlides(baseUnit) {
     slides.push({ type: t, data: r, pg: baseUnit, label: groupLabel });
   });
 
-  // 나스: 나스탭(gid)에서 ptn_key + type=nass + status=confirmed 기준으로 로드
-  const unitPtnKey = firstPattern?.ptn_key;
-  if (unitPtnKey) {
-    nassTabRaw
-      .filter(r => {
-        if (r.ptn_key !== unitPtnKey) return false;
-        if (normalizeType(r.type) !== 'nass') return false;
-        const s = (r.status || '').toLowerCase();
-        return s === '' || s === 'confirmed';
-      })
-      .sort((a, b) => getRowId(a).localeCompare(getRowId(b)))
-      .forEach(r => slides.push({ type: 'nass', data: r, pg: baseUnit, label: groupLabel }));
-  }
+  // 나스: 나스탭(gid)에서 U열 기준으로 로드 (P06~P08처럼 pattern 없는 유닛도 포함)
+  nassTabRaw
+    .filter(r => {
+      const rowUnit = (r.U || r.u || '').trim();
+      if (rowUnit !== baseUnit) return false;
+      if (normalizeType(r.type) !== 'nass') return false;
+      const s = (r.status || '').toLowerCase();
+      return s === '' || s === 'confirmed';
+    })
+    .sort((a, b) => getRowId(a).localeCompare(getRowId(b)))
+    .forEach(r => slides.push({ type: 'nass', data: r, pg: baseUnit, label: groupLabel }));
 
   if (_firstLoad) {
     const savedSlide = parseInt(new URLSearchParams(location.search).get('slide')) || 0;
