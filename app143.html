@@ -578,7 +578,22 @@ function renderSlide() {
     ${d.note ? `<div class="note" style="opacity:${op}">${parseText(d.note)}</div>` : ''}
   `;
 
+  if (['drill', 'exp'].includes(s.type)) fitArabicText();
   updateIndex();
+}
+
+// drill/exp: 아랍어가 한 줄 넘으면 폰트 축소
+function fitArabicText() {
+  const el = document.querySelector('#arabic-area .arabic');
+  if (!el) return;
+  el.style.fontSize = '';  // CSS 기본값으로 리셋
+  const minPx = 28;
+  let fs = parseFloat(getComputedStyle(el).fontSize);
+  // 한 줄 높이 = fontSize × line-height(1.6) + 여유 4px
+  while (el.scrollHeight > fs * 1.6 + 4 && fs > minPx) {
+    fs -= 2;
+    el.style.fontSize = fs + 'px';
+  }
 }
 
 function renderNass(s) {
