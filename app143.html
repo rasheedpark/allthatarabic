@@ -95,6 +95,10 @@ body {
   line-height: 1.6;
   text-align: center;
 }
+/* A/G 유닛: 문장형이라 폰트 살짝 축소 */
+.arabic.arabic-sentence {
+  font-size: clamp(2rem, 6vw, 6rem);
+}
 
 /* ── 한국어/노트 ── */
 .korean {
@@ -568,8 +572,9 @@ function renderSlide() {
   // ── 일반 슬라이드 (pattern / repertory / drill / exp / writing) ──
   const d = s.data;
   const isWriting = s.type === 'writing';
+  const isSentence = /^[AG]/i.test(s.pg || '');
   document.getElementById('arabic-area').innerHTML =
-    `<div class="arabic${isWriting ? ' arabic-writing' : ''}">${parseText(d.arabic || '')}</div>`;
+    `<div class="arabic${isWriting ? ' arabic-writing' : ''}${isSentence ? ' arabic-sentence' : ''}">${parseText(d.arabic || '')}</div>`;
 
   // 래퍼토리: 해석 항상 표시 / 그 외: 전역 meaningVisible 상태 따름
   const op = (s.type === 'repertory' || meaningVisible) ? '1' : '0';
