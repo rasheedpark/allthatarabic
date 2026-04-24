@@ -143,6 +143,8 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 /* ── 서머리 슬라이드 — 세로 가운데 정렬 ── */
 .slide-area.summary-mode {
   gap: clamp(20px, 5cqi, 36px);
+  padding-left: clamp(24px, 8cqi, 80px);
+  padding-right: clamp(24px, 8cqi, 80px);
 }
 
 /* 아랍어 섹션 */
@@ -376,7 +378,8 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
   line-height: 1.3;
 }
 .hl-bold { font-weight: 700; color: var(--accent); }
-/* 아랍어 글자 안에서는 굵기 합성 없이 색상만 */
+/* 아랍어 포함 span — font-weight 변경 없이 색상만 (ligature 보존) */
+.hl-bold.hl-ar,
 .summary-arabic-letter .hl-bold { font-weight: inherit; }
 
 /* ── 진행 표시 ── */
@@ -703,7 +706,10 @@ function parseText(str) {
     .replace(/<br\s*\/?>/gi, '<br>')
     .replace(/\n|\r\n|\r/g, '<br>')
     .replace(/_([^_\n]+)_/g, '<span class="hl-box">$1</span>')
-    .replace(/\*([^*\n]+)\*/g, '<span class="hl-bold">$1</span>');
+    .replace(/\*([^*\n]+)\*/g, (_, m) => {
+      const hasArabic = /[\u0600-\u06FF]/.test(m);
+      return `<span class="hl-bold${hasArabic ? ' hl-ar' : ''}">${m}</span>`;
+    });
 }
 
 function getChoice(d, key) {
@@ -1320,7 +1326,7 @@ function hideOnboarding() {
 /* ━━━━ 초기화 ━━━━ */
 async function init() {
   try {
-    const MAX_UNIT_NUM = 5;  // P05까지만
+    const MAX_UNIT_NUM = 10;  // P10까지 + A 시리즈 전체 허용
     const dsRaw = await fetchSheet(TAB_DS);
     const baseUnits = [...new Set(
       dsRaw.filter(r => normalizeType(r.type) === 'summary')
@@ -1329,8 +1335,12 @@ async function init() {
       const rank = u => u[0].toUpperCase() === 'P' ? '0' : u[0].toUpperCase() === 'G' ? '1' : '2';
       return (rank(a) + a).localeCompare(rank(b) + b, undefined, { numeric: true });
     }).filter(u => {
-      const n = parseInt(u.replace(/\D/g, ''));
-      return !isNaN(n) && n <= MAX_UNIT_NUM;
+      const prefix = u[0].toUpperCase();
+      if (prefix === 'P' || prefix === 'G') {
+        const n = parseInt(u.replace(/\D/g, ''));
+        return !isNaN(n) && n <= MAX_UNIT_NUM;
+      }
+      return true; // A 시리즈 등 다른 접두사는 제한 없이 포함
     });
 
     buildUnitChips(baseUnits);
