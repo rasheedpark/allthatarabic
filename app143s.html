@@ -739,9 +739,7 @@ function parseText(str) {
     .replace(/_([^_\n]+)_/g, '<span class="hl-box">$1</span>')
     .replace(/\*([^*\n]+)\*/g, (_, m) => {
       const hasArabic = /[\u0600-\u06FF]/.test(m);
-      // 아랍어 span 경계에 ZWJ 삽입 → 리가처(글자 연결) 유지
-      const zwj = hasArabic ? '\u200D' : '';
-      return `${zwj}<span class="hl-bold${hasArabic ? ' hl-ar' : ''}">${m}</span>${zwj}`;
+      return `<span class="hl-bold${hasArabic ? ' hl-ar' : ''}">${m}</span>`;
     });
 }
 
