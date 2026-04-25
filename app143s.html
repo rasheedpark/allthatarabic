@@ -846,6 +846,26 @@ function renderSlide() {
   updateIndex();
 }
 
+/* ━━━━ 아랍어 본문 줄넘침 보정 ━━━━ */
+// white-space:nowrap으로 각 줄의 최대 너비를 측정하고, 넘치면 폰트 크기를 최소한으로 줄임
+function fitArabicText(el) {
+  requestAnimationFrame(() => {
+    if (!el.isConnected) return;
+    const containerW = el.clientWidth;
+    if (!containerW) return;
+
+    el.style.whiteSpace = 'nowrap';
+    const maxLineW = el.scrollWidth;   // <br> 기준 가장 긴 줄 너비
+    el.style.whiteSpace = '';
+
+    if (maxLineW <= containerW) return; // 줄넘침 없음
+
+    const fs = parseFloat(window.getComputedStyle(el).fontSize);
+    const newFs = Math.max(fs * (containerW / maxLineW) * 0.97, 16);
+    el.style.fontSize = newFs + 'px';
+  });
+}
+
 /* ━━━━ 글자 행 오버플로 보정 ━━━━ */
 function fitRow(el, afterFit) {
   requestAnimationFrame(() => {
@@ -888,6 +908,7 @@ function renderNormal(area, s) {
   arEl.className = 'arabic-text' + (isWriting ? ' writing-font' : '');
   arEl.innerHTML = parseText(d.arabic || '');
   area.appendChild(arEl);
+  fitArabicText(arEl);
 
   // 한국어 (.app.meaning-hidden에서 CSS로 숨김)
   if (d.korean) {
