@@ -115,9 +115,18 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
   display: flex; flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 28px 24px 20px;
+}
+/* 세로 가운데 정렬 + 넘칠 때 위부터 스크롤 */
+.slide-inner {
+  margin-block: auto;
+  width: 100%;
+  display: flex; flex-direction: column;
   gap: 16px;
+}
+.slide-area.summary-mode .slide-inner {
+  gap: clamp(20px, 5cqi, 36px);
 }
 
 /* ── 아랍어 ── */
@@ -853,9 +862,14 @@ function renderSlideContent(area, s) {
   area.innerHTML = '';
   area.className = 'slide-area';
 
-  if (s.type === 'nass')         renderNass(area, s);
-  else if (s.type === 'summary') renderSummary(area, s);
-  else                           renderNormal(area, s);
+  // .slide-inner: margin-block:auto → 짧으면 세로 가운데, 넘치면 위부터 스크롤
+  const inner = document.createElement('div');
+  inner.className = 'slide-inner';
+  area.appendChild(inner);
+
+  if (s.type === 'nass')         renderNass(inner, s);
+  else if (s.type === 'summary') renderSummary(area, inner, s);
+  else                           renderNormal(inner, s);
 }
 
 /* ━━━━ 일반 슬라이드 렌더링 ━━━━ */
@@ -935,8 +949,7 @@ function renderSummaryDesc(desc, container) {
 }
 
 /* ━━━━ 서머리 슬라이드 렌더링 ━━━━ */
-function renderSummary(area, s) {
-  area.innerHTML = '';
+function renderSummary(area, inner, s) {
   area.classList.add('summary-mode');
   const d = s.data;
   const desc = d.script || d.note || '';
@@ -1109,14 +1122,14 @@ function renderSummary(area, s) {
     }
   }
 
-  area.appendChild(header);
+  inner.appendChild(header);
 
   /* ── 설명 섹션 ── */
   if (desc) {
     const body = document.createElement('div');
     body.className = 'summary-body';
     renderSummaryDesc(desc, body);
-    area.appendChild(body);
+    inner.appendChild(body);
   }
 }
 
