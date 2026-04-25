@@ -272,6 +272,7 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
   max-width: 600px;
   width: 100%;
   align-self: center;
+  direction: ltr;
 }
 /* 산문 단락 — Alt+Enter 줄바꿈 반영 */
 .summary-prose {
@@ -280,6 +281,7 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
   color: var(--text-sub);
   text-align: left;
   white-space: pre-line;
+  direction: ltr; unicode-bidi: embed;
 }
 /* 산문→불릿 전환 빈 줄 */
 .summary-spacer { height: 10px; flex-shrink: 0; }
@@ -292,6 +294,7 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
   line-height: 1.7;
   color: var(--text);
   text-align: left;
+  direction: ltr; unicode-bidi: embed;
 }
 .summary-bullet-dot {
   color: var(--accent);
@@ -736,7 +739,9 @@ function parseText(str) {
     .replace(/_([^_\n]+)_/g, '<span class="hl-box">$1</span>')
     .replace(/\*([^*\n]+)\*/g, (_, m) => {
       const hasArabic = /[\u0600-\u06FF]/.test(m);
-      return `<span class="hl-bold${hasArabic ? ' hl-ar' : ''}">${m}</span>`;
+      // 아랍어 span 경계에 ZWJ 삽입 → 리가처(글자 연결) 유지
+      const zwj = hasArabic ? '\u200D' : '';
+      return `${zwj}<span class="hl-bold${hasArabic ? ' hl-ar' : ''}">${m}</span>${zwj}`;
     });
 }
 
