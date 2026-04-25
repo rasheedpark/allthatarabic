@@ -1320,17 +1320,18 @@ function hideOnboarding() {
 /* ━━━━ 초기화 ━━━━ */
 async function init() {
   try {
-    const MAX_UNIT_NUM = 5;  // P05까지만
+    // summary 행이 있는 모든 유닛을 노출. 추후 유닛 제한이 필요하면 아래 .filter()를 되살릴 것.
     const dsRaw = await fetchSheet(TAB_DS);
     const baseUnits = [...new Set(
-      dsRaw.filter(r => normalizeType(r.type) === 'summary')
+      dsRaw.filter(r => {
+        if (normalizeType(r.type) !== 'summary') return false;
+        const s = (r.status || '').toLowerCase();
+        return s === '' || s === 'confirmed';
+      })
         .map(r => getBaseUnit(getRowU(r))).filter(Boolean)
     )].sort((a, b) => {
       const rank = u => u[0].toUpperCase() === 'P' ? '0' : u[0].toUpperCase() === 'G' ? '1' : '2';
       return (rank(a) + a).localeCompare(rank(b) + b, undefined, { numeric: true });
-    }).filter(u => {
-      const n = parseInt(u.replace(/\D/g, ''));
-      return !isNaN(n) && n <= MAX_UNIT_NUM;
     });
 
     buildUnitChips(baseUnits);
