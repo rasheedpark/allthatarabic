@@ -849,7 +849,7 @@ function fitRow(el, afterFit) {
     const available = (header?.clientWidth ?? 0) - 32;
     const actual    = el.scrollWidth;
     if (actual > available && available > 0) {
-      const s = available / actual;
+      const s = Math.max(0.65, available / actual);
       el.style.transform       = `scale(${s.toFixed(4)})`;
       el.style.transformOrigin = 'center top';
     }
@@ -961,6 +961,8 @@ function renderSummary(area, inner, s) {
   if (d.arabic) {
     const cssMode = (d.css || '').trim();
     const arabicLetters = d.arabic.trim().split(/\s+/);
+    // | < > 는 구분자 토큰 — 글자 카운트 제외, 시각적으로만 표시
+    const isSep = ch => ch === '|' || ch === '<' || ch === '>';
     const romanLabels   = d.korean ? d.korean.trim().split(/\s+/).map(l => l.replace(/_/g, ' ')) : [];
 
     if (cssMode === 'baseline') {
@@ -978,12 +980,13 @@ function renderSummary(area, inner, s) {
       baseLine.className = 'summary-baseline-line';
       pairRow.appendChild(baseLine);
 
-      // 글자+음가 쌍 (RTL: row-reverse, | 는 구분자로 처리)
+      // 글자+음가 쌍 (RTL: row-reverse, | < > 는 구분자로 처리)
       let labelIdx = 0;
       arabicLetters.forEach((ch) => {
-        if (ch === '|') {
+        if (isSep(ch)) {
           const sep = document.createElement('div');
           sep.className = 'summary-baseline-div';
+          if (ch !== '|') { sep.textContent = ch; sep.style.cssText = 'width:auto;background:none;font-size:0.8em;color:var(--text-sub);align-self:center;'; }
           pairRow.appendChild(sep);
           return;
         }
@@ -1002,7 +1005,7 @@ function renderSummary(area, inner, s) {
         labelIdx++;
         pairRow.appendChild(pair);
       });
-      const letterCount0 = arabicLetters.filter(ch => ch !== '|').length;
+      const letterCount0 = arabicLetters.filter(ch => !isSep(ch)).length;
       pairRow.style.setProperty('--items', letterCount0);
       header.appendChild(pairRow);
 
@@ -1057,8 +1060,8 @@ function renderSummary(area, inner, s) {
     } else {
       /* ── 기본 모드 / dongol 모드 ── */
       const useDongol = cssMode === 'dongol';
-      const letterCount = arabicLetters.filter(ch => ch !== '|').length;
-      const labelCount  = romanLabels.filter(l => l !== '|').length;
+      const letterCount = arabicLetters.filter(ch => !isSep(ch)).length;
+      const labelCount  = romanLabels.filter(l => !isSep(l)).length;
       const usePairs    = romanLabels.length > 0 && labelCount === letterCount;
 
       if (usePairs) {
@@ -1067,9 +1070,10 @@ function renderSummary(area, inner, s) {
         pairRow.className = 'summary-pair-row';
         let lIdx = 0;
         arabicLetters.forEach(ch => {
-          if (ch === '|') {
+          if (isSep(ch)) {
             const sep = document.createElement('div');
             sep.className = 'summary-baseline-div';
+            if (ch !== '|') { sep.textContent = ch; sep.style.cssText = 'width:auto;background:none;font-size:0.8em;color:var(--text-sub);align-self:center;'; }
             pairRow.appendChild(sep);
             return;
           }
@@ -1096,10 +1100,10 @@ function renderSummary(area, inner, s) {
         const letterRow = document.createElement('div');
         letterRow.className = 'summary-letter-row';
         arabicLetters.forEach(ch => {
-          if (ch === '|') {
+          if (isSep(ch)) {
             const sep = document.createElement('span');
             sep.className = 'summary-sep';
-            sep.textContent = '|';
+            sep.textContent = ch;
             letterRow.appendChild(sep);
           } else {
             const span = document.createElement('span');
