@@ -961,7 +961,7 @@ function renderSummary(area, inner, s) {
   if (d.arabic) {
     const cssMode = (d.css || '').trim();
     const arabicLetters = d.arabic.trim().split(/\s+/);
-    const romanLabels   = d.korean ? d.korean.trim().split(/\s+/) : [];
+    const romanLabels   = d.korean ? d.korean.trim().split(/\s+/).map(l => l.replace(/_/g, ' ')) : [];
 
     if (cssMode === 'baseline') {
       /* ── baseline 모드: 글자+음가 쌍 컬럼 + 기준선 ── */
