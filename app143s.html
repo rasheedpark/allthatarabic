@@ -327,13 +327,15 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 /* ── svo 모드: 아랍어 단어별 라벨(S/V/O 등) + 번역 ── */
 .summary-svo-row {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
   justify-content: center;
   align-items: flex-start;
   gap: clamp(10px, 2.5cqi, 22px);
   padding: 6px 0 4px;
-  /* 셀은 LTR 흐름으로 (라벨 V S O 와 시선 방향 일치).
-     아랍어 단어 자체는 .ar 쪽 direction: rtl 로 단어 내부만 RTL 렌더. */
+  direction: ltr;             /* 부모 RTL 상속 차단 — 셀을 강제 LTR */
+  unicode-bidi: isolate;
+  /* 아랍어 단어 자체는 .ar 쪽 direction: rtl 로 단어 내부만 RTL 렌더. */
 }
 .summary-svo-cell {
   display: flex;
@@ -1111,11 +1113,14 @@ function renderSummary(area, inner, s) {
 
       const row = document.createElement('div');
       row.className = 'summary-svo-row';
+      row.setAttribute('dir', 'ltr');     /* 셀 순서 LTR 강제 */
       arTokens.forEach((token, i) => {
         const cell = document.createElement('div');
         cell.className = 'summary-svo-cell';
+        cell.setAttribute('dir', 'ltr');
         const ar = document.createElement('span');
         ar.className = 'ar';
+        ar.setAttribute('dir', 'rtl');    /* 아랍어 단어 내부만 RTL */
         ar.innerHTML = parseText(token);
         cell.appendChild(ar);
         const lblText = (labels[i] || '').trim();
