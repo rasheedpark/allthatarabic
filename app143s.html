@@ -327,14 +327,13 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 /* ── svo 모드: 아랍어 단어별 라벨(S/V/O 등) + 번역 ── */
 .summary-svo-row {
   display: flex;
-  flex-direction: row-reverse;   /* RTL 흐름 */
   flex-wrap: wrap;
   justify-content: center;
   align-items: flex-start;
   gap: clamp(10px, 2.5cqi, 22px);
-  direction: rtl;
-  unicode-bidi: isolate;
   padding: 6px 0 4px;
+  /* 셀은 LTR 흐름으로 (라벨 V S O 와 시선 방향 일치).
+     아랍어 단어 자체는 .ar 쪽 direction: rtl 로 단어 내부만 RTL 렌더. */
 }
 .summary-svo-cell {
   display: flex;
