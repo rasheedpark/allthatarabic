@@ -306,19 +306,66 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 /* ── sentence 모드: 아랍어 문장 + 한국어 문장 (대표문장 헤더) ── */
 .summary-sentence-ar {
   font-family: var(--font-ar);
-  font-size: clamp(2.4rem, 7cqi, 4rem);
+  font-size: clamp(1.7rem, 4.5cqi, 2.6rem);
   font-weight: 700;
   text-align: center;
   direction: rtl;
+  unicode-bidi: isolate;
   line-height: 1.55;
   color: var(--text);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 .summary-sentence-kr {
-  font-size: clamp(0.9rem, 2.2cqi, 1.1rem);
+  font-size: clamp(0.85rem, 2cqi, 1rem);
   color: var(--text-sub);
   text-align: center;
   line-height: 1.4;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* ── svo 모드: 아랍어 단어별 라벨(S/V/O 등) + 번역 ── */
+.summary-svo-row {
+  display: flex;
+  flex-direction: row-reverse;   /* RTL 흐름 */
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: clamp(10px, 2.5cqi, 22px);
+  direction: rtl;
+  unicode-bidi: isolate;
+  padding: 6px 0 4px;
+}
+.summary-svo-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.summary-svo-cell .ar {
+  font-family: var(--font-ar);
+  font-size: clamp(1.4rem, 3.8cqi, 2.1rem);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.4;
+  direction: rtl;
+  unicode-bidi: isolate;
+}
+.summary-svo-cell .lbl {
+  font-size: clamp(0.7rem, 1.4cqi, 0.85rem);
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  direction: ltr;
+}
+.summary-svo-translation {
+  text-align: center;
+  font-size: clamp(0.85rem, 2cqi, 1rem);
+  color: var(--text-sub);
+  margin-top: 8px;
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 /* ── 전치사 테이블 (A03 등 표 형태 슬라이드) ── */
@@ -1051,6 +1098,43 @@ function renderSummary(area, inner, s) {
         krEl.className = 'summary-sentence-kr';
         krEl.innerHTML = parseText(d.korean);
         header.appendChild(krEl);
+      }
+
+    } else if (cssMode === 'svo') {
+      /* ── svo 모드: 아랍어 단어 + 라벨(S/V/O 등) + 번역 ──
+         arabic: 공백으로 단어 토큰 분리
+         korean: 첫 줄 = 토큰 1:1 라벨 (공백 분리, '-' 또는 빈 칸은 라벨 없음)
+                 둘째 줄 이후 = 한국어 번역(전체)                                    */
+      const arTokens = d.arabic.trim().split(/\s+/);
+      const krLines  = (d.korean || '').split(/\r?\n/);
+      const labels   = (krLines[0] || '').trim().split(/\s+/);
+      const translation = krLines.slice(1).join(' ').trim();
+
+      const row = document.createElement('div');
+      row.className = 'summary-svo-row';
+      arTokens.forEach((token, i) => {
+        const cell = document.createElement('div');
+        cell.className = 'summary-svo-cell';
+        const ar = document.createElement('span');
+        ar.className = 'ar';
+        ar.innerHTML = parseText(token);
+        cell.appendChild(ar);
+        const lblText = (labels[i] || '').trim();
+        if (lblText && lblText !== '-' && lblText !== '_') {
+          const lbl = document.createElement('span');
+          lbl.className = 'lbl';
+          lbl.textContent = lblText;
+          cell.appendChild(lbl);
+        }
+        row.appendChild(cell);
+      });
+      header.appendChild(row);
+
+      if (translation) {
+        const tr = document.createElement('div');
+        tr.className = 'summary-svo-translation';
+        tr.innerHTML = parseText(translation);
+        header.appendChild(tr);
       }
 
     } else if (cssMode === 'baseline') {
