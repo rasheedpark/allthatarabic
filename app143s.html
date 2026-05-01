@@ -303,6 +303,56 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
   margin-top: 2px;
 }
 
+/* ── sentence 모드: 아랍어 문장 + 한국어 문장 (대표문장 헤더) ── */
+.summary-sentence-ar {
+  font-family: var(--font-ar);
+  font-size: clamp(2.4rem, 7cqi, 4rem);
+  font-weight: 700;
+  text-align: center;
+  direction: rtl;
+  line-height: 1.55;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.summary-sentence-kr {
+  font-size: clamp(0.9rem, 2.2cqi, 1.1rem);
+  color: var(--text-sub);
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* ── 전치사 테이블 (A03 등 표 형태 슬라이드) ── */
+.summary-prep-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin: 14px 0;
+  padding: 10px 6px;
+  background: var(--accent-bg);
+  border-radius: var(--r-md);
+}
+.summary-prep {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.summary-prep .ar {
+  font-family: var(--font-ar);
+  font-size: clamp(0.95rem, 2.5cqi, 1.15rem);
+  font-weight: 700;
+  color: var(--text);
+  direction: rtl;
+  line-height: 1.4;
+}
+.summary-prep .en {
+  font-size: clamp(0.7rem, 1.6cqi, 0.78rem);
+  color: var(--text-sub);
+  direction: ltr;
+  letter-spacing: .02em;
+  line-height: 1.2;
+}
+
 /* ── 한국어 / 노트 / 힌트 ── */
 .korean-text {
   font-size: clamp(1rem, 2.5vw, 1.3rem);
@@ -989,7 +1039,21 @@ function renderSummary(area, inner, s) {
     const isSep = ch => ch === '|' || ch === '<' || ch === '>';
     const romanLabels   = d.korean ? d.korean.trim().split(/\s+/).map(l => l.replace(/_/g, ' ')) : [];
 
-    if (cssMode === 'baseline') {
+    if (cssMode === 'sentence') {
+      /* ── sentence 모드: 아랍어 한 문장을 통째로, 한국어 한 문장으로 ── */
+      const arEl = document.createElement('div');
+      arEl.className = 'summary-sentence-ar';
+      arEl.innerHTML = parseText(d.arabic);
+      header.appendChild(arEl);
+
+      if (d.korean) {
+        const krEl = document.createElement('div');
+        krEl.className = 'summary-sentence-kr';
+        krEl.innerHTML = parseText(d.korean);
+        header.appendChild(krEl);
+      }
+
+    } else if (cssMode === 'baseline') {
       /* ── baseline 모드: 글자+음가 쌍 컬럼 + 기준선 ── */
       const pairRow = document.createElement('div');
       pairRow.className = 'summary-pair-row';
