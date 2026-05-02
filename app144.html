@@ -386,6 +386,7 @@ body {
 // ── 설정 ──────────────────────────────────────────────
 const SHEET_ID   = '1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8';
 const AUDIO_BASE = 'https://storage.googleapis.com/all-that-arabic-14';
+const AUDIO_FOLDER = 'listening(144)';  // 1.4.4 오디오 폴더
 
 // 1.4.4 시트 탭 (4개 분리)
 const TAB_PATTERN  = 'pattern';
@@ -768,7 +769,7 @@ function getAudioUrls(s) {
   const id = getRowId(d);
   if (d?.url) return [d.url.trim()];
   if (!id) return [];
-  const base = `${AUDIO_BASE}/listening/${id}`;
+  const base = `${AUDIO_BASE}/${AUDIO_FOLDER}/${id}`;
   return [base + '.mp3', base + '.wav'];
 }
 

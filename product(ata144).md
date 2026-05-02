@@ -151,6 +151,97 @@ type은 해당 데이터의 성격을 정의한다.
 - 슬라이드 생성: `buildSlides()` — 유닛 필터 → status 필터 → 타입 순 정렬
 - 오디오: `key` → GCS URL 직접 조합 → `.wav` 폴백
 
+#### 기술 요구사항 및 인프라 연결 Technical Setup
+
+이 섹션은 ATA 1.4.4 앱을 처음 보는 개발자나 AI가 전체 연결 구조를 파악할 수 있도록 작성했다.
+
+---
+
+**1. 앱 파일 및 배포 (GitHub)**
+
+앱은 단일 HTML 파일 하나로 구성된다. 빌드 도구, 서버, 프레임워크 없음.
+
+| 항목 | 내용 |
+|---|---|
+| 저장소 | https://github.com/rasheedpark/allthatarabic |
+| 배포 방식 | GitHub Pages (main 브랜치 자동 배포) |
+| 선생님용 앱 URL | https://rasheedpark.github.io/allthatarabic/app144.html |
+| 인증 방식 | Personal Access Token (repo 권한) — macOS 키체인 또는 remote URL에 포함 |
+
+로컬 경로: `/공유 드라이브/마르카즈아라빅 팀 드라이브/제품products/ATA-14/app144.html`
+
+`git push origin main` 하면 수분 내 GitHub Pages에 자동 반영된다.
+
+---
+
+**2. 콘텐츠 데이터 (Google Sheets)**
+
+앱은 서버 없이 브라우저에서 Google Sheets를 직접 읽는다. Google Visualization API (`gviz/tq`) JSONP 방식을 사용하며, 시트가 **"링크가 있는 모든 사용자"** 로 공개 설정되어 있어야 한다.
+
+| 항목 | 내용 |
+|---|---|
+| 시트 ID | `1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8` |
+| 시트 URL | https://docs.google.com/spreadsheets/d/1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8 |
+| 읽기 엔드포인트 | `https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:json&sheet={탭명}&headers=1` |
+
+**탭 구조** (1.4.4는 4개 탭 분리):
+
+| 탭명 | 포함 타입 | 주요 컬럼 |
+|---|---|---|
+| `pattern` | ptnA, ptnB | C, U, arabic, korean, note, type, key_ptn |
+| `drill` | repertory, mithāl, drillA, drillB, summary, writing | C, U, arabic, korean, note, type, status, key_drill, key_patn, lahja, script, url |
+| `kalimat` | exp, kalimat | C, U, arabic, korean, note, type, status, key_drill |
+| `nass` | nass | C, U, arabic, korean, note, type, status, id_nass, ptn_key, sual |
+
+`status` 컬럼이 비어있거나 `confirmed`인 행만 앱에 노출된다.
+
+Claude가 시트를 직접 읽고 쓰기 위한 별도 인증:
+- 인증 방식: `gcloud auth login --enable-gdrive-access`
+- 토큰 발급: `gcloud auth print-access-token`
+- 헬퍼 스크립트: `~/.claude/sheets_helper.sh`
+
+---
+
+**3. 오디오 파일 (Google Cloud Storage)**
+
+앱은 오디오 URL을 시트에서 읽지 않고, 각 행의 `key` 값으로 GCS 경로를 직접 조합한다.
+
+| 항목 | 내용 |
+|---|---|
+| 버킷명 | `all-that-arabic-14` |
+| 1.4.4 오디오 폴더 | `listening(144)/` |
+| URL 패턴 | `https://storage.googleapis.com/all-that-arabic-14/listening(144)/{key}.mp3` |
+| 폴백 | `.mp3` 실패 시 `.wav` 자동 시도 |
+| GCS 콘솔 | https://console.cloud.google.com/storage/browser/all-that-arabic-14 |
+
+`key` 값이 곧 파일명이다. 예: `key = exp_as-salāmu ʿalaykum` → 파일명 `exp_as-salāmu ʿalaykum.mp3`.
+
+파일은 버킷에서 **공개 읽기(Public)** 로 설정되어야 한다.
+
+---
+
+**4. 파일 저장 위치 (Google Drive)**
+
+| 항목 | 경로 / 링크 |
+|---|---|
+| 팀 드라이브 루트 | https://drive.google.com/drive/folders/1CUlbL3JH57MWZC1ViWU7Zt2y5HyTOQ3H |
+| ATA-14 폴더 | 팀 드라이브 내 `제품products/ATA-14/` |
+| 1.4.4 데이터시트 | ATA-14 폴더 내 `ATA-1.4.4.gsheet` |
+| 제품문서 | ATA-14 폴더 내 `product(ata144).md` |
+
+로컬 마운트 경로: `/Users/rasheedpark/Library/CloudStorage/GoogleDrive-someaugust17@gmail.com/공유 드라이브/마르카즈아라빅 팀 드라이브/제품products/ATA-14/`
+
+---
+
+**5. 현재 미완료 요구사항**
+
+| 항목 | 상태 | 내용 |
+|---|---|---|
+| 오디오 폴더 경로 | ⚠️ 미반영 | 앱 코드의 `AUDIO_BASE` 경로를 `listening(144)/`로 업데이트 필요 |
+| 사용자용 앱 | 🔲 미제작 | 모바일 최적화, 스와이프, 말하기 기능 포함 예정 |
+| drillB 노출 여부 | 🔲 미결정 | 현재 앱에서 drillB 노출 여부 결정 필요 |
+| LMS 연동 | 🔲 장기 | 마르카즈아라빅 자체 LMS 시스템 구축 후 연동 |
+
 #### 디자인 코드 Design Tokens
 
 **색상 팔레트**
