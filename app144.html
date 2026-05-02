@@ -387,12 +387,14 @@ body {
 const SHEET_ID   = '1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8';
 const AUDIO_BASE = 'https://storage.googleapis.com/all-that-arabic-14';
 
-// 1.4.4 시트 탭명
-const TAB_DATASHEET = 'datasheet';
-const GID_NASSTAB   = null;  // 1.4.4: nasstab 없음, datasheet에 통합
+// 1.4.4 시트 탭 (4개 분리)
+const TAB_PATTERN  = 'pattern';
+const TAB_DRILL    = 'drill';
+const TAB_KALIMAT  = 'kalimat';
+const TAB_NASS     = 'nass';
 
-const TYPE_EN = { ptna:'PATTERN A', ptnb:'PATTERN B', repertory:'REPERTORY', drilla:'DRILL A', drillb:'DRILL B', exp:'EXPRESSION', kalimat:'KALIMAT', nass:'NASS', writing:'WRITING' };
-const TYPE_KO = { ptna:'패턴A', ptnb:'패턴B', repertory:'레퍼토리', drilla:'드릴A', drillb:'드릴B', exp:'표현', kalimat:'칼리마트', nass:'나스', writing:'쓰기' };
+const TYPE_EN = { ptna:'PATTERN A', ptnb:'PATTERN B', repertory:'REPERTORY', mithal:'MITHĀL', drilla:'DRILL A', drillb:'DRILL B', summary:'SUMMARY', exp:'EXPRESSION', kalimat:'KALIMAT', nass:'NASS', writing:'WRITING' };
+const TYPE_KO = { ptna:'패턴A', ptnb:'패턴B', repertory:'레퍼토리', mithal:'미싸알', drilla:'드릴A', drillb:'드릴B', summary:'요약', exp:'표현', kalimat:'칼리마트', nass:'나스', writing:'쓰기' };
 
 // ── 상태 ──────────────────────────────────────────────
 let slides = [], current = 0;
@@ -408,18 +410,19 @@ let currentPg = null;
 function normalizeType(t) {
   if (!t) return '';
   const tl = t.toLowerCase().trim();
-  if (tl === 'ptna' || tl === 'pattern_a' || tl === 'patterna') return 'ptna';
-  if (tl === 'ptnb' || tl === 'pattern_b' || tl === 'patternb') return 'ptnb';
-  if (tl === 'drilla' || tl === 'drill_a' || tl === 'drill a') return 'drilla';
-  if (tl === 'drillb' || tl === 'drill_b' || tl === 'drill b') return 'drillb';
+  if (tl === 'ptna' || tl === 'ptn') return 'ptna';
+  if (tl === 'ptnb' || tl === 'pattern(p)') return 'ptnb';
+  if (tl === 'pattern(a)') return 'ptna';
+  if (tl === 'drilla' || tl === 'drill') return 'drilla';
+  if (tl === 'drillb') return 'drillb';
+  if (tl === 'mithal' || tl === 'mithāl') return 'mithal';
   if (tl === 'repertorie' || tl === 'repertory') return 'repertory';
   if (tl === 'exp' || tl === 'expression') return 'exp';
   if (tl === 'kalimat') return 'kalimat';
   if (tl === 'nass') return 'nass';
   if (tl === 'writing') return 'writing';
-  // 1.4.3 하위호환
+  if (tl === 'summary') return 'summary';
   if (tl.startsWith('pattern')) return 'ptna';
-  if (tl === 'drill') return 'drilla';
   return tl;
 }
 
@@ -438,7 +441,7 @@ function getRowU(r) {
 
 // 행의 ID값: id > id_datasheet > id_nass > id_words 순
 function getRowId(r) {
-  return r.id || r.id_datasheet || r.id_nass || r.id_words || '';
+  return r.key_ptn || r.key_drill || r.id_nass || r.id || r.id_datasheet || r.id_words || '';
 }
 
 // ── JSONP 데이터 로더 ──────────────────────────────────
@@ -506,55 +509,43 @@ async function buildSlides(baseUnit) {
   _usp.set('unit', baseUnit);
   history.replaceState(null, '', '?' + _usp.toString());
 
-  const [dsRaw, nassTabRaw] = await Promise.all([
-    fetchSheetData(TAB_DATASHEET),
-    GID_NASSTAB ? fetchSheetData('nasstab', GID_NASSTAB) : Promise.resolve([]),
+  // 1.4.4: 4개 탭 병렬 로드
+  const [patternRaw, drillRaw, kalimatRaw, nassRaw] = await Promise.all([
+    fetchSheetData(TAB_PATTERN),
+    fetchSheetData(TAB_DRILL),
+    fetchSheetData(TAB_KALIMAT),
+    fetchSheetData(TAB_NASS),
   ]);
 
-  // 나스탭: id → quiz 데이터 맵
-  const nassQuiz = {};
-  nassTabRaw.forEach(r => {
-    const id = getRowId(r);
-    if (id) nassQuiz[id.trim()] = r;
-  });
-
-  // 이 베이스 유닛의 U값 패턴: 'A01' → 'A01', 'A01a', 'A01b' ...
+  // 이 베이스 유닛의 U값 패턴: 'P01' → 'P01', 'P01a', 'P01b' ...
   const escaped = baseUnit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const subRegex = new RegExp('^' + escaped + '[a-z]?$', 'i');
 
-  // 데이터시트 유효 타입 (nass 제외 — nass는 나스탭에서)
-  const validDsTypes = new Set(['ptna', 'ptnb', 'repertory', 'drilla', 'drillb', 'exp', 'kalimat', 'writing']);
+  function filterByUnit(rows, validTypes) {
+    return rows.filter(r => {
+      const t = normalizeType(r.type);
+      if (validTypes && !validTypes.has(t)) return false;
+      if (!subRegex.test(getRowU(r))) return false;
+      const s = (r.status || '').toLowerCase();
+      return s === '' || s === 'confirmed' || s === 'draft1';
+    });
+  }
 
-  // 이 유닛 행: 시트 순서 그대로, status=confirmed, 유효 타입만
-  const dsRows = dsRaw.filter(r => {
-    const t = normalizeType(r.type);
-    if (!validDsTypes.has(t)) return false;
-    if (!subRegex.test(getRowU(r))) return false;
-    const s = (r.status || '').toLowerCase();
-    return s === '' || s === 'confirmed';
-  });
+  // 각 탭 필터링 (시트 순서 유지)
+  const patternRows  = filterByUnit(patternRaw,  new Set(['ptna', 'ptnb']));
+  const drillRows    = filterByUnit(drillRaw,    new Set(['ptna', 'ptnb', 'repertory', 'mithal', 'drilla', 'drillb', 'summary', 'writing', 'exp', 'kalimat']));
+  const kalimatRows  = filterByUnit(kalimatRaw,  new Set(['exp', 'kalimat', 'drilla', 'drill']));
+  const nassRows     = filterByUnit(nassRaw,     new Set(['nass']));
 
   // 사이드바 레이블: 첫 패턴의 아랍어 또는 베이스 유닛명
-  const firstPattern = dsRows.find(r => normalizeType(r.type) === 'ptna');
+  const firstPattern = patternRows.find(r => normalizeType(r.type) === 'ptna');
   const groupLabel = firstPattern?.arabic || baseUnit;
 
-  // 시트 순서대로 슬라이드 추가
-  dsRows.forEach(r => {
+  // 슬라이드 순서: pattern탭 → drill탭 → kalimat탭 → nass탭
+  [...patternRows, ...drillRows, ...kalimatRows, ...nassRows].forEach(r => {
     const t = normalizeType(r.type);
     slides.push({ type: t, data: r, pg: baseUnit, label: groupLabel });
   });
-
-  // 나스: id_nass 앞부분이 baseUnit으로 시작하는 행만 로드 (P06-nas01 → P06)
-  nassTabRaw
-    .filter(r => {
-      const id = getRowId(r);
-      if (!id.startsWith(baseUnit + '-')) return false;
-      if (normalizeType(r.type) !== 'nass') return false;
-      const s = (r.status || '').toLowerCase();
-      return s === '' || s === 'confirmed';
-    })
-    .sort((a, b) => getRowId(a).localeCompare(getRowId(b)))
-    .forEach(r => slides.push({ type: 'nass', data: r, pg: baseUnit, label: groupLabel }));
 
   if (_firstLoad) {
     const savedSlide = parseInt(new URLSearchParams(location.search).get('slide')) || 0;
@@ -847,7 +838,7 @@ document.getElementById('btn-nass').onclick    = toggleNass;
 // ── 초기화 ────────────────────────────────────────────
 async function init() {
   try {
-    const dsRaw = await fetchSheetData(TAB_DATASHEET);
+    const dsRaw = await fetchSheetData(TAB_PATTERN);
 
     // 베이스 유닛 목록: datasheet의 pattern 행에서 추출
     const baseUnits = [...new Set(
