@@ -385,8 +385,8 @@ const TAB_KALIMAT = 'kalimat';
 const TAB_NASS    = 'nass';
 
 
-const TYPE_EN = { ptna:'PATTERN A', ptnb:'PATTERN B', repertory:'REPERTORY', mithal:'MITHĀL', drilla:'DRILL A', drillb:'DRILL B', summary:'SUMMARY', exp:'EXPRESSION', kalimat:'KALIMAT', nass:'NASS', writing:'WRITING' };
-const TYPE_KO = { ptna:'패턴A', ptnb:'패턴B', repertory:'레퍼토리', mithal:'미싸알', drilla:'드릴A', drillb:'드릴B', summary:'요약', exp:'표현', kalimat:'칼리마트', nass:'나스', writing:'쓰기' };
+const TYPE_EN = { ptn:'PATTERN', ptna:'PATTERN A', ptnb:'PATTERN B', repertory:'REPERTORY', mithal:'MITHĀL', drilla:'DRILL A', drillb:'DRILL B', summary:'SUMMARY', exp:'EXPRESSION', kalimat:'KALIMAT', nass:'NASS', writing:'WRITING' };
+const TYPE_KO = { ptn:'패턴', ptna:'패턴A', ptnb:'패턴B', repertory:'레퍼토리', mithal:'미싸알', drilla:'드릴A', drillb:'드릴B', summary:'요약', exp:'표현', kalimat:'칼리마트', nass:'나스', writing:'쓰기' };
 
 // ── 상태 ──────────────────────────────────────────────
 let slides = [], current = 0;
@@ -402,7 +402,8 @@ let currentPg = null;
 function normalizeType(t) {
   if (!t) return '';
   const tl = t.toLowerCase().trim();
-  if (tl === 'ptna' || tl === 'ptn' || tl === 'pattern(a)') return 'ptna';
+  if (tl === 'ptn') return 'ptn';
+  if (tl === 'ptna' || tl === 'pattern(a)') return 'ptna';
   if (tl === 'ptnb' || tl === 'pattern(p)') return 'ptnb';
   if (tl === 'drilla' || tl === 'drill') return 'drilla';
   if (tl === 'drillb') return 'drillb';
