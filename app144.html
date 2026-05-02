@@ -381,6 +381,8 @@ const AUDIO_FOLDER = 'listening(144)';
 // 1.4.4 시트 탭명
 const TAB_PATTERN = 'pattern';
 const TAB_DRILL   = 'drill';
+const TAB_KALIMAT = 'kalimat';
+const TAB_NASS    = 'nass';
 
 
 const TYPE_EN = { ptna:'PATTERN A', ptnb:'PATTERN B', repertory:'REPERTORY', mithal:'MITHĀL', drilla:'DRILL A', drillb:'DRILL B', summary:'SUMMARY', exp:'EXPRESSION', kalimat:'KALIMAT', nass:'NASS', writing:'WRITING' };
@@ -498,22 +500,32 @@ async function buildSlides(baseUnit) {
   _usp.set('unit', baseUnit);
   history.replaceState(null, '', '?' + _usp.toString());
 
-  // 드릴탭 로드 (메인 슬라이드용)
-  const drillRaw = await fetchSheetData(TAB_DRILL);
+  // 탭 병렬 로드
+  const [drillRaw, kalimatRaw, nassRaw] = await Promise.all([
+    fetchSheetData(TAB_DRILL),
+    fetchSheetData(TAB_KALIMAT),
+    fetchSheetData(TAB_NASS),
+  ]);
 
   const escaped = baseUnit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const subRegex = new RegExp('^' + escaped + '[a-z]?$', 'i');
+  const isConfirmed = r => (r.status || '').toLowerCase() === 'confirmed';
+  const inUnit = r => subRegex.test(getRowU(r));
 
-  // 드릴탭: status=confirmed, 해당 유닛, 시트 순서 그대로
+  // 드릴탭: drillA 타입, status=confirmed, 해당 유닛, 시트 순서 그대로
   drillRaw
-    .filter(r => {
-      if (!subRegex.test(getRowU(r))) return false;
-      const s = (r.status || '').toLowerCase();
-      return s === 'confirmed';
-    })
-    .forEach(r => {
-      slides.push({ type: normalizeType(r.type), data: r, pg: baseUnit, label: baseUnit });
-    });
+    .filter(r => inUnit(r) && isConfirmed(r))
+    .forEach(r => slides.push({ type: normalizeType(r.type), data: r, pg: baseUnit, label: baseUnit }));
+
+  // kalimat탭: exp/kalimat 타입, status=confirmed, 해당 유닛
+  kalimatRaw
+    .filter(r => inUnit(r) && isConfirmed(r))
+    .forEach(r => slides.push({ type: normalizeType(r.type), data: r, pg: baseUnit, label: baseUnit }));
+
+  // nass탭: status=confirmed, 해당 유닛
+  nassRaw
+    .filter(r => inUnit(r) && isConfirmed(r))
+    .forEach(r => slides.push({ type: 'nass', data: r, pg: baseUnit, label: baseUnit }));
 
   if (_firstLoad) {
     const savedSlide = parseInt(new URLSearchParams(location.search).get('slide')) || 0;
@@ -785,10 +797,14 @@ document.getElementById('btn-nass').onclick    = toggleNass;
 // ── 초기화 ────────────────────────────────────────────
 async function init() {
   try {
-    // 패턴탭 먼저 캐싱 (내비게이터용)
-    await fetchSheetData(TAB_PATTERN);
-    // 드릴탭 전체 로드 → 첫 유닛으로 시작
-    await fetchSheetData(TAB_DRILL);
+    // 모든 탭 병렬 캐싱
+    await Promise.all([
+      fetchSheetData(TAB_PATTERN),
+      fetchSheetData(TAB_DRILL),
+      fetchSheetData(TAB_KALIMAT),
+      fetchSheetData(TAB_NASS),
+    ]);
+    // 첫 시작 유닛: drill confirmed 기준
     const drillRaw = _cache['drill'] || [];
     const baseUnits = [...new Set(
       drillRaw
