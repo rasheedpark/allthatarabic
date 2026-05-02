@@ -460,7 +460,10 @@ function fetchSheetData(name, gid = null) {
       try {
         if (!resp?.table) throw new Error('No data: '+cacheKey);
         const cols = resp.table.cols;
-        const headers = cols.map(c => (c.label||c.id||'').toLowerCase().trim());
+        // 1.4.4 fix: only use explicitly labeled columns. Empty labels would
+        // fall back to the column id (A,B,C,...) and clobber real headers
+        // like 'u' (the column-id 'U' lowercases to 'u' too).
+        const headers = cols.map(c => (c.label||'').toLowerCase().trim());
         const rows = (resp.table.rows||[]).map(row => {
           const obj = {};
           headers.forEach((h,i) => {
