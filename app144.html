@@ -659,11 +659,11 @@ function toggleSidebar() {
 
 // ── 섹션 탭 ────────────────────────────────────────────
 const SEC_DEFS = [
-  { key:'ptna',    ko:'패턴',    en:'Pattern'    },
-  { key:'drilla',  ko:'드릴',    en:'Drill'      },
-  { key:'exp',     ko:'표현',    en:'Expression' },
-  { key:'kalimat', ko:'칼리마트', en:'Kalimat'   },
-  { key:'nass',    ko:'나스',    en:'Nass'       },
+  { keys:['ptn','ptna'], ko:'패턴',    en:'Pattern'    },
+  { keys:['drilla'],     ko:'드릴',    en:'Drill'      },
+  { keys:['exp'],        ko:'표현',    en:'Expression' },
+  { keys:['kalimat'],    ko:'칼리마트', en:'Kalimat'   },
+  { keys:['nass'],       ko:'나스',    en:'Nass'       },
 ];
 function buildSectionTabs() {
   const container = document.getElementById('section-tabs');
@@ -671,8 +671,8 @@ function buildSectionTabs() {
   container.innerHTML = '';
   const curPg = slides[current]?.pg;
   SEC_DEFS.forEach(sec => {
-    // 현재 유닛에서 해당 타입 첫 슬라이드
-    const firstIdx = slides.findIndex(s => s.pg === curPg && s.type === sec.key);
+    // 현재 유닛에서 해당 타입(복수 허용) 첫 슬라이드
+    const firstIdx = slides.findIndex(s => s.pg === curPg && sec.keys.includes(s.type));
     const btn = document.createElement('button');
     btn.className = 'sec-tab' + (firstIdx === -1 ? ' disabled' : '');
     if (firstIdx !== -1) btn.onclick = () => goTo(firstIdx);
