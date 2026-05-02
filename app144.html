@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>올댓아라빅 1.4.4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@500;700&family=Noto+Kufi+Arabic:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/spoqa/spoqa-han-sans@latest/css/SpoqaHanSansNeo.css" rel="stylesheet">
+<style>
+@font-face {
+  font-family: 'Dongol';
+  src: url('Dongol-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+/* ── 리셋 & 변수 ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:     #111827;
+  --accent: #16988d;
+  --text:   #ffffff;
+  --sub:    #8E95A0;
+  --border: #1e293b;
+}
+html, body { height: 100%; overflow: hidden; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Spoqa Han Sans Neo', 'Apple SD Gothic Neo', sans-serif;
+  height: 100vh;
+  position: relative;
+}
+
+/* ── 4 코너 ── */
+#ui-tl, #ui-bl, #ui-br { position: fixed; z-index: 10; }
+#ui-tl {
+  top: clamp(1rem,3vw,2rem); left: clamp(1rem,3vw,3rem);
+  font-size: clamp(0.8rem,1.8vw,1.3rem);
+  font-weight: bold; color: var(--text);
+  line-height: 1.5; max-width: 50vw;
+}
+#ui-tr {
+  font-size: clamp(0.55rem,0.85vw,0.75rem);
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  color: var(--sub);
+  opacity: 0.65;
+  white-space: nowrap;
+  margin-bottom: 0.5rem;
+}
+#ui-bl {
+  bottom: clamp(1rem,3vw,2rem); left: clamp(1rem,3vw,3rem);
+  font-size: clamp(0.65rem,1.2vw,1rem);
+  color: var(--sub);
+}
+#ui-br {
+  bottom: clamp(1rem,3vw,2rem); right: clamp(1rem,3vw,3rem);
+}
+#ui-br img {
+  width: clamp(60px, 7vw, 110px);
+  opacity: 0.85;
+  display: block;
+}
+
+/* ── 진행바 ── */
+#progress {
+  position: fixed; top: 0; left: 0;
+  height: 3px; background: var(--accent);
+  transition: width 0.3s; z-index: 50;
+}
+
+/* ── 메인 콘텐츠 ── */
+#main {
+  position: fixed;
+  top: 0; bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(92vw, 1400px);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1rem, 3vh, 2.5rem);
+  padding: clamp(60px,10vh,100px) clamp(1rem,4vw,3rem) clamp(80px,12vh,120px);
+}
+
+/* ── 아랍어 ── */
+.arabic {
+  font-family: 'Noto Sans Arabic', serif;
+  font-size: clamp(3rem, 9vw, 9rem);
+  font-weight: 700;
+  direction: rtl;
+  line-height: 1.6;
+  text-align: center;
+}
+/* A/G 유닛: 문장형이라 폰트 살짝 축소 */
+.arabic.arabic-sentence {
+  font-size: clamp(2rem, 6vw, 6rem);
+}
+
+/* ── 한국어/노트 ── */
+.korean {
+  display: block;
+  font-size: clamp(1.2rem, 3.5vw, 3.5rem);
+  transition: opacity 0.3s;
+  line-height: 1.4;
+}
+.note {
+  display: block;
+  font-size: clamp(0.9rem, 2.2vw, 2.2rem);
+  color: var(--sub);
+  transition: opacity 0.3s;
+  line-height: 1.4;
+  margin-top: 0.4em;
+}
+/* ── writing 타입 ── */
+.arabic-writing {
+  font-family: 'Dongol', 'Noto Kufi Arabic', 'Noto Sans Arabic', serif !important;
+  font-weight: normal;
+  letter-spacing: 0.05em;
+}
+/* ── 나스 korean 힌트 ── */
+.nass-korean-hint {
+  font-size: clamp(0.65rem, 1.2vw, 1rem);
+  color: #fff;
+  opacity: 0.85;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+#text-area { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; min-height: 2rem; }
+
+/* ── 하이라이트 ── */
+.highlight-box {
+  border: 3px solid var(--accent);
+  background: rgba(22,152,141,0.12);
+  border-radius: 14px;
+  padding: 0.3em 0.45em 0.25em;
+  margin: 0 0.2em;
+  display: inline-block;
+  vertical-align: middle;
+  min-width: 1.4em;
+  text-align: center;
+  line-height: 1.3;
+}
+.highlight-text { color: var(--accent); font-weight: bold; }
+
+/* ── 나스 슬라이드 ── */
+.nass-prompt {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 0.8rem;
+  min-height: 4rem;
+}
+.nass-sual {
+  font-family: 'Noto Kufi Arabic', 'Noto Sans Arabic', serif;
+  font-size: clamp(1.1rem, 2.5vw, 2.2rem);
+  font-weight: 400;
+  color: var(--sub);
+  direction: rtl;
+  text-align: center;
+}
+.nass-arabic-wrap {
+  max-height: 55vh; overflow-y: auto;
+  width: 100%; padding: 0 clamp(1rem,5vw,4rem);
+}
+.nass-arabic-wrap .arabic {
+  font-family: 'Noto Sans Arabic', serif;
+  font-size: clamp(1.2rem, 3.2vw, 3.8rem);
+  text-align: center;
+  direction: rtl;
+  line-height: 2;
+}
+.nass-sual-note {
+  font-family: 'Noto Kufi Arabic', 'Noto Sans Arabic', serif;
+  font-size: clamp(0.75rem, 1.5vw, 1.3rem);
+  color: var(--sub);
+  direction: rtl;
+  text-align: center;
+  margin-top: 0.3em;
+  opacity: 0.8;
+}
+
+
+/* ── 섹션 탭 ── */
+#section-tabs {
+  display: flex; gap: 0.4rem; flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+.sec-tab {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--sub);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: clamp(0.55rem, 0.9vw, 0.72rem);
+  line-height: 1.3;
+  padding: 3px 10px;
+  text-align: center;
+  transition: all 0.15s;
+}
+.sec-tab small { display: block; font-size: 0.85em; opacity: 0.7; }
+.sec-tab:hover { border-color: var(--accent); color: var(--text); }
+.sec-tab.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: bold; }
+.sec-tab.disabled { opacity: 0.25; cursor: default; pointer-events: none; }
+.idx-ko { font-size: 0.75em; color: var(--sub); display: block; margin-top: 1px; }
+
+/* ── 사이드바 ── */
+#sidebar {
+  position: fixed; top: 0; left: 0;
+  width: min(440px, 92vw); height: 100%;
+  background: rgba(9,13,20,0.97);
+  border-right: 2px solid var(--accent);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 200;
+  display: flex; flex-direction: column;
+  box-shadow: 5px 0 30px rgba(0,0,0,0.6);
+}
+#sidebar.open { transform: translateX(0); }
+.sb-head {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sb-head h2 { color: var(--accent); font-size: clamp(1.1rem,2.5vw,1.6rem); margin-bottom: 1rem; }
+.key-list { list-style: none; font-size: clamp(0.8rem,1.8vw,1.15rem); color: #ccc; line-height: 2.1; }
+.key { display: inline-block; background: #2a2a2a; border: 1px solid #444; padding: 1px 8px; border-radius: 4px; font-weight: bold; color: #fff; margin-right: 6px; font-size: 0.88em; }
+.sb-pgroups {
+  padding: 0.8rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; gap: 0.5rem; flex-wrap: wrap; flex-shrink: 0;
+}
+.unit-btn {
+  padding: 5px 16px; border-radius: 20px;
+  border: 1px solid #334155; background: transparent;
+  color: var(--sub); cursor: pointer;
+  font-size: clamp(0.75rem,1.5vw,1rem);
+  font-family: inherit; transition: all 0.15s;
+}
+.unit-btn.active, .unit-btn:hover {
+  background: var(--accent); color: #000; border-color: var(--accent); font-weight: bold;
+}
+#index-list {
+  list-style: none; overflow-y: auto; flex: 1; padding: 0.4rem 0;
+}
+.idx-item {
+  padding: 0.65rem 1.8rem;
+  font-size: clamp(0.75rem,1.6vw,1.1rem);
+  color: var(--sub); cursor: pointer;
+  border-left: 4px solid transparent;
+  transition: all 0.15s;
+  display: flex; gap: 0.7rem; align-items: baseline;
+}
+.idx-item:hover { background: rgba(22,152,141,0.08); color: #fff; }
+.idx-item.active { background: rgba(22,152,141,0.18); color: #fff; border-left-color: var(--accent); }
+.idx-tag {
+  font-size: 0.72em; color: var(--accent);
+  background: rgba(22,152,141,0.12);
+  padding: 1px 7px; border-radius: 4px;
+  flex-shrink: 0; text-transform: uppercase;
+}
+.idx-ar { font-family: 'Noto Sans Arabic', serif; direction: rtl; }
+
+/* ── 하단 단축키 바 ── */
+#toolbar {
+  position: fixed;
+  bottom: clamp(0.8rem,2vw,1.5rem);
+  left: 50%; transform: translateX(-50%);
+  display: flex; gap: clamp(0.8rem,2vw,1.8rem);
+  z-index: 30; align-items: center;
+}
+.tb-btn {
+  background: transparent; border: none;
+  color: var(--sub); cursor: pointer;
+  font-size: clamp(0.6rem,0.9vw,0.78rem);
+  font-family: inherit;
+  display: flex; align-items: center; gap: 4px;
+  opacity: 0.6; transition: opacity 0.15s;
+  padding: 0;
+  white-space: nowrap;
+}
+.tb-btn:hover { opacity: 1; color: var(--text); }
+.tb-btn.active { opacity: 1; color: var(--accent); }
+.tb-btn .kb { display: inline-block; background: #2a2a2a; border: 1px solid #444; border-radius: 3px; padding: 0px 5px; font-size: 0.9em; color: #ccc; }
+#btn-nass { display: none; }
+
+/* ── 로딩 ── */
+#loading {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(1rem,2.5vw,1.5rem);
+  color: var(--accent); z-index: 999;
+}
+
+/* ── 시작 오버레이 ── */
+#start-overlay {
+  position: fixed; inset: 0;
+  background: rgba(10,15,24,0.92);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 998; cursor: pointer;
+  gap: 1.2rem;
+}
+#start-overlay .start-logo {
+  width: clamp(80px, 10vw, 140px);
+  opacity: 0.9;
+  margin-bottom: 0.5rem;
+}
+#start-overlay .start-text {
+  font-size: clamp(0.9rem, 2vw, 1.3rem);
+  color: var(--sub);
+  letter-spacing: 1px;
+}
+#start-overlay .start-btn {
+  margin-top: 0.5rem;
+  padding: 0.6em 2em;
+  border: 1.5px solid var(--accent);
+  border-radius: 30px;
+  background: transparent;
+  color: var(--accent);
+  font-size: clamp(0.9rem, 1.8vw, 1.2rem);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+#start-overlay .start-btn:hover {
+  background: var(--accent); color: #000;
+}
+</style>
+</head>
+<body>
+
+<div id="loading">데이터 로딩 중...</div>
+<div id="start-overlay" style="display:none;">
+  <img class="start-logo" src="assets/ata-logo.png" alt="All That Arabic">
+  <div class="start-text">올댓아라빅 1.4.4</div>
+  <button class="start-btn">▶ 시작하기</button>
+</div>
+<div id="progress"></div>
+
+<!-- 코너 -->
+<div id="ui-tl"><div id="section-tabs"></div></div>
+<div id="ui-bl">© Markaz Arabic</div>
+<div id="ui-br"><img src="assets/ata-logo.png" alt="All That Arabic"></div>
+
+<!-- 사이드바 -->
+<div id="sidebar">
+  <div class="sb-head">
+    <h2>☰ 메뉴</h2>
+    <ul class="key-list">
+      <li><span class="key">M</span> 메뉴 열기/닫기</li>
+      <li><span class="key">Space</span> 해석 보기/가리기</li>
+      <li><span class="key">T</span> 지문 보기/가리기 (나스)</li>
+      <li><span class="key">S</span> 오디오 재생/정지</li>
+      <li><span class="key">←  →</span> 이전 / 다음</li>
+      <li><span class="key">Home</span> 처음으로 &nbsp; <span class="key">End</span> 마지막으로</li>
+    </ul>
+  </div>
+  <div class="sb-pgroups" id="sb-pgroups">
+    <span style="font-size:0.7rem;color:var(--sub);width:100%;display:block;margin-bottom:4px;">유닛</span>
+  </div>
+  <ul id="index-list"></ul>
+</div>
+
+<!-- 메인 -->
+<div id="main">
+  <div id="ui-tr">PATTERN</div>
+  <div id="arabic-area"></div>
+  <div id="text-area"></div>
+</div>
+
+<!-- 단축키 바 -->
+<div id="toolbar">
+  <button class="tb-btn" id="btn-menu"><span class="kb">M</span> 메뉴</button>
+  <button class="tb-btn" id="btn-audio"><span class="kb">S</span> 오디오</button>
+  <button class="tb-btn" id="btn-meaning"><span class="kb">Space</span> 해석</button>
+  <button class="tb-btn" id="btn-nass"><span class="kb">T</span> 지문</button>
+</div>
+
+<audio id="slide-audio"></audio>
+
+<script>
+// ── 설정 ──────────────────────────────────────────────
+const SHEET_ID   = '1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8';
+const AUDIO_BASE = 'https://storage.googleapis.com/all-that-arabic-14';
+
+// 1.4.4 시트 탭명
+const TAB_DATASHEET = 'datasheet';
+const GID_NASSTAB   = null;  // 1.4.4: nasstab 없음, datasheet에 통합
+
+const TYPE_EN = { ptna:'PATTERN A', ptnb:'PATTERN B', repertory:'REPERTORY', drilla:'DRILL A', drillb:'DRILL B', exp:'EXPRESSION', kalimat:'KALIMAT', nass:'NASS', writing:'WRITING' };
+const TYPE_KO = { ptna:'패턴A', ptnb:'패턴B', repertory:'레퍼토리', drilla:'드릴A', drillb:'드릴B', exp:'표현', kalimat:'칼리마트', nass:'나스', writing:'쓰기' };
+
+// ── 상태 ──────────────────────────────────────────────
+let slides = [], current = 0;
+let meaningVisible = true;
+let nassTextVisible = false;
+let sidebarOpen = false;
+let _firstLoad = true;
+let audioPlaying = false;
+let currentPg = null;
+
+// ── 유틸 ──────────────────────────────────────────────
+// datasheet type 정규화: 'pattern(p)', 'repertorie' 등 → 내부 키
+function normalizeType(t) {
+  if (!t) return '';
+  const tl = t.toLowerCase().trim();
+  if (tl === 'ptna' || tl === 'pattern_a' || tl === 'patterna') return 'ptna';
+  if (tl === 'ptnb' || tl === 'pattern_b' || tl === 'patternb') return 'ptnb';
+  if (tl === 'drilla' || tl === 'drill_a' || tl === 'drill a') return 'drilla';
+  if (tl === 'drillb' || tl === 'drill_b' || tl === 'drill b') return 'drillb';
+  if (tl === 'repertorie' || tl === 'repertory') return 'repertory';
+  if (tl === 'exp' || tl === 'expression') return 'exp';
+  if (tl === 'kalimat') return 'kalimat';
+  if (tl === 'nass') return 'nass';
+  if (tl === 'writing') return 'writing';
+  // 1.4.3 하위호환
+  if (tl.startsWith('pattern')) return 'ptna';
+  if (tl === 'drill') return 'drilla';
+  return tl;
+}
+
+// 서브패턴 접미 알파벳 제거 → 베이스 유닛
+// 'A01a' → 'A01',  'P01' → 'P01',  'G00' → 'G00'
+function getBaseUnit(u) {
+  return (u || '').replace(/[a-z]+$/, '');
+}
+
+// 행의 U값: u 컬럼 우선, 없으면 id에서 추출 ('P01-pat01' → 'P01')
+function getRowU(r) {
+  if (r.u) return r.u;
+  const id = r.id || r.id_datasheet || '';
+  return id.split('-')[0] || '';
+}
+
+// 행의 ID값: id > id_datasheet > id_nass > id_words 순
+function getRowId(r) {
+  return r.id || r.id_datasheet || r.id_nass || r.id_words || '';
+}
+
+// ── JSONP 데이터 로더 ──────────────────────────────────
+const _cache = {};
+// name: 시트명 또는 캐시 키. gid가 있으면 gid로 fetch, 없으면 sheet명으로 fetch
+function fetchSheetData(name, gid = null) {
+  const cacheKey = gid ? ('gid:' + gid) : name;
+  if (_cache[cacheKey]) return Promise.resolve(_cache[cacheKey]);
+  return new Promise((resolve, reject) => {
+    const cb = '__gviz_' + cacheKey.replace(/\W/g,'') + '_' + Date.now();
+    const timer = setTimeout(() => { delete window[cb]; reject(new Error('Timeout: '+cacheKey)); }, 15000);
+    window[cb] = resp => {
+      clearTimeout(timer);
+      delete window[cb];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      try {
+        if (!resp?.table) throw new Error('No data: '+cacheKey);
+        const cols = resp.table.cols;
+        const headers = cols.map(c => (c.label||c.id||'').toLowerCase().trim());
+        const rows = (resp.table.rows||[]).map(row => {
+          const obj = {};
+          headers.forEach((h,i) => {
+            if (!h) return;
+            const cell = row.c?.[i];
+            const _val = (cell && cell.v != null)
+              ? (cell.f != null && (
+                   (typeof cell.v === 'string' && cell.v.startsWith('Date(')) ||
+                   typeof cell.v === 'number'
+                 ) ? cell.f : cell.v)
+              : null;
+            obj[h] = _val != null ? String(_val).trim() : '';
+          });
+          return obj;
+        }).filter(r => Object.values(r).some(v => v !== ''));
+        _cache[cacheKey] = rows;
+        resolve(rows);
+      } catch(e) { reject(e); }
+    };
+    const script = document.createElement('script');
+    const param = gid ? `gid=${gid}` : `sheet=${encodeURIComponent(name)}`;
+    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}&${param}&headers=1`;
+    script.onerror = () => { clearTimeout(timer); delete window[cb]; reject(new Error('Fail: '+cacheKey)); };
+    document.head.appendChild(script);
+  });
+}
+
+// ── parseText ──────────────────────────────────────────
+function parseText(str) {
+  if (!str) return '';
+  return str
+    .replace(/<br\s*\/?>/gi, '<br>')
+    .replace(/\n|\r\n|\r/g, '<br>')
+    .replace(/_([^_\n]+)_/g, '<span class="highlight-box">$1</span>')
+    .replace(/\*([^*\n]+)\*/g, '<span class="highlight-text">$1</span>');
+}
+
+// ── buildSlides ────────────────────────────────────────
+// baseUnit: 'P01', 'G00', 'A01' 등 (서브패턴 접미 없는 기본 식별자)
+async function buildSlides(baseUnit) {
+  slides = [];
+  nassTextVisible = false;
+  currentPg = baseUnit;
+  // 현재 유닛을 URL에 저장 → 새로고침 시 복원
+  const _usp = new URLSearchParams(location.search);
+  _usp.set('unit', baseUnit);
+  history.replaceState(null, '', '?' + _usp.toString());
+
+  const [dsRaw, nassTabRaw] = await Promise.all([
+    fetchSheetData(TAB_DATASHEET),
+    GID_NASSTAB ? fetchSheetData('nasstab', GID_NASSTAB) : Promise.resolve([]),
+  ]);
+
+  // 나스탭: id → quiz 데이터 맵
+  const nassQuiz = {};
+  nassTabRaw.forEach(r => {
+    const id = getRowId(r);
+    if (id) nassQuiz[id.trim()] = r;
+  });
+
+  // 이 베이스 유닛의 U값 패턴: 'A01' → 'A01', 'A01a', 'A01b' ...
+  const escaped = baseUnit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const subRegex = new RegExp('^' + escaped + '[a-z]?$', 'i');
+
+  // 데이터시트 유효 타입 (nass 제외 — nass는 나스탭에서)
+  const validDsTypes = new Set(['ptna', 'ptnb', 'repertory', 'drilla', 'drillb', 'exp', 'kalimat', 'writing']);
+
+  // 이 유닛 행: 시트 순서 그대로, status=confirmed, 유효 타입만
+  const dsRows = dsRaw.filter(r => {
+    const t = normalizeType(r.type);
+    if (!validDsTypes.has(t)) return false;
+    if (!subRegex.test(getRowU(r))) return false;
+    const s = (r.status || '').toLowerCase();
+    return s === '' || s === 'confirmed';
+  });
+
+  // 사이드바 레이블: 첫 패턴의 아랍어 또는 베이스 유닛명
+  const firstPattern = dsRows.find(r => normalizeType(r.type) === 'ptna');
+  const groupLabel = firstPattern?.arabic || baseUnit;
+
+  // 시트 순서대로 슬라이드 추가
+  dsRows.forEach(r => {
+    const t = normalizeType(r.type);
+    slides.push({ type: t, data: r, pg: baseUnit, label: groupLabel });
+  });
+
+  // 나스: id_nass 앞부분이 baseUnit으로 시작하는 행만 로드 (P06-nas01 → P06)
+  nassTabRaw
+    .filter(r => {
+      const id = getRowId(r);
+      if (!id.startsWith(baseUnit + '-')) return false;
+      if (normalizeType(r.type) !== 'nass') return false;
+      const s = (r.status || '').toLowerCase();
+      return s === '' || s === 'confirmed';
+    })
+    .sort((a, b) => getRowId(a).localeCompare(getRowId(b)))
+    .forEach(r => slides.push({ type: 'nass', data: r, pg: baseUnit, label: groupLabel }));
+
+  if (_firstLoad) {
+    const savedSlide = parseInt(new URLSearchParams(location.search).get('slide')) || 0;
+    current = Math.max(0, Math.min(slides.length - 1, savedSlide));
+    _firstLoad = false;
+  } else {
+    current = 0;
+  }
+
+  buildIndex();
+  buildSectionTabs();
+  renderSlide();
+  document.querySelectorAll('#sb-pgroups .unit-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.pg === baseUnit)
+  );
+}
+
+// ── renderSlide ────────────────────────────────────────
+function renderSlide() {
+  if (!slides.length) return;
+  const s = slides[current];
+
+  // 진행바
+  document.getElementById('progress').style.width = ((current+1)/slides.length*100)+'%';
+
+  // 중앙 타입 레이블 업데이트
+  const typeLabel = TYPE_EN[s.type] || s.type.toUpperCase();
+  const nassNum = s.type === 'nass' ? (() => { const m = getRowId(s.data).match(/(\d+)$/); return m ? ' · nass-' + m[1] : ''; })() : '';
+  document.getElementById('ui-tr').textContent = typeLabel + nassNum;
+
+  // 상단 좌측: 유닛명 · 아랍어 레이블
+  const tl = document.getElementById('ui-tl');
+  tl.innerHTML = `<div id="ui-tr-inner" style="font-size:clamp(0.55rem,0.85vw,0.75rem);text-transform:uppercase;letter-spacing:2.5px;color:var(--sub);opacity:0.65;margin-bottom:0.3rem;">${typeLabel + nassNum}</div>`
+    + `<div>${s.pg || ''} · ${s.label || ''}</div>`;
+
+  // 나스 지문 버튼: 나스 슬라이드에서만 표시
+  document.getElementById('btn-nass').style.display = s.type === 'nass' ? 'flex' : 'none';
+  // 오디오 버튼: 패턴 슬라이드에서는 숨김
+  document.getElementById('btn-audio').style.display = s.type === 'pattern' ? 'none' : '';
+
+  // ── 나스 슬라이드 ──
+  if (s.type === 'nass') {
+    renderNass(s); updateIndex(); return;
+  }
+
+  // ── 일반 슬라이드 (pattern / repertory / drill / exp / writing) ──
+  const d = s.data;
+  const isWriting = s.type === 'writing';
+  const isSentence = /^[AG]/i.test(s.pg || '');
+  document.getElementById('arabic-area').innerHTML =
+    `<div class="arabic${isWriting ? ' arabic-writing' : ''}${isSentence ? ' arabic-sentence' : ''}">${parseText(d.arabic || '')}</div>`;
+
+  // 래퍼토리: 해석 항상 표시 / 그 외: 전역 meaningVisible 상태 따름
+  const op = (s.type === 'repertory' || meaningVisible) ? '1' : '0';
+  document.getElementById('text-area').innerHTML = `
+    <div class="korean" style="opacity:${op}">${parseText(d.korean || '')}</div>
+    ${d.note ? `<div class="note" style="opacity:${op}">${parseText(d.note)}</div>` : ''}
+  `;
+
+  updateIndex();
+  updateSectionTabs();
+}
+
+function renderNass(s) {
+  const d = s.data;
+  const sual = d.sual || '';
+  // sual 없으면 arabic 바로 표시, 있으면 T로 토글
+  const showArabic = nassTextVisible || !sual;
+
+  const nassTextHtml = `
+    <div class="nass-arabic-wrap">
+      <div class="arabic" dir="rtl">${parseText(d.arabic || '')}</div>
+    </div>`;
+
+  const promptHtml = `<div class="nass-prompt"></div>`;
+
+  document.getElementById('arabic-area').innerHTML =
+    showArabic ? (nassTextHtml + promptHtml) : promptHtml;
+
+  const op = meaningVisible ? '1' : '0';
+  document.getElementById('text-area').innerHTML = `
+    ${d.korean ? `<div class="nass-korean-hint" style="opacity:${op}">${parseText(d.korean)}</div>` : ''}
+    ${d.note ? `<div class="note" style="opacity:${op}">${parseText(d.note)}</div>` : ''}
+    ${sual ? `<div class="nass-sual-note">${parseText(sual)}</div>` : ''}
+  `;
+}
+
+// ── 의미 토글 — 래퍼토리는 무시 ─────────────────────────
+function toggleMeaning() {
+  if (slides[current]?.type === 'repertory') return;
+  meaningVisible = !meaningVisible;
+  document.getElementById('btn-meaning').classList.toggle('active', !meaningVisible);
+  const s = slides[current];
+  if (!s) return;
+  const op = meaningVisible ? '1' : '0';
+  if (s.type === 'nass') {
+    renderNass(s);
+  } else {
+    document.querySelectorAll('#text-area .korean, #text-area .note').forEach(el => {
+      el.style.opacity = op;
+    });
+  }
+}
+
+// ── 나스 지문 토글 ─────────────────────────────────────
+function toggleNass() {
+  nassTextVisible = !nassTextVisible;
+  document.getElementById('btn-nass').classList.toggle('active', nassTextVisible);
+  const s = slides[current];
+  if (s?.type === 'nass') renderNass(s);
+}
+
+// ── 사이드바 ──────────────────────────────────────────
+function toggleSidebar() {
+  sidebarOpen = !sidebarOpen;
+  document.getElementById('sidebar').classList.toggle('open', sidebarOpen);
+  document.getElementById('btn-menu').classList.toggle('active', sidebarOpen);
+}
+
+
+// ── 섹션 탭 빌드 ──────────────────────────────────────
+const SEC_DEFS = [
+  { key: 'ptna',    ko: '패턴',   en: 'Pattern'  },
+  { key: 'drilla',  ko: '드릴',   en: 'Drill'    },
+  { key: 'exp',     ko: '표현',   en: 'Expression'},
+  { key: 'kalimat', ko: '칼리마트', en: 'Kalimat' },
+  { key: 'nass',    ko: '나스',   en: 'Nass'     },
+];
+
+function buildSectionTabs() {
+  const container = document.getElementById('section-tabs');
+  if (!container) return;
+  container.innerHTML = '';
+  SEC_DEFS.forEach(sec => {
+    const firstIdx = slides.findIndex(s => s.type === sec.key);
+    const btn = document.createElement('button');
+    btn.className = 'sec-tab' + (firstIdx === -1 ? ' disabled' : '');
+    btn.dataset.secIdx = firstIdx;
+    btn.innerHTML = `${sec.ko}<small>${sec.en}</small>`;
+    if (firstIdx !== -1) {
+      btn.onclick = () => { goTo(firstIdx); if (sidebarOpen) toggleSidebar(); };
+    }
+    container.appendChild(btn);
+  });
+}
+
+function updateSectionTabs() {
+  const curType = slides[current]?.type;
+  document.querySelectorAll('.sec-tab').forEach(btn => {
+    const secKey = SEC_DEFS.find(s => parseInt(btn.dataset.secIdx) !== -1 &&
+      slides[parseInt(btn.dataset.secIdx)]?.type === s.key)?.key;
+    btn.classList.toggle('active', secKey === curType || 
+      (curType === 'ptnb' && secKey === 'ptna') ||
+      (curType === 'repertory' && secKey === 'ptna') ||
+      (curType === 'drillb' && secKey === 'drilla') ||
+      (curType === 'writing' && secKey === 'ptna')
+    );
+  });
+}
+
+// ── 인덱스 빌드 ───────────────────────────────────────
+function buildIndex() {
+  const list = document.getElementById('index-list');
+  list.innerHTML = '';
+  slides.forEach((s, i) => {
+    if (s.type !== 'ptna') return; // ptnA만 표시
+    const li = document.createElement('li');
+    li.className = 'idx-item';
+    li.dataset.idx = i;
+    const ar = (s.data?.arabic || '').substring(0, 20);
+    const ko = (s.data?.korean || '').substring(0, 22);
+    li.innerHTML = `<span class="idx-ar">${ar}</span><span class="idx-ko">${ko}</span>`;
+    li.onclick = () => {
+      current = i; renderSlide(); updateIndex();
+      if (sidebarOpen) toggleSidebar();
+    };
+    list.appendChild(li);
+  });
+}
+
+function updateIndex() {
+  document.querySelectorAll('.idx-item').forEach(el => {
+    el.classList.toggle('active', +el.dataset.idx === current);
+  });
+  const active = document.querySelector('.idx-item.active');
+  if (active) active.scrollIntoView({ block:'nearest', behavior:'smooth' });
+}
+
+// ── 유닛 버튼 ─────────────────────────────────────────
+function buildUnitButtons(baseUnits) {
+  const c = document.getElementById('sb-pgroups');
+  const label = c.querySelector('span');
+  c.innerHTML = '';
+  if (label) c.appendChild(label);
+
+  baseUnits.forEach(pg => {
+    const btn = document.createElement('button');
+    btn.className = 'unit-btn';
+    btn.textContent = pg;
+    btn.dataset.pg = pg;
+    btn.onclick = async () => {
+      if (currentPg === pg) { if (sidebarOpen) toggleSidebar(); return; }
+      document.getElementById('loading').style.display = 'flex';
+      await buildSlides(pg);
+      document.getElementById('loading').style.display = 'none';
+      if (sidebarOpen) toggleSidebar();
+    };
+    c.appendChild(btn);
+  });
+}
+
+// ── 오디오 URL ─────────────────────────────────────────
+// datasheet url 컬럼 우선, 없으면 GCS listening/ 경로 (mp3 → wav 순으로 시도)
+function getAudioUrls(s) {
+  if (!s) return [];
+  const d = s.data;
+  const id = getRowId(d);
+  if (d?.url) return [d.url.trim()];
+  if (!id) return [];
+  const base = `${AUDIO_BASE}/listening/${id}`;
+  return [base + '.mp3', base + '.wav'];
+}
+
+function toggleAudio() {
+  const audio = document.getElementById('slide-audio');
+  const s = slides[current];
+  const urls = getAudioUrls(s);
+  const btn = document.getElementById('btn-audio');
+  if (audioPlaying) {
+    audio.pause(); audio.currentTime = 0;
+    audioPlaying = false;
+    btn.classList.remove('active');
+  } else if (urls.length) {
+    const onEnd = () => { audioPlaying = false; btn.classList.remove('active'); };
+    // onerror와 play().catch가 동시에 발화할 수 있으므로 guard flag 사용
+    const tryPlay = (i) => {
+      if (i >= urls.length) { onEnd(); return; }
+      let fired = false;
+      const advance = () => { if (!fired) { fired = true; tryPlay(i + 1); } };
+      audio.onended = onEnd;
+      audio.onerror = advance;
+      audio.src = urls[i];
+      audio.load();
+      audio.play().catch(advance);
+    };
+    tryPlay(0);
+    audioPlaying = true;
+    btn.classList.add('active');
+  }
+}
+
+// ── 내비게이션 ────────────────────────────────────────
+function goTo(n) {
+  if (!slides.length) return;
+  const audio = document.getElementById('slide-audio');
+  if (audioPlaying) {
+    audio.pause(); audio.currentTime = 0; audioPlaying = false;
+    document.getElementById('btn-audio').classList.remove('active');
+  }
+  current = Math.max(0, Math.min(slides.length - 1, n));
+  const _sp = new URLSearchParams(location.search);
+  _sp.set('slide', current);
+  history.replaceState(null, '', '?' + _sp.toString());
+  nassTextVisible = false;
+  renderSlide();
+}
+
+// ── 키보드 ────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  switch(e.key) {
+    case 'ArrowRight': case 'ArrowDown': e.preventDefault(); goTo(current+1); break;
+    case 'ArrowLeft':  case 'ArrowUp':   e.preventDefault(); goTo(current-1); break;
+    case ' ':          e.preventDefault(); toggleMeaning(); break;
+    case 'm': case 'M': toggleSidebar(); break;
+    case 't': case 'T': if (slides[current]?.type === 'nass') toggleNass(); break;
+    case 's': case 'S': toggleAudio(); break;
+    case 'Escape': if (sidebarOpen) toggleSidebar(); break;
+    case 'End':  e.preventDefault(); goTo(slides.length - 1); break;
+    case 'Home': e.preventDefault(); goTo(0); break;
+  }
+});
+
+// ── 버튼 이벤트 ───────────────────────────────────────
+document.getElementById('btn-menu').onclick    = toggleSidebar;
+document.getElementById('btn-audio').onclick   = toggleAudio;
+document.getElementById('btn-meaning').onclick = toggleMeaning;
+document.getElementById('btn-nass').onclick    = toggleNass;
+
+// ── 초기화 ────────────────────────────────────────────
+async function init() {
+  try {
+    const dsRaw = await fetchSheetData(TAB_DATASHEET);
+
+    // 베이스 유닛 목록: datasheet의 pattern 행에서 추출
+    const baseUnits = [...new Set(
+      dsRaw
+        .filter(r => normalizeType(r.type) === 'ptna')
+        .map(r => getBaseUnit(getRowU(r)))
+        .filter(Boolean)
+    )].sort((a, b) => {
+      // 계열 우선 정렬: P, G → A, B, C ...
+      const seriesOrder = u => {
+        const s = u.charAt(0).toUpperCase();
+        if (s === 'P') return '0' + u;
+        if (s === 'G') return '1' + u;
+        return '2' + u;
+      };
+      return seriesOrder(a).localeCompare(seriesOrder(b), undefined, { numeric: true });
+    });
+
+    buildUnitButtons(baseUnits);
+
+    const savedPg = new URLSearchParams(location.search).get('unit');
+    const startPg = (savedPg && baseUnits.includes(savedPg)) ? savedPg : (baseUnits[0] || 'P00');
+    await buildSlides(startPg);
+  } catch(e) {
+    document.getElementById('loading').textContent = '로딩 실패: ' + e.message;
+    console.error(e); return;
+  }
+  document.getElementById('loading').style.display = 'none';
+}
+
+init();
+</script>
+</body>
+</html>
