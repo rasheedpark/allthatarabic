@@ -65,7 +65,7 @@ body {
 
 /* ── 진행바 ── */
 #progress {
-  position: fixed; top: 0; left: 0;
+  position: fixed; top: 0; left: 280px; right: 0;
   height: 3px; background: var(--accent);
   transition: width 0.3s; z-index: 50;
 }
@@ -74,9 +74,7 @@ body {
 #main {
   position: fixed;
   top: 0; bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(92vw, 1400px);
+  left: 280px; right: 0;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -209,16 +207,13 @@ body {
 /* ── 사이드바 ── */
 #sidebar {
   position: fixed; top: 0; left: 0;
-  width: min(440px, 92vw); height: 100%;
+  width: 280px; height: 100%;
   background: rgba(9,13,20,0.97);
-  border-right: 2px solid var(--accent);
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
+  border-right: 1px solid var(--border);
   z-index: 200;
   display: flex; flex-direction: column;
-  box-shadow: 5px 0 30px rgba(0,0,0,0.6);
+  overflow: hidden;
 }
-#sidebar.open { transform: translateX(0); }
 .sb-head {
   padding: 1.5rem 2rem;
   border-bottom: 1px solid var(--border);
@@ -267,7 +262,7 @@ body {
 #toolbar {
   position: fixed;
   bottom: clamp(0.8rem,2vw,1.5rem);
-  left: 50%; transform: translateX(-50%);
+  left: calc(280px + 50%); transform: translateX(-50%);
   display: flex; gap: clamp(0.8rem,2vw,1.8rem);
   z-index: 30; align-items: center;
 }
@@ -349,18 +344,7 @@ body {
 <!-- 사이드바 -->
 <div id="sidebar">
   <div class="sb-head">
-    <h2>☰ 메뉴</h2>
-    <ul class="key-list">
-      <li><span class="key">M</span> 메뉴 열기/닫기</li>
-      <li><span class="key">Space</span> 해석 보기/가리기</li>
-      <li><span class="key">T</span> 지문 보기/가리기 (나스)</li>
-      <li><span class="key">S</span> 오디오 재생/정지</li>
-      <li><span class="key">←  →</span> 이전 / 다음</li>
-      <li><span class="key">Home</span> 처음으로 &nbsp; <span class="key">End</span> 마지막으로</li>
-    </ul>
-  </div>
-  <div class="sb-pgroups" id="sb-pgroups">
-    <span style="font-size:0.7rem;color:var(--sub);width:100%;display:block;margin-bottom:4px;">유닛</span>
+    <div style="font-size:0.65rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.5rem;">패턴 Navigator</div>
   </div>
   <ul id="index-list"></ul>
 </div>
@@ -374,7 +358,6 @@ body {
 
 <!-- 단축키 바 -->
 <div id="toolbar">
-  <button class="tb-btn" id="btn-menu"><span class="kb">M</span> 메뉴</button>
   <button class="tb-btn" id="btn-audio"><span class="kb">S</span> 오디오</button>
   <button class="tb-btn" id="btn-meaning"><span class="kb">Space</span> 해석</button>
   <button class="tb-btn" id="btn-nass"><span class="kb">T</span> 지문</button>
@@ -513,42 +496,23 @@ async function buildSlides(baseUnit) {
   _usp.set('unit', baseUnit);
   history.replaceState(null, '', '?' + _usp.toString());
 
-  // 1.4.4: 4개 탭 병렬 로드
-  const [patternRaw, drillRaw, kalimatRaw, nassRaw] = await Promise.all([
-    fetchSheetData(TAB_PATTERN),
-    fetchSheetData(TAB_DRILL),
-    fetchSheetData(TAB_KALIMAT),
-    fetchSheetData(TAB_NASS),
-  ]);
+  // 드릴탭만 로드 (패턴탭은 내비게이터 전용 — buildIndex에서 사용)
+  const drillRaw = await fetchSheetData(TAB_DRILL);
 
-  // 이 베이스 유닛의 U값 패턴: 'P01' → 'P01', 'P01a', 'P01b' ...
+  // 이 베이스 유닛의 U값 패턴
   const escaped = baseUnit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const subRegex = new RegExp('^' + escaped + '[a-z]?$', 'i');
 
-  function filterByUnit(rows, validTypes) {
-    return rows.filter(r => {
-      const t = normalizeType(r.type);
-      if (validTypes && !validTypes.has(t)) return false;
-      if (!subRegex.test(getRowU(r))) return false;
-      const s = (r.status || '').toLowerCase();
-      return s === '' || s === 'confirmed' || s === 'draft1';
-    });
-  }
+  // 드릴탭: status=confirmed인 것만, 시트 순서 그대로
+  const drillRows = drillRaw.filter(r => {
+    if (!subRegex.test(getRowU(r))) return false;
+    const s = (r.status || '').toLowerCase();
+    return s === 'confirmed';
+  });
 
-  // 각 탭 필터링 (시트 순서 유지)
-  const patternRows  = filterByUnit(patternRaw,  new Set(['ptna', 'ptnb']));
-  const drillRows    = filterByUnit(drillRaw,    new Set(['ptna', 'ptnb', 'repertory', 'mithal', 'drilla', 'drillb', 'summary', 'writing', 'exp', 'kalimat']));
-  const kalimatRows  = filterByUnit(kalimatRaw,  new Set(['exp', 'kalimat', 'drilla', 'drill']));
-  const nassRows     = filterByUnit(nassRaw,     new Set(['nass']));
-
-  // 사이드바 레이블: 첫 패턴의 아랍어 또는 베이스 유닛명
-  const firstPattern = patternRows.find(r => normalizeType(r.type) === 'ptna');
-  const groupLabel = firstPattern?.arabic || baseUnit;
-
-  // 슬라이드 순서: pattern탭 → drill탭 → kalimat탭 → nass탭
-  [...patternRows, ...drillRows, ...kalimatRows, ...nassRows].forEach(r => {
+  drillRows.forEach(r => {
     const t = normalizeType(r.type);
-    slides.push({ type: t, data: r, pg: baseUnit, label: groupLabel });
+    slides.push({ type: t, data: r, pg: baseUnit, label: baseUnit });
   });
 
   if (_firstLoad) {
@@ -562,9 +526,7 @@ async function buildSlides(baseUnit) {
   buildIndex();
   buildSectionTabs();
   renderSlide();
-  document.querySelectorAll('#sb-pgroups .unit-btn').forEach(b =>
-    b.classList.toggle('active', b.dataset.pg === baseUnit)
-  );
+
 }
 
 // ── renderSlide ────────────────────────────────────────
@@ -662,12 +624,8 @@ function toggleNass() {
   if (s?.type === 'nass') renderNass(s);
 }
 
-// ── 사이드바 ──────────────────────────────────────────
-function toggleSidebar() {
-  sidebarOpen = !sidebarOpen;
-  document.getElementById('sidebar').classList.toggle('open', sidebarOpen);
-  document.getElementById('btn-menu').classList.toggle('active', sidebarOpen);
-}
+// 사이드바 항상 열려있음 — toggleSidebar 미사용
+function toggleSidebar() {}
 
 
 // ── 섹션 탭 빌드 ──────────────────────────────────────
@@ -714,52 +672,36 @@ function updateSectionTabs() {
 function buildIndex() {
   const list = document.getElementById('index-list');
   list.innerHTML = '';
-  slides.forEach((s, i) => {
-    if (s.type !== 'ptna') return; // ptnA만 표시
+  // 패턴탭 ptnA를 내비게이터로 — 캐시에서 읽음 (이미 init에서 로드됨)
+  const patternRaw = _cache['pattern'] || [];
+  patternRaw.filter(r => normalizeType(r.type) === 'ptna').forEach(ptnRow => {
+    const u = getRowU(ptnRow);
+    // 해당 유닛의 드릴 첫 슬라이드 인덱스
+    const targetIdx = slides.findIndex(s => getBaseUnit(getRowU(s.data)) === getBaseUnit(u));
     const li = document.createElement('li');
     li.className = 'idx-item';
-    li.dataset.idx = i;
-    const ar = (s.data?.arabic || '').substring(0, 20);
-    const ko = (s.data?.korean || '').substring(0, 22);
-    li.innerHTML = `<span class="idx-ar">${ar}</span><span class="idx-ko">${ko}</span>`;
+    li.dataset.u = u;
+    li.dataset.targetIdx = targetIdx;
+    const ar = (ptnRow.arabic || '').substring(0, 24);
+    const ko = (ptnRow.korean || '').substring(0, 22);
+    li.innerHTML = `<span style="font-size:0.7em;color:var(--accent);display:block;margin-bottom:2px;">${u}</span><span class="idx-ar" style="font-size:0.95em;">${ar}</span><span class="idx-ko">${ko}</span>`;
     li.onclick = () => {
-      current = i; renderSlide(); updateIndex();
-      if (sidebarOpen) toggleSidebar();
+      if (targetIdx >= 0) { goTo(targetIdx); }
     };
     list.appendChild(li);
   });
 }
 
 function updateIndex() {
+  const curU = slides[current] ? getBaseUnit(getRowU(slides[current].data)) : '';
   document.querySelectorAll('.idx-item').forEach(el => {
-    el.classList.toggle('active', +el.dataset.idx === current);
+    el.classList.toggle('active', el.dataset.u && getBaseUnit(el.dataset.u) === curU);
   });
   const active = document.querySelector('.idx-item.active');
   if (active) active.scrollIntoView({ block:'nearest', behavior:'smooth' });
 }
 
-// ── 유닛 버튼 ─────────────────────────────────────────
-function buildUnitButtons(baseUnits) {
-  const c = document.getElementById('sb-pgroups');
-  const label = c.querySelector('span');
-  c.innerHTML = '';
-  if (label) c.appendChild(label);
-
-  baseUnits.forEach(pg => {
-    const btn = document.createElement('button');
-    btn.className = 'unit-btn';
-    btn.textContent = pg;
-    btn.dataset.pg = pg;
-    btn.onclick = async () => {
-      if (currentPg === pg) { if (sidebarOpen) toggleSidebar(); return; }
-      document.getElementById('loading').style.display = 'flex';
-      await buildSlides(pg);
-      document.getElementById('loading').style.display = 'none';
-      if (sidebarOpen) toggleSidebar();
-    };
-    c.appendChild(btn);
-  });
-}
+// 유닛 버튼 제거 — 내비게이터로 대체
 
 // ── 오디오 URL ─────────────────────────────────────────
 // datasheet url 컬럼 우선, 없으면 GCS listening/ 경로 (mp3 → wav 순으로 시도)
@@ -824,7 +766,6 @@ document.addEventListener('keydown', e => {
     case 'ArrowRight': case 'ArrowDown': e.preventDefault(); goTo(current+1); break;
     case 'ArrowLeft':  case 'ArrowUp':   e.preventDefault(); goTo(current-1); break;
     case ' ':          e.preventDefault(); toggleMeaning(); break;
-    case 'm': case 'M': toggleSidebar(); break;
     case 't': case 'T': if (slides[current]?.type === 'nass') toggleNass(); break;
     case 's': case 'S': toggleAudio(); break;
     case 'Escape': if (sidebarOpen) toggleSidebar(); break;
@@ -834,7 +775,6 @@ document.addEventListener('keydown', e => {
 });
 
 // ── 버튼 이벤트 ───────────────────────────────────────
-document.getElementById('btn-menu').onclick    = toggleSidebar;
 document.getElementById('btn-audio').onclick   = toggleAudio;
 document.getElementById('btn-meaning').onclick = toggleMeaning;
 document.getElementById('btn-nass').onclick    = toggleNass;
@@ -842,30 +782,12 @@ document.getElementById('btn-nass').onclick    = toggleNass;
 // ── 초기화 ────────────────────────────────────────────
 async function init() {
   try {
-    const dsRaw = await fetchSheetData(TAB_PATTERN);
+    // 패턴탭 로드 (내비게이터용) + 드릴탭은 buildSlides에서
+    await fetchSheetData(TAB_PATTERN);  // 캐시에 저장됨
 
-    // 베이스 유닛 목록: datasheet의 pattern 행에서 추출
-    const baseUnits = [...new Set(
-      dsRaw
-        .filter(r => normalizeType(r.type) === 'ptna')
-        .map(r => getBaseUnit(getRowU(r)))
-        .filter(Boolean)
-    )].sort((a, b) => {
-      // 계열 우선 정렬: P, G → A, B, C ...
-      const seriesOrder = u => {
-        const s = u.charAt(0).toUpperCase();
-        if (s === 'P') return '0' + u;
-        if (s === 'G') return '1' + u;
-        return '2' + u;
-      };
-      return seriesOrder(a).localeCompare(seriesOrder(b), undefined, { numeric: true });
-    });
-
-    buildUnitButtons(baseUnits);
-
-    const savedPg = new URLSearchParams(location.search).get('unit');
-    const startPg = (savedPg && baseUnits.includes(savedPg)) ? savedPg : (baseUnits[0] || 'P00');
-    await buildSlides(startPg);
+    // 첫 유닛 결정 (URL 파라미터 또는 P01)
+    const savedPg = new URLSearchParams(location.search).get('unit') || 'P01';
+    await buildSlides(savedPg);
   } catch(e) {
     document.getElementById('loading').textContent = '로딩 실패: ' + e.message;
     console.error(e); return;
