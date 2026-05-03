@@ -399,7 +399,7 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; }
       <button class="nav-btn" id="prev-btn">◀</button>
       <button class="nav-btn" id="next-btn">▶</button>
     </div>
-    <button class="meaning-btn" id="meaning-btn">해석 보기</button>
+    <button class="meaning-btn active" id="meaning-btn">해석 가리기</button>
     <button class="audio-btn" id="audio-btn">♪</button>
   </div>
 </div>
@@ -426,7 +426,7 @@ let currentUnit = null;
 let audioPlaying = false;
 let sidebarOpen  = false;
 let _firstLoad   = true;
-let meaningVisible     = false;
+let meaningVisible     = true;
 let nassPassageVisible = false;
 
 /* ━━━━ JSONP 로더 ━━━━ */
