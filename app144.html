@@ -308,10 +308,22 @@ body {
 /* ── 로딩 ── */
 #loading {
   position: fixed; inset: 0;
-  background: var(--bg);
-  display: flex; align-items: center; justify-content: center;
-  font-size: clamp(1rem,2.5vw,1.5rem);
-  color: var(--accent); z-index: 999;
+  background: var(--accent);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 1.4rem;
+  z-index: 999;
+}
+#loading img {
+  width: clamp(80px, 12vw, 140px);
+  filter: brightness(0) invert(1);
+}
+#loading .loading-label {
+  font-size: clamp(0.7rem, 1.2vw, 0.95rem);
+  color: rgba(255,255,255,0.75);
+  letter-spacing: 2.5px;
+  text-transform: lowercase;
+  font-weight: 400;
 }
 
 /* ── 시작 오버레이 ── */
@@ -351,7 +363,10 @@ body {
 </head>
 <body>
 
-<div id="loading">데이터 로딩 중...</div>
+<div id="loading">
+  <img src="assets/ata-logo2.png" alt="All That Arabic">
+  <div class="loading-label">markazarabic 1.4.4 beta</div>
+</div>
 <div id="start-overlay" style="display:none;">
   <img class="start-logo" src="assets/ata-logo2.png" alt="All That Arabic">
   <div class="start-text">올댓아라빅 1.4.4</div>
