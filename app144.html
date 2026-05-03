@@ -86,7 +86,7 @@ body {
   padding: clamp(60px,10vh,100px) clamp(1rem,4vw,3rem) clamp(80px,12vh,120px);
 }
 
-/* ── baseline 모드: 글자+음가 쌍 컬럼 + 기준선 ── */
+/* ── baseline 모드: 1행 글자 + 2행 라벨 정렬 ── */
 .bl-row {
   display:flex; flex-direction:row-reverse;
   align-items:baseline; justify-content:center;
@@ -99,19 +99,26 @@ body {
   background:rgba(29,73,255,0.3); pointer-events:none;
   z-index:0;
 }
-.bl-pair { display:flex; flex-direction:column; align-items:center; gap:clamp(14px,2vw,28px); position:relative; z-index:1; }
 .bl-letter {
+  flex:1; text-align:center;
   font-family:'Noto Sans Arabic',serif;
   font-size:clamp(3rem,calc(56vw/var(--items,4)),9rem);
   font-weight:700; line-height:1; color:var(--text);
+  position:relative; z-index:1;
+}
+.bl-labels-row {
+  display:flex; flex-direction:row-reverse;
+  align-items:flex-start; justify-content:center;
+  gap:clamp(6px,3vw,28px); width:100%;
+  margin-top:clamp(8px,1.5vw,18px);
 }
 .bl-label {
+  flex:1; text-align:center;
   font-size:clamp(0.6rem,1.2vw,1rem); font-weight:500;
-  color:var(--sub); letter-spacing:0.3px;
-  text-align:center; white-space:nowrap;
+  color:var(--sub); letter-spacing:0.3px; white-space:nowrap;
 }
 .bl-sep { width:1px; background:var(--border); align-self:stretch; flex-shrink:0; margin:0 4px; }
-.bl-block { display:flex; flex-direction:column; gap:clamp(24px,4vw,56px); width:100%; }
+.bl-sep-ghost { width:1px; flex-shrink:0; margin:0 4px; visibility:hidden; }
 
 /* ── 아랍어 ── */
 .arabic {
@@ -680,84 +687,76 @@ function renderSlide() {
 
 function renderBaseline(s) {
   const d = s.data;
-  // '|' 를 행 구분자로 사용해 토큰을 행별로 분할
-  const allTokens = (d.arabic||'').trim().split(/\s+/).filter(Boolean);
-  const labels = (d.note||'').trim()
-    ? (d.note).trim().split(/\s+/).map(l => l.replace(/_/g,' '))
+  const tokens = (d.arabic||'').trim().split(/\s+/).filter(Boolean);
+  // 라벨 우선순위: korean → note
+  const labelSrc = (d.korean||'').trim() || (d.note||'').trim();
+  const labels = labelSrc
+    ? labelSrc.split(/\s+/).map(l => l.replace(/_/g,' '))
     : [];
+  const letterCount = tokens.filter(ch => ch !== '|').length;
   const arOp = arabicVisible ? '1' : '0';
-
-  // '|' 기준으로 행 분할
-  const rowGroups = [];
-  let cur = [];
-  allTokens.forEach(ch => {
-    if (ch === '|') { rowGroups.push(cur); cur = []; }
-    else cur.push(ch);
-  });
-  rowGroups.push(cur);
 
   const arabicArea = document.getElementById('arabic-area');
   arabicArea.innerHTML = '';
+  arabicArea.style.cssText = `opacity:${arOp};transition:opacity 0.3s;`;
 
-  const block = document.createElement('div');
-  block.className = 'bl-block';
-  block.style.cssText = `opacity:${arOp};transition:opacity 0.3s;`;
+  // ── 1행: 아랍어 글자 + 기준선 ──
+  const lettersRow = document.createElement('div');
+  lettersRow.className = 'bl-row';
+  lettersRow.style.setProperty('--items', letterCount || 4);
 
-  const rowMeta = [];
+  const anchor = document.createElement('span'); anchor.className = 'bl-anchor';
+  lettersRow.appendChild(anchor);
+  const line = document.createElement('div'); line.className = 'bl-line';
+  lettersRow.appendChild(line);
+
+  // ── 2행: 라벨 ──
+  const labelsRow = document.createElement('div');
+  labelsRow.className = 'bl-labels-row';
+
   let li = 0;
+  tokens.forEach(ch => {
+    if (ch === '|') {
+      const s1 = document.createElement('div'); s1.className = 'bl-sep';
+      lettersRow.appendChild(s1);
+      const s2 = document.createElement('div'); s2.className = 'bl-sep-ghost';
+      labelsRow.appendChild(s2);
+      return;
+    }
+    const letter = document.createElement('span'); letter.className = 'bl-letter';
+    letter.innerHTML = parseText(ch);
+    lettersRow.appendChild(letter);
 
-  rowGroups.forEach(rowTokens => {
-    if (!rowTokens.length) return;
-    const row = document.createElement('div');
-    row.className = 'bl-row';
-    row.style.setProperty('--items', rowTokens.length || 4);
-
-    const anchor = document.createElement('span'); anchor.className = 'bl-anchor';
-    row.appendChild(anchor);
-    const line = document.createElement('div'); line.className = 'bl-line';
-    row.appendChild(line);
-
-    rowTokens.forEach(ch => {
-      const pair = document.createElement('div'); pair.className = 'bl-pair';
-      const letter = document.createElement('span'); letter.className = 'bl-letter';
-      letter.innerHTML = parseText(ch); pair.appendChild(letter);
-      if (labels[li]) {
-        const lbl = document.createElement('span'); lbl.className = 'bl-label';
-        lbl.innerHTML = parseText(labels[li]); pair.appendChild(lbl);
-      }
-      li++; row.appendChild(pair);
-    });
-
-    block.appendChild(row);
-    rowMeta.push({ row, anchor, line });
+    const lbl = document.createElement('span'); lbl.className = 'bl-label';
+    lbl.innerHTML = labels[li] ? parseText(labels[li]) : ' ';
+    labelsRow.appendChild(lbl);
+    li++;
   });
 
-  arabicArea.appendChild(block);
+  arabicArea.appendChild(lettersRow);
+  arabicArea.appendChild(labelsRow);
 
-  // 오버플로 축소 + baseline 선 위치 (행별 독립)
+  // 오버플로 축소 + baseline 선 위치
   requestAnimationFrame(() => {
-    rowMeta.forEach(({ row }) => {
-      if (!row.isConnected) return;
-      const avail = (arabicArea.clientWidth ?? 0) - 48;
-      const actual = row.scrollWidth;
-      if (actual > avail && avail > 0) {
-        const sc = Math.max(0.6, avail / actual);
-        row.style.transform = `scale(${sc.toFixed(4)})`;
-        row.style.transformOrigin = 'center top';
-      }
-    });
+    if (!lettersRow.isConnected) return;
+    const avail = (arabicArea.clientWidth ?? 0) - 48;
+    const actual = Math.max(lettersRow.scrollWidth, labelsRow.scrollWidth);
+    if (actual > avail && avail > 0) {
+      const sc = Math.max(0.6, avail / actual);
+      lettersRow.style.transform = `scale(${sc.toFixed(4)})`;
+      lettersRow.style.transformOrigin = 'center top';
+      labelsRow.style.transform = `scale(${sc.toFixed(4)})`;
+      labelsRow.style.transformOrigin = 'center top';
+    }
     requestAnimationFrame(() => {
-      rowMeta.forEach(({ row, anchor, line }) => {
-        if (!row.isConnected) return;
-        const rowRect = row.getBoundingClientRect();
-        const anchorRect = anchor.getBoundingClientRect();
-        if (rowRect.height > 0)
-          line.style.top = (anchorRect.bottom - rowRect.top) + 'px';
-      });
+      if (!lettersRow.isConnected) return;
+      const rowRect = lettersRow.getBoundingClientRect();
+      const anchorRect = anchor.getBoundingClientRect();
+      if (rowRect.height > 0)
+        line.style.top = (anchorRect.bottom - rowRect.top) + 'px';
     });
   });
 
-  // baseline 모드에서 note는 컬럼 라벨로 사용되므로 text-area는 비움
   document.getElementById('text-area').innerHTML = '';
 }
 
