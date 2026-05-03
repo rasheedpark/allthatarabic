@@ -123,14 +123,13 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; }
 .hl-bold { font-weight:700; color:var(--accent); }
 
 /* ── baseline 모드: 글자+음가 쌍 컬럼 + 기준선 ── */
-/* 1행: 아랍어 글자 + 기준선 */
+/* baseline 모드 */
 .bl-row {
   display:flex; flex-direction:row-reverse;
   align-items:baseline; justify-content:center;
   gap:clamp(4px,3cqi,20px);
   position:relative; width:100%;
 }
-.bl-anchor { width:0; height:0; overflow:visible; align-self:baseline; }
 .bl-line {
   position:absolute; left:-4px; right:-4px; height:1.5px;
   background:rgba(29,73,255,0.3); pointer-events:none;
@@ -143,21 +142,17 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; }
   font-weight:700; line-height:1; color:var(--text);
   position:relative; z-index:1;
 }
-/* 2행: 라벨 (Korean 우선, 없으면 note) */
 .bl-labels-row {
   display:flex; flex-direction:row-reverse;
   align-items:flex-start; justify-content:center;
   gap:clamp(4px,3cqi,20px); width:100%;
-  margin-top:clamp(6px,1.5cqi,14px);
+  margin-top:clamp(28px,5cqi,44px);
 }
 .bl-label {
   flex:1; text-align:center;
   font-size:clamp(10px,2.5vw,13px); font-weight:500;
   color:var(--sub); letter-spacing:0.3px; white-space:nowrap;
 }
-/* 열 구분자 */
-.bl-sep { width:1px; background:var(--border); align-self:stretch; flex-shrink:0; margin:0 2px; }
-.bl-sep-ghost { width:1px; flex-shrink:0; margin:0 2px; visibility:hidden; }
 
 /* ── ptn 슬라이드: 아랍어(작게) + 설명 텍스트 ── */
 .ptn-arabic {
@@ -648,47 +643,37 @@ function renderContent(area, s) {
 function renderBaseline(inner, s) {
   const d = s.data;
   const tokens = (d.arabic||'').trim().split(/\s+/).filter(Boolean);
-  // 라벨 우선순위: korean → note
   const labelSrc = (d.korean||'').trim() || (d.note||'').trim();
   const labels = labelSrc
     ? labelSrc.split(/\s+/).filter(t => t !== '|').map(l => l.replace(/_/g,' '))
     : [];
   const letterCount = tokens.filter(ch => ch !== '|').length;
 
-  // ── 1행: 아랍어 글자 + 기준선 ──
+  // 1행: 아랍어 글자 + 기준선
   const lettersRow = document.createElement('div');
   lettersRow.className = 'bl-row';
   lettersRow.style.setProperty('--items', letterCount || 4);
 
-  const anchor = document.createElement('span');
-  anchor.className = 'bl-anchor';
-  lettersRow.appendChild(anchor);
   const line = document.createElement('div');
   line.className = 'bl-line';
-  lettersRow.appendChild(line);
+  lettersRow.appendChild(line); // position:absolute → flex 레이아웃 영향 없음
 
-  // ── 2행: 라벨 ──
+  // 2행: 라벨
   const labelsRow = document.createElement('div');
   labelsRow.className = 'bl-labels-row';
 
   let li = 0;
+  let firstLetter = null;
   tokens.forEach(ch => {
-    if (ch === '|') {
-      // 열 구분자: 두 행 모두에 삽입
-      const s1 = document.createElement('div'); s1.className = 'bl-sep';
-      lettersRow.appendChild(s1);
-      const s2 = document.createElement('div'); s2.className = 'bl-sep-ghost';
-      labelsRow.appendChild(s2);
-      return;
-    }
+    if (ch === '|') return; // 세로선 없음, 건너뜀
     const letter = document.createElement('span');
     letter.className = 'bl-letter';
     letter.innerHTML = parseText(ch);
     lettersRow.appendChild(letter);
-
+    if (!firstLetter) firstLetter = letter;
     const lbl = document.createElement('span');
     lbl.className = 'bl-label';
-    lbl.innerHTML = labels[li] ? parseText(labels[li]) : ' ';
+    lbl.innerHTML = labels[li] ? parseText(labels[li]) : ' ';
     labelsRow.appendChild(lbl);
     li++;
   });
@@ -696,13 +681,11 @@ function renderBaseline(inner, s) {
   inner.appendChild(lettersRow);
   inner.appendChild(labelsRow);
 
-  // 오버플로 축소 + baseline 선 위치
+  // 오버플로 축소 + baseline 선 위치 (probe 방식)
   requestAnimationFrame(() => {
     if (!lettersRow.isConnected) return;
     const avail = (lettersRow.parentElement?.clientWidth ?? 0) - 32;
-    const actualL = lettersRow.scrollWidth;
-    const actualR = labelsRow.scrollWidth;
-    const actual = Math.max(actualL, actualR);
+    const actual = Math.max(lettersRow.scrollWidth, labelsRow.scrollWidth);
     if (actual > avail && avail > 0) {
       const sc = Math.max(0.6, avail / actual);
       lettersRow.style.transform = `scale(${sc.toFixed(4)})`;
@@ -711,15 +694,19 @@ function renderBaseline(inner, s) {
       labelsRow.style.transformOrigin = 'center top';
     }
     requestAnimationFrame(() => {
-      if (!lettersRow.isConnected) return;
-      const rowRect    = lettersRow.getBoundingClientRect();
-      const anchorRect = anchor.getBoundingClientRect();
+      if (!lettersRow.isConnected || !firstLetter) return;
+      const probe = document.createElement('span');
+      probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;overflow:hidden;';
+      firstLetter.appendChild(probe);
+      const rowRect   = lettersRow.getBoundingClientRect();
+      const probeRect = probe.getBoundingClientRect();
+      probe.remove();
       if (rowRect.height > 0)
-        line.style.top = (anchorRect.bottom - rowRect.top) + 'px';
+        line.style.top = (probeRect.bottom - rowRect.top) + 'px';
     });
   });
 
-  // summary 열 → 설명 텍스트
+  // summary
   const summaryText = d.summary || d.scripta || '';
   if (summaryText) {
     const body = document.createElement('div');
