@@ -294,48 +294,36 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; }
 }
 .sidebar-header h2 { font-size:15px; font-weight:700; color:var(--text); }
 .sidebar-close { background:none; color:var(--sub); font-size:20px; padding:4px; }
-.sb-section {
-  padding:13px 20px 5px;
-  font-size:11px; font-weight:700; letter-spacing:.07em;
-  text-transform:uppercase; color:var(--sub);
-}
-.unit-chips { padding:4px 12px 8px; display:flex; flex-wrap:wrap; gap:6px; }
-.unit-chip {
-  padding:5px 14px; border-radius:999px;
-  border:1.5px solid var(--border);
-  background:none; font-size:13px; font-weight:600;
-  color:var(--sub); transition:all .12s;
-}
-.unit-chip.active { background:var(--accent-bg); border-color:var(--accent); color:var(--accent); }
-#index-list { flex:1; overflow-y:auto; list-style:none; padding:4px 0 12px; }
-.idx-item {
-  display:flex; align-items:flex-start; gap:9px;
-  padding:9px 16px 9px 17px;
+/* ── 사이드바 유닛 네비게이터 (선생님용과 동일 로직) ── */
+.unit-nav-list { flex:1; overflow-y:auto; list-style:none; padding:6px 0 16px; }
+.unit-nav-item {
+  display:flex; align-items:flex-start; gap:12px;
+  padding:14px 20px 14px 17px;
   cursor:pointer; border-left:3px solid transparent;
   transition:background .1s;
 }
-.idx-item:active { background:var(--accent-bg); }
-.idx-item.active { background:var(--accent-bg); border-left-color:var(--accent); }
-.idx-badge {
-  flex-shrink:0; margin-top:3px;
-  font-size:9px; font-weight:700; letter-spacing:.04em;
-  padding:2px 6px; border-radius:4px;
-  background:var(--accent-bg); color:var(--accent);
-  text-transform:uppercase; white-space:nowrap;
+.unit-nav-item:active { background:var(--accent-bg); }
+.unit-nav-item.active {
+  background:var(--accent-bg); border-left-color:var(--accent);
 }
-.idx-badge.type-nass { background:rgba(136,143,172,.12); color:var(--sub); }
-.idx-badge.type-kalimat { background:rgba(29,73,255,.05); color:var(--sub); }
-.idx-content { flex:1; min-width:0; }
-.idx-ar {
+.unit-nav-tag {
+  flex-shrink:0; margin-top:4px;
+  font-size:10px; font-weight:700; letter-spacing:.05em;
+  padding:3px 8px; border-radius:5px;
+  background:var(--accent-bg); color:var(--accent);
+}
+.unit-nav-item.active .unit-nav-tag { background:var(--accent); color:#fff; }
+.unit-nav-content { flex:1; min-width:0; }
+.unit-nav-ar {
   display:block;
   font-family:var(--font-ar); direction:rtl; text-align:right;
-  font-size:14px; font-weight:600; color:var(--text);
+  font-size:17px; font-weight:700; color:var(--text);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  line-height:1.45;
+  line-height:1.4;
 }
-.idx-item.active .idx-ar { color:var(--accent); }
-.idx-ko {
-  display:block; margin-top:2px;
+.unit-nav-item.active .unit-nav-ar { color:var(--accent); }
+.unit-nav-ko {
+  display:block; margin-top:3px;
   font-size:11px; color:var(--sub);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   line-height:1.3;
@@ -435,10 +423,7 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; }
       <h2>목차</h2>
       <button class="sidebar-close" id="sb-close">✕</button>
     </div>
-    <div class="sb-section">유닛</div>
-    <div class="unit-chips" id="unit-chips"></div>
-    <div class="sb-section">섹션</div>
-    <ul id="index-list"></ul>
+    <ul class="unit-nav-list" id="unit-nav-list"></ul>
     <div class="sidebar-ver">올댓아라빅 v1.4.4</div>
   </div>
 </div>
@@ -621,9 +606,6 @@ async function buildSlides(baseUnit) {
   buildIndex();
   buildSectionTabs();
   renderSlide();
-  document.querySelectorAll('.unit-chip').forEach(b =>
-    b.classList.toggle('active', b.dataset.unit === baseUnit)
-  );
 }
 
 /* ━━━━ renderSlide ━━━━ */
@@ -916,54 +898,74 @@ function fitArabic(el) {
   });
 }
 
-/* ━━━━ 사이드바 인덱스 ━━━━ */
+/* ━━━━ 사이드바 유닛 네비게이터 (선생님용과 동일 로직) ━━━━ */
 function buildIndex() {
-  const list = document.getElementById('index-list');
+  const list = document.getElementById('unit-nav-list');
+  if (!list) return;
   list.innerHTML = '';
 
-  slides.forEach((s, idx) => {
-    const d = s.data;
-    // arabic에서 hl 마크업 제거 후 미리보기용 텍스트 추출
-    const arRaw = (d.arabic||'').replace(/_([^_]+)_/g,'$1').replace(/\*([^*]+)\*/g,'$1').trim();
-    const koRaw = (d.korean||'').replace(/_([^_]+)_/g,'$1').replace(/\*([^*]+)\*/g,'$1').trim();
-    const typeLbl = TYPE_KO[s.type] || s.type;
+  const drillRaw = _cache[TAB_DRILL] || [];
+
+  // 확인된 유닛 목록 (drill 기준)
+  const units = [...new Set(
+    drillRaw
+      .filter(r => (r.status||'').toLowerCase() === 'confirmed')
+      .map(r => getBaseUnit(getRowU(r)))
+      .filter(Boolean)
+  )].sort();
+
+  units.forEach(u => {
+    // 해당 유닛의 첫 ptn 슬라이드로 미리보기 텍스트 추출
+    const escaped = u.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const subReg = new RegExp('^'+escaped+'[a-z]?$','i');
+    const ptnRow = drillRaw.find(r =>
+      subReg.test(getRowU(r)) &&
+      normalizeType(r.type) === 'ptn' &&
+      (r.status||'').toLowerCase() === 'confirmed'
+    );
 
     const li = document.createElement('li');
-    li.className = 'idx-item';
-    li.dataset.idx = idx;
+    li.className = 'unit-nav-item';
+    li.dataset.unit = u;
 
-    const badge = document.createElement('span');
-    badge.className = 'idx-badge type-' + s.type;
-    badge.textContent = typeLbl;
+    const tag = document.createElement('span');
+    tag.className = 'unit-nav-tag';
+    tag.textContent = u;
 
     const content = document.createElement('span');
-    content.className = 'idx-content';
+    content.className = 'unit-nav-content';
 
-    if (arRaw) {
-      const arEl = document.createElement('span');
-      arEl.className = 'idx-ar';
-      arEl.textContent = arRaw.length > 22 ? arRaw.slice(0,22) + '…' : arRaw;
-      content.appendChild(arEl);
-    }
-    if (koRaw) {
-      const koEl = document.createElement('span');
-      koEl.className = 'idx-ko';
-      koEl.textContent = koRaw.length > 24 ? koRaw.slice(0,24) + '…' : koRaw;
-      content.appendChild(koEl);
+    if (ptnRow) {
+      const ar = (ptnRow.arabic||'').substring(0, 26);
+      const ko = (ptnRow.korean||'').substring(0, 28);
+      if (ar) {
+        const arEl = document.createElement('span');
+        arEl.className = 'unit-nav-ar';
+        arEl.textContent = ar;
+        content.appendChild(arEl);
+      }
+      if (ko) {
+        const koEl = document.createElement('span');
+        koEl.className = 'unit-nav-ko';
+        koEl.textContent = ko;
+        content.appendChild(koEl);
+      }
     }
 
-    li.appendChild(badge);
+    li.appendChild(tag);
     li.appendChild(content);
-    li.onclick = () => { goTo(idx); closeSidebar(); };
+    li.onclick = () => { buildSlides(u); closeSidebar(); };
     list.appendChild(li);
   });
+
+  updateIndex();
 }
 
 function updateIndex() {
-  document.querySelectorAll('#index-list .idx-item').forEach(el => {
-    el.classList.toggle('active', parseInt(el.dataset.idx) === current);
+  document.querySelectorAll('.unit-nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.unit === currentUnit);
   });
-  const active = document.querySelector('#index-list .idx-item.active');
+  const active = document.querySelector('.unit-nav-item.active');
   if (active) active.scrollIntoView({ block:'nearest', behavior:'smooth' });
 }
 
@@ -1113,17 +1115,6 @@ async function init() {
         .map(r => getBaseUnit(getRowU(r)))
         .filter(Boolean)
     )].sort();
-
-    // 유닛 칩
-    const chips = document.getElementById('unit-chips');
-    units.forEach(u => {
-      const btn = document.createElement('button');
-      btn.className = 'unit-chip';
-      btn.dataset.unit = u;
-      btn.textContent = u;
-      btn.onclick = () => { buildSlides(u); closeSidebar(); };
-      chips.appendChild(btn);
-    });
 
     const savedUnit = new URLSearchParams(location.search).get('unit');
     const startUnit = (savedUnit && units.includes(savedUnit)) ? savedUnit : (units[0]||'P01');
