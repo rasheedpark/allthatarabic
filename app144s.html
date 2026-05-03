@@ -556,11 +556,11 @@ function normalizeType(t) {
 }
 function getRowU(r) {
   if (r.u) return r.u;
-  const id = r.key_drill || r.id_nass || r.id || '';
+  const id = r.key_drill || r.key_nass || r.id_nass || r.id || r.id_words || '';
   return id.split('-')[0] || '';
 }
 function getRowId(r) {
-  return r.key_drill || r.id_nass || r.id || '';
+  return r.key_drill || r.key_nass || r.id_nass || r.id || r.id_words || '';
 }
 function getBaseUnit(u) { return (u||'').replace(/[a-z]+$/,''); }
 

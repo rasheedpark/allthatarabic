@@ -507,9 +507,9 @@ function getRowU(r) {
   return id.split('-')[0] || '';
 }
 
-// 행의 ID값: id > id_datasheet > id_nass > id_words 순
+// 행의 ID값: key_ptn > key_drill > key_nass > id_nass > id > id_datasheet > id_words 순
 function getRowId(r) {
-  return r.key_ptn || r.key_drill || r.id_nass || r.id || r.id_datasheet || r.id_words || '';
+  return r.key_ptn || r.key_drill || r.key_nass || r.id_nass || r.id || r.id_datasheet || r.id_words || '';
 }
 
 // ── JSONP 데이터 로더 ──────────────────────────────────
