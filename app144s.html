@@ -133,8 +133,9 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; }
 .bl-line {
   position:absolute; left:-4px; right:-4px; height:1.5px;
   background:rgba(29,73,255,0.3); pointer-events:none;
+  z-index:0;
 }
-.bl-pair { display:flex; flex-direction:column; align-items:center; gap:clamp(8px,2cqi,20px); }
+.bl-pair { display:flex; flex-direction:column; align-items:center; gap:clamp(8px,2cqi,20px); position:relative; z-index:1; }
 .bl-letter {
   font-family:var(--font-ar);
   font-size:clamp(2rem,calc(56cqi/var(--items,4)),5rem);
@@ -636,8 +637,8 @@ function renderContent(area, s) {
 function renderBaseline(inner, s) {
   const d = s.data;
   const tokens = (d.arabic||'').trim().split(/\s+/).filter(Boolean);
-  const labels = (d.korean||'').trim()
-    ? (d.korean).trim().split(/\s+/).map(l => l.replace(/_/g,' '))
+  const labels = (d.note||'').trim()
+    ? (d.note).trim().split(/\s+/).map(l => l.replace(/_/g,' '))
     : [];
   const isSep = ch => ch === '|';
   const letterCount = tokens.filter(ch => !isSep(ch)).length;
@@ -699,11 +700,13 @@ function renderBaseline(inner, s) {
     });
   });
 
-  if (d.note) {
-    const nt = document.createElement('div');
-    nt.className = 'note-text';
-    nt.innerHTML = parseText(d.note);
-    inner.appendChild(nt);
+  // summary 열 → 설명 텍스트 (baseline 슬라이드에서도 표시)
+  const summaryText = d.summary || d.scripta || '';
+  if (summaryText) {
+    const body = document.createElement('div');
+    body.className = 'ptn-summary';
+    renderPtnDesc(summaryText, body);
+    inner.appendChild(body);
   }
 }
 
