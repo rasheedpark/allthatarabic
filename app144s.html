@@ -78,6 +78,26 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; }
 }
 .menu-btn:active { background:var(--accent-bg); color:var(--accent); }
 
+/* ── 섹션 탭 바 ── */
+.sec-tabs-bar {
+  flex-shrink:0;
+  display:flex; align-items:center;
+  gap:6px; padding:6px 16px;
+  border-bottom:1px solid var(--border);
+  overflow-x:auto; -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.sec-tabs-bar::-webkit-scrollbar { display:none; }
+.sec-tab {
+  flex-shrink:0;
+  border:1.5px solid var(--border); border-radius:99px;
+  font-size:11px; font-weight:700; letter-spacing:.03em;
+  padding:4px 12px; background:none; color:var(--sub);
+  white-space:nowrap;
+}
+.sec-tab.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+.sec-tab.disabled { opacity:0.25; pointer-events:none; }
+
 /* ── 슬라이드 뷰포트 ── */
 .slide-viewport { flex:1; overflow:hidden; position:relative; }
 .slide-area {
@@ -422,6 +442,8 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; }
     </div>
   </div>
 
+  <div class="sec-tabs-bar" id="sec-tabs-bar"></div>
+
   <div class="slide-viewport" id="slide-viewport">
     <div class="slide-area" id="slide-area"></div>
   </div>
@@ -581,6 +603,7 @@ async function buildSlides(baseUnit) {
   } else { current = 0; }
 
   buildIndex();
+  buildSectionTabs();
   renderSlide();
   document.querySelectorAll('.unit-chip').forEach(b =>
     b.classList.toggle('active', b.dataset.unit === baseUnit)
@@ -615,6 +638,7 @@ function renderSlide() {
   area.scrollTop = 0;
   renderContent(area, s);
   updateIndex();
+  updateSectionTabs();
   saveState();
 }
 
@@ -917,6 +941,40 @@ function updateIndex() {
   );
 }
 
+/* ━━━━ 섹션 탭 ━━━━ */
+const SEC_DEFS = [
+  { key:'ptn',       label:'패턴' },
+  { key:'mithal',    label:'미쌀' },
+  { key:'drilla',    label:'드릴' },
+  { key:'repertory', label:'레퍼토리' },
+  { key:'exp',       label:'표현' },
+  { key:'kalimat',   label:'칼리마트' },
+  { key:'nass',      label:'나스' },
+];
+
+function buildSectionTabs() {
+  const bar = document.getElementById('sec-tabs-bar');
+  bar.innerHTML = '';
+  SEC_DEFS.forEach(sec => {
+    const firstIdx = slides.findIndex(s => s.type === sec.key);
+    const btn = document.createElement('button');
+    btn.className = 'sec-tab' + (firstIdx === -1 ? ' disabled' : '');
+    btn.textContent = sec.label;
+    btn.dataset.key = sec.key;
+    if (firstIdx !== -1) btn.onclick = () => goTo(firstIdx);
+    bar.appendChild(btn);
+  });
+}
+
+function updateSectionTabs() {
+  const curType = slides[current]?.type;
+  document.querySelectorAll('#sec-tabs-bar .sec-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.key === curType);
+  });
+  const active = document.querySelector('#sec-tabs-bar .sec-tab.active');
+  if (active) active.scrollIntoView({ inline:'nearest', behavior:'smooth' });
+}
+
 /* ━━━━ 이동 ━━━━ */
 function goTo(idx) {
   if (idx < 0 || idx >= slides.length) return;
@@ -1009,8 +1067,9 @@ document.getElementById('start-btn').onclick   = () => {
   localStorage.setItem('ata144s_onboarded','1');
 };
 
-vp().addEventListener('touchstart', onTouchStart, {passive:true});
-vp().addEventListener('touchend',   onTouchEnd,   {passive:true});
+// slide-area에 직접 연결 (-webkit-overflow-scrolling:touch 환경에서 viewport로 버블링 안됨)
+document.getElementById('slide-area').addEventListener('touchstart', onTouchStart, {passive:true});
+document.getElementById('slide-area').addEventListener('touchend',   onTouchEnd,   {passive:true});
 
 /* ━━━━ 초기화 ━━━━ */
 async function init() {
