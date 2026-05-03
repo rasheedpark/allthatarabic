@@ -691,7 +691,7 @@ function renderBaseline(s) {
   // 라벨 우선순위: korean → note
   const labelSrc = (d.korean||'').trim() || (d.note||'').trim();
   const labels = labelSrc
-    ? labelSrc.split(/\s+/).map(l => l.replace(/_/g,' '))
+    ? labelSrc.split(/\s+/).filter(t => t !== '|').map(l => l.replace(/_/g,' '))
     : [];
   const letterCount = tokens.filter(ch => ch !== '|').length;
   const arOp = arabicVisible ? '1' : '0';
