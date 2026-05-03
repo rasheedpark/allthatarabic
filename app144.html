@@ -86,39 +86,31 @@ body {
   padding: clamp(60px,10vh,100px) clamp(1rem,4vw,3rem) clamp(80px,12vh,120px);
 }
 
-/* ── baseline 모드: 1행 글자 + 2행 라벨 정렬 ── */
-.bl-row {
-  display:flex; flex-direction:row-reverse;
-  align-items:baseline; justify-content:center;
-  gap:clamp(6px,3vw,28px);
-  position:relative; width:100%;
-}
-.bl-anchor { width:0; height:0; overflow:visible; align-self:baseline; }
+/* ── baseline 모드: CSS Grid 정렬 ── */
+.bl-wrap { position:relative; width:100%; }
 .bl-line {
-  position:absolute; left:-6px; right:-6px; height:1.5px;
-  background:rgba(29,73,255,0.3); pointer-events:none;
-  z-index:0;
+  position:absolute; left:0; right:0; height:1.5px;
+  background:rgba(29,73,255,0.3); pointer-events:none; z-index:0;
+}
+.bl-grid {
+  display:grid;
+  grid-template-columns:repeat(var(--items,5), 1fr);
+  direction:rtl;
+  width:100%;
+  column-gap:clamp(6px,3vw,28px);
+  row-gap:clamp(28px,3vw,48px);
 }
 .bl-letter {
-  flex:1; text-align:center;
+  text-align:center;
   font-family:'Noto Sans Arabic',serif;
   font-size:clamp(3rem,calc(56vw/var(--items,4)),9rem);
   font-weight:700; line-height:1; color:var(--text);
-  position:relative; z-index:1;
-}
-.bl-labels-row {
-  display:flex; flex-direction:row-reverse;
-  align-items:flex-start; justify-content:center;
-  gap:clamp(6px,3vw,28px); width:100%;
-  margin-top:clamp(28px,3vw,48px);
 }
 .bl-label {
-  flex:1; text-align:center;
+  text-align:center;
   font-size:clamp(0.6rem,1.2vw,1rem); font-weight:500;
-  color:var(--sub); letter-spacing:0.3px; white-space:nowrap;
+  color:var(--sub); letter-spacing:0.3px;
 }
-.bl-sep { width:1px; background:var(--border); align-self:stretch; flex-shrink:0; margin:0 4px; }
-.bl-sep-ghost { width:1px; flex-shrink:0; margin:0 4px; visibility:hidden; }
 
 /* ── 아랍어 ── */
 .arabic {
@@ -687,69 +679,69 @@ function renderSlide() {
 
 function renderBaseline(s) {
   const d = s.data;
-  const tokens = (d.arabic||'').trim().split(/\s+/).filter(Boolean);
+  const tokens = (d.arabic||'').trim().split(/\s+/).filter(t => t && t !== '|');
   const labelSrc = (d.korean||'').trim() || (d.note||'').trim();
   const labels = labelSrc
     ? labelSrc.split(/\s+/).filter(t => t !== '|').map(l => l.replace(/_/g,' '))
     : [];
-  const letterCount = tokens.filter(ch => ch !== '|').length;
   const arOp = arabicVisible ? '1' : '0';
 
   const arabicArea = document.getElementById('arabic-area');
   arabicArea.innerHTML = '';
   arabicArea.style.cssText = `opacity:${arOp};transition:opacity 0.3s;`;
 
-  // 1행: 아랍어 글자 + 기준선
-  const lettersRow = document.createElement('div');
-  lettersRow.className = 'bl-row';
-  lettersRow.style.setProperty('--items', letterCount || 4);
+  const wrap = document.createElement('div');
+  wrap.className = 'bl-wrap';
 
-  const line = document.createElement('div'); line.className = 'bl-line';
-  lettersRow.appendChild(line); // position:absolute → flex 레이아웃 영향 없음
+  const line = document.createElement('div');
+  line.className = 'bl-line';
+  wrap.appendChild(line);
 
-  // 2행: 라벨
-  const labelsRow = document.createElement('div');
-  labelsRow.className = 'bl-labels-row';
+  const grid = document.createElement('div');
+  grid.className = 'bl-grid';
+  grid.style.setProperty('--items', tokens.length || 4);
 
-  let li = 0;
+  // 행 1: 아랍어 글자
   let firstLetter = null;
   tokens.forEach(ch => {
-    if (ch === '|') return; // 세로선 없음, 건너뜀
-    const letter = document.createElement('span'); letter.className = 'bl-letter';
+    const letter = document.createElement('span');
+    letter.className = 'bl-letter';
     letter.innerHTML = parseText(ch);
-    lettersRow.appendChild(letter);
+    grid.appendChild(letter);
     if (!firstLetter) firstLetter = letter;
-    const lbl = document.createElement('span'); lbl.className = 'bl-label';
-    lbl.innerHTML = labels[li] ? parseText(labels[li]) : ' ';
-    labelsRow.appendChild(lbl);
-    li++;
   });
 
-  arabicArea.appendChild(lettersRow);
-  arabicArea.appendChild(labelsRow);
+  // 행 2: 라벨
+  tokens.forEach((ch, i) => {
+    const lbl = document.createElement('span');
+    lbl.className = 'bl-label';
+    lbl.innerHTML = labels[i] ? parseText(labels[i]) : ' ';
+    grid.appendChild(lbl);
+  });
 
-  // 오버플로 축소 + baseline 선 위치 (probe 방식)
+  wrap.appendChild(grid);
+  arabicArea.appendChild(wrap);
+
+  // 오버플로 축소 + baseline 선 위치
   requestAnimationFrame(() => {
-    if (!lettersRow.isConnected) return;
+    if (!grid.isConnected) return;
     const avail = (arabicArea.clientWidth ?? 0) - 48;
-    const actual = Math.max(lettersRow.scrollWidth, labelsRow.scrollWidth);
+    const actual = grid.scrollWidth;
     if (actual > avail && avail > 0) {
-      const sc = Math.max(0.6, avail / actual);
-      lettersRow.style.transform = `scale(${sc.toFixed(4)})`;
-      lettersRow.style.transformOrigin = 'center top';
-      labelsRow.style.transform = `scale(${sc.toFixed(4)})`;
-      labelsRow.style.transformOrigin = 'center top';
+      const sc = Math.max(0.65, avail / actual);
+      grid.style.transform = `scale(${sc.toFixed(4)})`;
+      grid.style.transformOrigin = 'center top';
     }
     requestAnimationFrame(() => {
-      if (!lettersRow.isConnected || !firstLetter) return;
+      if (!grid.isConnected || !firstLetter) return;
       const probe = document.createElement('span');
       probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;overflow:hidden;';
       firstLetter.appendChild(probe);
-      const rowRect   = lettersRow.getBoundingClientRect();
+      const wrapRect  = wrap.getBoundingClientRect();
       const probeRect = probe.getBoundingClientRect();
       probe.remove();
-      if (rowRect.height > 0)
-        line.style.top = (probeRect.bottom - rowRect.top) + 'px';
+      if (wrapRect.height > 0)
+        line.style.top = (probeRect.bottom - wrapRect.top) + 'px';
     });
   });
 
