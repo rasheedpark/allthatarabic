@@ -631,17 +631,37 @@ function renderNormal(inner, s) {
 function renderPtn(inner, s) {
   const d = s.data;
 
-  // 아랍어 (작게)
+  // 아랍어
   if (d.arabic) {
     const arEl = document.createElement('div');
-    arEl.className = 'ptn-arabic';
+    arEl.className = 'arabic-text';
     arEl.innerHTML = parseText(d.arabic);
     inner.appendChild(arEl);
+    fitArabic(arEl);
   }
 
-  // summary 열 → 설명 텍스트
+  // 한국어
+  if (d.korean) {
+    const kr = document.createElement('div');
+    kr.className = 'korean-text';
+    kr.innerHTML = parseText(d.korean);
+    inner.appendChild(kr);
+  }
+
+  // 노트
+  if (d.note) {
+    const nt = document.createElement('div');
+    nt.className = 'note-text';
+    nt.innerHTML = parseText(d.note);
+    inner.appendChild(nt);
+  }
+
+  // summary 열 → 설명 텍스트 (구분선 + 패턴 설명)
   const summaryText = d.summary || d.scripta || '';
   if (summaryText) {
+    const sep = document.createElement('hr');
+    sep.style.cssText = 'border:none;border-top:1px solid var(--border);margin:4px 0;';
+    inner.appendChild(sep);
     const body = document.createElement('div');
     body.className = 'ptn-summary';
     renderPtnDesc(summaryText, body);
