@@ -307,17 +307,39 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; }
   color:var(--sub); transition:all .12s;
 }
 .unit-chip.active { background:var(--accent-bg); border-color:var(--accent); color:var(--accent); }
-#index-list { flex:1; overflow-y:auto; list-style:none; padding:8px 0; }
+#index-list { flex:1; overflow-y:auto; list-style:none; padding:4px 0 12px; }
 .idx-item {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:14px 20px; font-size:15px;
-  color:var(--text); cursor:pointer;
-  border-left:3px solid transparent; transition:background .1s;
+  display:flex; align-items:flex-start; gap:9px;
+  padding:9px 16px 9px 17px;
+  cursor:pointer; border-left:3px solid transparent;
+  transition:background .1s;
 }
-.idx-item:hover { background:var(--accent-bg); }
-.idx-item.active { background:var(--accent-bg); color:var(--accent); border-left-color:var(--accent); }
-.idx-label { font-weight:600; }
-.idx-count { font-size:12px; color:var(--sub); }
+.idx-item:active { background:var(--accent-bg); }
+.idx-item.active { background:var(--accent-bg); border-left-color:var(--accent); }
+.idx-badge {
+  flex-shrink:0; margin-top:3px;
+  font-size:9px; font-weight:700; letter-spacing:.04em;
+  padding:2px 6px; border-radius:4px;
+  background:var(--accent-bg); color:var(--accent);
+  text-transform:uppercase; white-space:nowrap;
+}
+.idx-badge.type-nass { background:rgba(136,143,172,.12); color:var(--sub); }
+.idx-badge.type-kalimat { background:rgba(29,73,255,.05); color:var(--sub); }
+.idx-content { flex:1; min-width:0; }
+.idx-ar {
+  display:block;
+  font-family:var(--font-ar); direction:rtl; text-align:right;
+  font-size:14px; font-weight:600; color:var(--text);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  line-height:1.45;
+}
+.idx-item.active .idx-ar { color:var(--accent); }
+.idx-ko {
+  display:block; margin-top:2px;
+  font-size:11px; color:var(--sub);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  line-height:1.3;
+}
 .sidebar-ver { margin-top:auto; padding:13px 20px; font-size:12px; color:var(--sub); border-top:1px solid var(--border); }
 
 /* ── 온보딩 ── */
@@ -896,42 +918,53 @@ function fitArabic(el) {
 
 /* ━━━━ 사이드바 인덱스 ━━━━ */
 function buildIndex() {
-  // 유닛별 섹션 카운트
-  const secs = {};
-  slides.forEach(s => {
-    const k = s.type === 'nass' ? 'nass' : s.type;
-    secs[k] = (secs[k]||0) + 1;
-  });
-
   const list = document.getElementById('index-list');
   list.innerHTML = '';
-  const secLabels = [
-    {key:'ptn',       label:'패턴'},
-    {key:'repertory', label:'레퍼토리'},
-    {key:'mithal',    label:'미쌀'},
-    {key:'drilla',    label:'드릴'},
-    {key:'exp',       label:'표현'},
-    {key:'kalimat', label:'칼리마트'},
-    {key:'nass',    label:'나스'},
-  ];
-  secLabels.forEach(sec => {
-    const cnt = secs[sec.key]||0;
-    if (!cnt) return;
-    const firstIdx = slides.findIndex(s => s.type === sec.key);
+
+  slides.forEach((s, idx) => {
+    const d = s.data;
+    // arabic에서 hl 마크업 제거 후 미리보기용 텍스트 추출
+    const arRaw = (d.arabic||'').replace(/_([^_]+)_/g,'$1').replace(/\*([^*]+)\*/g,'$1').trim();
+    const koRaw = (d.korean||'').replace(/_([^_]+)_/g,'$1').replace(/\*([^*]+)\*/g,'$1').trim();
+    const typeLbl = TYPE_KO[s.type] || s.type;
+
     const li = document.createElement('li');
     li.className = 'idx-item';
-    li.dataset.key = sec.key;
-    li.innerHTML = `<span class="idx-label">${sec.label}</span><span class="idx-count">${cnt}</span>`;
-    li.onclick = () => { goTo(firstIdx); closeSidebar(); };
+    li.dataset.idx = idx;
+
+    const badge = document.createElement('span');
+    badge.className = 'idx-badge type-' + s.type;
+    badge.textContent = typeLbl;
+
+    const content = document.createElement('span');
+    content.className = 'idx-content';
+
+    if (arRaw) {
+      const arEl = document.createElement('span');
+      arEl.className = 'idx-ar';
+      arEl.textContent = arRaw.length > 22 ? arRaw.slice(0,22) + '…' : arRaw;
+      content.appendChild(arEl);
+    }
+    if (koRaw) {
+      const koEl = document.createElement('span');
+      koEl.className = 'idx-ko';
+      koEl.textContent = koRaw.length > 24 ? koRaw.slice(0,24) + '…' : koRaw;
+      content.appendChild(koEl);
+    }
+
+    li.appendChild(badge);
+    li.appendChild(content);
+    li.onclick = () => { goTo(idx); closeSidebar(); };
     list.appendChild(li);
   });
 }
 
 function updateIndex() {
-  const curType = slides[current]?.type;
-  document.querySelectorAll('.idx-item').forEach(el =>
-    el.classList.toggle('active', el.dataset.key === curType)
-  );
+  document.querySelectorAll('#index-list .idx-item').forEach(el => {
+    el.classList.toggle('active', parseInt(el.dataset.idx) === current);
+  });
+  const active = document.querySelector('#index-list .idx-item.active');
+  if (active) active.scrollIntoView({ block:'nearest', behavior:'smooth' });
 }
 
 /* ━━━━ 섹션 탭 ━━━━ */
