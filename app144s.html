@@ -611,13 +611,13 @@ async function buildSlides(baseUnit) {
     .filter(r => inUnit(r) && isOK(r) && SHOW_TYPES.has(normalizeType(r.type)))
     .forEach(r => slides.push({ type:normalizeType(r.type), data:r, unit:baseUnit }));
 
-  kalimatRaw
-    .filter(r => inUnit(r) && isOK(r) && SHOW_TYPES.has(normalizeType(r.type)))
-    .forEach(r => slides.push({ type:normalizeType(r.type), data:r, unit:baseUnit }));
-
   nassRaw
     .filter(r => inUnit(r) && isOK(r))
     .forEach(r => slides.push({ type:'nass', data:r, unit:baseUnit }));
+
+  kalimatRaw
+    .filter(r => inUnit(r) && isOK(r) && SHOW_TYPES.has(normalizeType(r.type)))
+    .forEach(r => slides.push({ type:normalizeType(r.type), data:r, unit:baseUnit }));
 
   if (_firstLoad) {
     const saved = parseInt(new URLSearchParams(location.search).get('slide'))||0;
@@ -1004,8 +1004,8 @@ const SEC_DEFS = [
   { key:'drilla',    label:'드릴' },
   { key:'repertory', label:'레퍼토리' },
   { key:'exp',       label:'표현' },
-  { key:'kalimat',   label:'칼리마트' },
   { key:'nass',      label:'나스' },
+  { key:'kalimat',   label:'단어kalimat' },
 ];
 
 function buildSectionTabs() {

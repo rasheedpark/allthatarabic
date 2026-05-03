@@ -594,15 +594,15 @@ async function buildSlides(baseUnit) {
     .filter(r => inUnit(r) && isConfirmed(r))
     .forEach(r => slides.push({ type: normalizeType(r.type), data: r, pg: baseUnit, label: baseUnit }));
 
-  // kalimat탭: exp/kalimat 타입, status=confirmed, 해당 유닛
-  kalimatRaw
-    .filter(r => inUnit(r) && isConfirmed(r))
-    .forEach(r => slides.push({ type: normalizeType(r.type), data: r, pg: baseUnit, label: baseUnit }));
-
   // nass탭: status=confirmed, 해당 유닛
   nassRaw
     .filter(r => inUnit(r) && isConfirmed(r))
     .forEach(r => slides.push({ type: 'nass', data: r, pg: baseUnit, label: baseUnit }));
+
+  // kalimat탭: exp/kalimat 타입, status=confirmed, 해당 유닛 (맨 뒤)
+  kalimatRaw
+    .filter(r => inUnit(r) && isConfirmed(r))
+    .forEach(r => slides.push({ type: normalizeType(r.type), data: r, pg: baseUnit, label: baseUnit }));
 
   if (_firstLoad) {
     const savedSlide = parseInt(new URLSearchParams(location.search).get('slide')) || 0;
@@ -825,8 +825,8 @@ const SEC_DEFS = [
   { keys:['ptn','ptna'], ko:'패턴',    en:'Pattern'    },
   { keys:['drilla'],     ko:'드릴',    en:'Drill'      },
   { keys:['exp'],        ko:'표현',    en:'Expression' },
-  { keys:['kalimat'],    ko:'칼리마트', en:'Kalimat'   },
   { keys:['nass'],       ko:'나스',    en:'Nass'       },
+  { keys:['kalimat'],    ko:'단어kalimat', en:'' },
 ];
 function buildSectionTabs() {
   const container = document.getElementById('section-tabs');
