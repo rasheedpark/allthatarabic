@@ -149,8 +149,8 @@ body {
 }
 /* ── 나스 korean 힌트 ── */
 .nass-korean-hint {
-  font-size: clamp(0.65rem, 1.2vw, 1rem);
-  color: #fff;
+  font-size: clamp(0.65rem, 1.2vw, 0.9rem);
+  color: var(--sub);
   opacity: 0.85;
   text-align: center;
   margin-top: 0.5rem;
@@ -205,6 +205,13 @@ body {
   text-align: center;
   margin-top: 0.3em;
   opacity: 0.8;
+}
+.nass-note {
+  font-size: clamp(0.65rem, 0.9vw, 0.82rem);
+  color: var(--sub);
+  text-align: center;
+  line-height: 1.6;
+  opacity: 0.85;
 }
 
 /* ── 사이드바 ── */
@@ -767,7 +774,7 @@ function renderNass(s) {
   const op = meaningVisible ? '1' : '0';
   document.getElementById('text-area').innerHTML = `
     ${d.korean ? `<div class="nass-korean-hint" style="opacity:${op}">${parseText(d.korean)}</div>` : ''}
-    ${d.note ? `<div class="note" style="opacity:${op}">${parseText(d.note)}</div>` : ''}
+    ${d.note ? `<div class="nass-note" style="opacity:${op}">${parseText(d.note)}</div>` : ''}
     ${sual ? `<div class="nass-sual-note">${parseText(sual)}</div>` : ''}
   `;
 }
@@ -840,32 +847,40 @@ function buildSectionTabs() {
 function buildIndex() {
   const list = document.getElementById('index-list');
   list.innerHTML = '';
-  // 패턴탭 ptnA 항목 → 내비게이터 (캐시에서)
-  const patternRaw = _cache['pattern'] || [];
-  patternRaw
-    .filter(r => normalizeType(r.type) === 'ptna' && (r.status || '').toLowerCase() === 'confirmed')
-    .forEach(ptnRow => {
-      const u = getRowU(ptnRow);
-      const targetIdx = slides.findIndex(s => getBaseUnit(getRowU(s.data)) === getBaseUnit(u));
-      const li = document.createElement('li');
-      li.className = 'idx-item';
-      li.dataset.u = u;
-      li.dataset.targetIdx = targetIdx;
-      const ar = (ptnRow.arabic || '').substring(0, 28);
-      const ko = (ptnRow.korean || '').substring(0, 26);
-      li.innerHTML = `<span class="idx-tag">${u}</span><span class="idx-ar">${ar}<br><span class="idx-ko">${ko}</span></span>`;
-      li.onclick = () => {
-        if (targetIdx >= 0) { goTo(targetIdx); }
-        if (sidebarOpen) toggleSidebar();
-      };
-      list.appendChild(li);
-    });
+
+  // drill 탭 기준으로 유닛 목록 추출
+  const drillRaw = _cache['drill'] || [];
+  const units = [...new Set(
+    drillRaw
+      .filter(r => (r.status||'').toLowerCase() === 'confirmed')
+      .map(r => getBaseUnit(getRowU(r)))
+      .filter(Boolean)
+  )].sort();
+
+  units.forEach(u => {
+    // drill 캐시에서 ptn 행의 아랍어/한국어 미리보기
+    const escaped = u.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const subReg = new RegExp('^'+escaped+'[a-z]?$','i');
+    const ptnRow = drillRaw.find(r =>
+      subReg.test(getRowU(r)) &&
+      ['ptn','ptna'].includes(normalizeType(r.type)) &&
+      (r.status||'').toLowerCase() === 'confirmed'
+    );
+    const ar = (ptnRow?.arabic || '').substring(0, 28);
+    const ko = (ptnRow?.korean || '').substring(0, 26);
+
+    const li = document.createElement('li');
+    li.className = 'idx-item';
+    li.dataset.u = u;
+    li.innerHTML = `<span class="idx-tag">${u}</span><span class="idx-ar">${ar}<br><span class="idx-ko">${ko}</span></span>`;
+    list.appendChild(li);
+  });
 }
 
 function updateIndex() {
-  const curU = slides[current] ? getBaseUnit(getRowU(slides[current].data)) : '';
+  const curU = slides[current] ? getBaseUnit(getRowU(slides[current].data)).toLowerCase() : '';
   document.querySelectorAll('.idx-item').forEach(el => {
-    el.classList.toggle('active', el.dataset.u && getBaseUnit(el.dataset.u) === curU);
+    el.classList.toggle('active', el.dataset.u && getBaseUnit(el.dataset.u).toLowerCase() === curU);
   });
   const active = document.querySelector('.idx-item.active');
   if (active) active.scrollIntoView({ block:'nearest', behavior:'smooth' });
@@ -954,6 +969,14 @@ document.getElementById('btn-arabic').onclick  = toggleArabic;
 document.getElementById('btn-nass').onclick    = toggleNass;
 
 // ── 초기화 ────────────────────────────────────────────
+// 내비게이터 클릭 — 이벤트 위임
+document.addEventListener('click', function(e) {
+  const item = e.target.closest('#index-list .idx-item');
+  if (!item || !item.dataset.u) return;
+  buildSlides(item.dataset.u).catch(err => console.error(err));
+  if (sidebarOpen) toggleSidebar();
+});
+
 async function init() {
   try {
     // 모든 탭 병렬 캐싱
