@@ -122,6 +122,31 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; }
 }
 .hl-bold { font-weight:700; color:var(--accent); }
 
+/* ── baseline 모드: 글자+음가 쌍 컬럼 + 기준선 ── */
+.bl-row {
+  display:flex; flex-direction:row-reverse;
+  align-items:baseline; justify-content:center;
+  gap:clamp(4px,3cqi,20px);
+  position:relative; width:100%;
+}
+.bl-anchor { width:0; height:0; overflow:visible; align-self:baseline; }
+.bl-line {
+  position:absolute; left:-4px; right:-4px; height:1.5px;
+  background:rgba(29,73,255,0.3); pointer-events:none;
+}
+.bl-pair { display:flex; flex-direction:column; align-items:center; gap:clamp(8px,2cqi,20px); }
+.bl-letter {
+  font-family:var(--font-ar);
+  font-size:clamp(2rem,calc(56cqi/var(--items,4)),5rem);
+  font-weight:700; line-height:1; color:var(--text);
+}
+.bl-label {
+  font-size:clamp(10px,2.5vw,13px); font-weight:500;
+  color:var(--sub); letter-spacing:0.3px;
+  text-align:center; white-space:nowrap;
+}
+.bl-sep { width:1px; background:var(--border); align-self:stretch; flex-shrink:0; margin:0 2px; }
+
 /* ── ptn 슬라이드: 아랍어(작게) + 설명 텍스트 ── */
 .ptn-arabic {
   font-family:var(--font-ar);
@@ -600,9 +625,86 @@ function renderContent(area, s) {
   inner.className = 'slide-inner';
   area.appendChild(inner);
 
-  if (s.type === 'nass')    renderNass(inner, s);
-  else if (s.type === 'ptn') renderPtn(inner, s);
-  else                       renderNormal(inner, s);
+  const cssMode = (s.data.css||'').trim();
+  if (cssMode === 'baseline')  renderBaseline(inner, s);
+  else if (s.type === 'nass')  renderNass(inner, s);
+  else if (s.type === 'ptn')   renderPtn(inner, s);
+  else                         renderNormal(inner, s);
+}
+
+/* ━━━━ baseline 모드: 글자+음가 쌍 컬럼 + 기준선 ━━━━ */
+function renderBaseline(inner, s) {
+  const d = s.data;
+  const tokens = (d.arabic||'').trim().split(/\s+/).filter(Boolean);
+  const labels = (d.korean||'').trim()
+    ? (d.korean).trim().split(/\s+/).map(l => l.replace(/_/g,' '))
+    : [];
+  const isSep = ch => ch === '|';
+  const letterCount = tokens.filter(ch => !isSep(ch)).length;
+
+  const row = document.createElement('div');
+  row.className = 'bl-row';
+  row.style.setProperty('--items', letterCount || 4);
+
+  const anchor = document.createElement('span');
+  anchor.className = 'bl-anchor';
+  row.appendChild(anchor);
+
+  const line = document.createElement('div');
+  line.className = 'bl-line';
+  row.appendChild(line);
+
+  let li = 0;
+  tokens.forEach(ch => {
+    if (isSep(ch)) {
+      const sep = document.createElement('div');
+      sep.className = 'bl-sep';
+      row.appendChild(sep);
+      return;
+    }
+    const pair = document.createElement('div');
+    pair.className = 'bl-pair';
+    const letter = document.createElement('span');
+    letter.className = 'bl-letter';
+    letter.innerHTML = parseText(ch);
+    pair.appendChild(letter);
+    if (labels[li]) {
+      const lbl = document.createElement('span');
+      lbl.className = 'bl-label';
+      lbl.innerHTML = parseText(labels[li]);
+      pair.appendChild(lbl);
+    }
+    li++;
+    row.appendChild(pair);
+  });
+
+  inner.appendChild(row);
+
+  // 오버플로 축소 + baseline 선 위치 계산
+  requestAnimationFrame(() => {
+    if (!row.isConnected) return;
+    const avail = (row.parentElement?.clientWidth ?? 0) - 32;
+    const actual = row.scrollWidth;
+    if (actual > avail && avail > 0) {
+      const sc = Math.max(0.6, avail / actual);
+      row.style.transform = `scale(${sc.toFixed(4)})`;
+      row.style.transformOrigin = 'center top';
+    }
+    requestAnimationFrame(() => {
+      if (!row.isConnected) return;
+      const rowRect    = row.getBoundingClientRect();
+      const anchorRect = anchor.getBoundingClientRect();
+      if (rowRect.height > 0)
+        line.style.top = (anchorRect.bottom - rowRect.top) + 'px';
+    });
+  });
+
+  if (d.note) {
+    const nt = document.createElement('div');
+    nt.className = 'note-text';
+    nt.innerHTML = parseText(d.note);
+    inner.appendChild(nt);
+  }
 }
 
 /* ━━━━ 일반 슬라이드 ━━━━ */
