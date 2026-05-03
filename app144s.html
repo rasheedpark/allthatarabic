@@ -580,7 +580,7 @@ function getAudioUrls(s) {
   const id = getRowId(d);
   if (d?.url) return [d.url.trim()];
   if (!id) return [];
-  const base = `${AUDIO_BASE}/${AUDIO_FOLDER}/${id}`;
+  const base = `${AUDIO_BASE}/${AUDIO_FOLDER}/${encodeURIComponent(id)}`;
   return [base+'.mp3', base+'.wav'];
 }
 
