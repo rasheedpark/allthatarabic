@@ -111,6 +111,7 @@ body {
   text-align:center; white-space:nowrap;
 }
 .bl-sep { width:1px; background:var(--border); align-self:stretch; flex-shrink:0; margin:0 4px; }
+.bl-block { display:flex; flex-direction:column; gap:clamp(24px,4vw,56px); width:100%; }
 
 /* ── 아랍어 ── */
 .arabic {
@@ -679,63 +680,80 @@ function renderSlide() {
 
 function renderBaseline(s) {
   const d = s.data;
-  const tokens = (d.arabic||'').trim().split(/\s+/).filter(Boolean);
+  // '|' 를 행 구분자로 사용해 토큰을 행별로 분할
+  const allTokens = (d.arabic||'').trim().split(/\s+/).filter(Boolean);
   const labels = (d.note||'').trim()
     ? (d.note).trim().split(/\s+/).map(l => l.replace(/_/g,' '))
     : [];
-  const isSep = ch => ch === '|';
-  const letterCount = tokens.filter(ch => !isSep(ch)).length;
   const arOp = arabicVisible ? '1' : '0';
 
-  // arabic-area: baseline row
-  const row = document.createElement('div');
-  row.className = 'bl-row';
-  row.style.cssText = `opacity:${arOp};transition:opacity 0.3s;`;
-  row.style.setProperty('--items', letterCount || 4);
-
-  const anchor = document.createElement('span');
-  anchor.className = 'bl-anchor';
-  row.appendChild(anchor);
-  const line = document.createElement('div');
-  line.className = 'bl-line';
-  row.appendChild(line);
-
-  let li = 0;
-  tokens.forEach(ch => {
-    if (isSep(ch)) {
-      const sep = document.createElement('div'); sep.className = 'bl-sep';
-      row.appendChild(sep); return;
-    }
-    const pair = document.createElement('div'); pair.className = 'bl-pair';
-    const letter = document.createElement('span'); letter.className = 'bl-letter';
-    letter.innerHTML = parseText(ch); pair.appendChild(letter);
-    if (labels[li]) {
-      const lbl = document.createElement('span'); lbl.className = 'bl-label';
-      lbl.innerHTML = parseText(labels[li]); pair.appendChild(lbl);
-    }
-    li++; row.appendChild(pair);
+  // '|' 기준으로 행 분할
+  const rowGroups = [];
+  let cur = [];
+  allTokens.forEach(ch => {
+    if (ch === '|') { rowGroups.push(cur); cur = []; }
+    else cur.push(ch);
   });
+  rowGroups.push(cur);
 
   const arabicArea = document.getElementById('arabic-area');
   arabicArea.innerHTML = '';
-  arabicArea.appendChild(row);
 
-  // 오버플로 축소 + baseline 선 위치
+  const block = document.createElement('div');
+  block.className = 'bl-block';
+  block.style.cssText = `opacity:${arOp};transition:opacity 0.3s;`;
+
+  const rowMeta = [];
+  let li = 0;
+
+  rowGroups.forEach(rowTokens => {
+    if (!rowTokens.length) return;
+    const row = document.createElement('div');
+    row.className = 'bl-row';
+    row.style.setProperty('--items', rowTokens.length || 4);
+
+    const anchor = document.createElement('span'); anchor.className = 'bl-anchor';
+    row.appendChild(anchor);
+    const line = document.createElement('div'); line.className = 'bl-line';
+    row.appendChild(line);
+
+    rowTokens.forEach(ch => {
+      const pair = document.createElement('div'); pair.className = 'bl-pair';
+      const letter = document.createElement('span'); letter.className = 'bl-letter';
+      letter.innerHTML = parseText(ch); pair.appendChild(letter);
+      if (labels[li]) {
+        const lbl = document.createElement('span'); lbl.className = 'bl-label';
+        lbl.innerHTML = parseText(labels[li]); pair.appendChild(lbl);
+      }
+      li++; row.appendChild(pair);
+    });
+
+    block.appendChild(row);
+    rowMeta.push({ row, anchor, line });
+  });
+
+  arabicArea.appendChild(block);
+
+  // 오버플로 축소 + baseline 선 위치 (행별 독립)
   requestAnimationFrame(() => {
-    if (!row.isConnected) return;
-    const avail = (arabicArea.clientWidth ?? 0) - 48;
-    const actual = row.scrollWidth;
-    if (actual > avail && avail > 0) {
-      const sc = Math.max(0.6, avail / actual);
-      row.style.transform = `scale(${sc.toFixed(4)})`;
-      row.style.transformOrigin = 'center top';
-    }
-    requestAnimationFrame(() => {
+    rowMeta.forEach(({ row }) => {
       if (!row.isConnected) return;
-      const rowRect = row.getBoundingClientRect();
-      const anchorRect = anchor.getBoundingClientRect();
-      if (rowRect.height > 0)
-        line.style.top = (anchorRect.bottom - rowRect.top) + 'px';
+      const avail = (arabicArea.clientWidth ?? 0) - 48;
+      const actual = row.scrollWidth;
+      if (actual > avail && avail > 0) {
+        const sc = Math.max(0.6, avail / actual);
+        row.style.transform = `scale(${sc.toFixed(4)})`;
+        row.style.transformOrigin = 'center top';
+      }
+    });
+    requestAnimationFrame(() => {
+      rowMeta.forEach(({ row, anchor, line }) => {
+        if (!row.isConnected) return;
+        const rowRect = row.getBoundingClientRect();
+        const anchorRect = anchor.getBoundingClientRect();
+        if (rowRect.height > 0)
+          line.style.top = (anchorRect.bottom - rowRect.top) + 'px';
+      });
     });
   });
 

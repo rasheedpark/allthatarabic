@@ -147,6 +147,7 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; }
   text-align:center; white-space:nowrap;
 }
 .bl-sep { width:1px; background:var(--border); align-self:stretch; flex-shrink:0; margin:0 2px; }
+.bl-block { display:flex; flex-direction:column; gap:clamp(20px,4cqi,44px); width:100%; }
 
 /* ── ptn 슬라이드: 아랍어(작게) + 설명 텍스트 ── */
 .ptn-arabic {
@@ -633,70 +634,86 @@ function renderContent(area, s) {
   else                         renderNormal(inner, s);
 }
 
-/* ━━━━ baseline 모드: 글자+음가 쌍 컬럼 + 기준선 ━━━━ */
+/* ━━━━ baseline 모드: 글자+음가 쌍 컬럼 + 기준선 (다중 행 지원) ━━━━ */
 function renderBaseline(inner, s) {
   const d = s.data;
-  const tokens = (d.arabic||'').trim().split(/\s+/).filter(Boolean);
+  // '|' 를 행 구분자로 사용해 토큰을 행별로 분할
+  const allTokens = (d.arabic||'').trim().split(/\s+/).filter(Boolean);
   const labels = (d.note||'').trim()
     ? (d.note).trim().split(/\s+/).map(l => l.replace(/_/g,' '))
     : [];
-  const isSep = ch => ch === '|';
-  const letterCount = tokens.filter(ch => !isSep(ch)).length;
 
-  const row = document.createElement('div');
-  row.className = 'bl-row';
-  row.style.setProperty('--items', letterCount || 4);
+  // '|' 기준으로 행 분할
+  const rowGroups = [];
+  let cur = [];
+  allTokens.forEach(ch => {
+    if (ch === '|') { rowGroups.push(cur); cur = []; }
+    else cur.push(ch);
+  });
+  rowGroups.push(cur);
 
-  const anchor = document.createElement('span');
-  anchor.className = 'bl-anchor';
-  row.appendChild(anchor);
+  const block = document.createElement('div');
+  block.className = 'bl-block';
 
-  const line = document.createElement('div');
-  line.className = 'bl-line';
-  row.appendChild(line);
+  const rowMeta = []; // rAF 처리용
+  let li = 0; // 라벨 인덱스 (행 전체 연속)
 
-  let li = 0;
-  tokens.forEach(ch => {
-    if (isSep(ch)) {
-      const sep = document.createElement('div');
-      sep.className = 'bl-sep';
-      row.appendChild(sep);
-      return;
-    }
-    const pair = document.createElement('div');
-    pair.className = 'bl-pair';
-    const letter = document.createElement('span');
-    letter.className = 'bl-letter';
-    letter.innerHTML = parseText(ch);
-    pair.appendChild(letter);
-    if (labels[li]) {
-      const lbl = document.createElement('span');
-      lbl.className = 'bl-label';
-      lbl.innerHTML = parseText(labels[li]);
-      pair.appendChild(lbl);
-    }
-    li++;
-    row.appendChild(pair);
+  rowGroups.forEach(rowTokens => {
+    if (!rowTokens.length) return;
+    const row = document.createElement('div');
+    row.className = 'bl-row';
+    row.style.setProperty('--items', rowTokens.length || 4);
+
+    const anchor = document.createElement('span');
+    anchor.className = 'bl-anchor';
+    row.appendChild(anchor);
+    const line = document.createElement('div');
+    line.className = 'bl-line';
+    row.appendChild(line);
+
+    rowTokens.forEach(ch => {
+      const pair = document.createElement('div');
+      pair.className = 'bl-pair';
+      const letter = document.createElement('span');
+      letter.className = 'bl-letter';
+      letter.innerHTML = parseText(ch);
+      pair.appendChild(letter);
+      if (labels[li]) {
+        const lbl = document.createElement('span');
+        lbl.className = 'bl-label';
+        lbl.innerHTML = parseText(labels[li]);
+        pair.appendChild(lbl);
+      }
+      li++;
+      row.appendChild(pair);
+    });
+
+    block.appendChild(row);
+    rowMeta.push({ row, anchor, line });
   });
 
-  inner.appendChild(row);
+  inner.appendChild(block);
 
-  // 오버플로 축소 + baseline 선 위치 계산
+  // 오버플로 축소 + baseline 선 위치 계산 (행별 독립)
   requestAnimationFrame(() => {
-    if (!row.isConnected) return;
-    const avail = (row.parentElement?.clientWidth ?? 0) - 32;
-    const actual = row.scrollWidth;
-    if (actual > avail && avail > 0) {
-      const sc = Math.max(0.6, avail / actual);
-      row.style.transform = `scale(${sc.toFixed(4)})`;
-      row.style.transformOrigin = 'center top';
-    }
-    requestAnimationFrame(() => {
+    rowMeta.forEach(({ row }) => {
       if (!row.isConnected) return;
-      const rowRect    = row.getBoundingClientRect();
-      const anchorRect = anchor.getBoundingClientRect();
-      if (rowRect.height > 0)
-        line.style.top = (anchorRect.bottom - rowRect.top) + 'px';
+      const avail = (block.clientWidth ?? 0) - 32;
+      const actual = row.scrollWidth;
+      if (actual > avail && avail > 0) {
+        const sc = Math.max(0.6, avail / actual);
+        row.style.transform = `scale(${sc.toFixed(4)})`;
+        row.style.transformOrigin = 'center top';
+      }
+    });
+    requestAnimationFrame(() => {
+      rowMeta.forEach(({ row, anchor, line }) => {
+        if (!row.isConnected) return;
+        const rowRect    = row.getBoundingClientRect();
+        const anchorRect = anchor.getBoundingClientRect();
+        if (rowRect.height > 0)
+          line.style.top = (anchorRect.bottom - rowRect.top) + 'px';
+      });
     });
   });
 
