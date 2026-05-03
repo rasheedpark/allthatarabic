@@ -416,7 +416,7 @@ const TAB_KALIMAT = 'kalimat';
 const TAB_NASS    = 'nass';
 
 const TYPE_KO = {
-  ptn:'패턴', ptna:'패턴A', mithal:'미쌀', drilla:'드릴',
+  ptn:'패턴', ptna:'패턴A', mithal:'미쌀', drilla:'드릴', repertory:'레퍼토리',
   exp:'표현', kalimat:'칼리마트', nass:'나스'
 };
 
@@ -471,6 +471,7 @@ function normalizeType(t) {
   if (s === 'ptna' || s === 'pattern(a)') return 'ptna';
   if (s === 'mithal' || s === 'mithāl')   return 'mithal';
   if (s === 'drilla' || s === 'drill')    return 'drilla';
+  if (s === 'repertorie' || s === 'repertory' || s === 'repertoire') return 'repertory';
   if (s === 'exp' || s === 'expression')  return 'exp';
   if (s === 'kalimat') return 'kalimat';
   if (s === 'nass')    return 'nass';
@@ -516,7 +517,7 @@ async function buildSlides(baseUnit) {
   history.replaceState(null,'','?'+sp.toString());
 
   // 사용자용: drilla/mithal 표시, repertory 생략, ptn은 summary 설명 포함
-  const SHOW_TYPES = new Set(['ptn','mithal','drilla','exp','kalimat','nass']);
+  const SHOW_TYPES = new Set(['ptn','mithal','drilla','repertory','exp','kalimat','nass']);
 
   const [drillRaw, kalimatRaw, nassRaw] = await Promise.all([
     fetchSheet(TAB_DRILL),
@@ -780,10 +781,11 @@ function buildIndex() {
   const list = document.getElementById('index-list');
   list.innerHTML = '';
   const secLabels = [
-    {key:'ptn',     label:'패턴'},
-    {key:'mithal',  label:'미쌀'},
-    {key:'drilla',  label:'드릴'},
-    {key:'exp',     label:'표현'},
+    {key:'ptn',       label:'패턴'},
+    {key:'repertory', label:'레퍼토리'},
+    {key:'mithal',    label:'미쌀'},
+    {key:'drilla',    label:'드릴'},
+    {key:'exp',       label:'표현'},
     {key:'kalimat', label:'칼리마트'},
     {key:'nass',    label:'나스'},
   ];
