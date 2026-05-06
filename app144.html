@@ -592,7 +592,7 @@ async function buildSlides(baseUnit) {
     .forEach(r => push('exp', r));
 
   // 5. nass (지문)
-  nassRaw.filter(r => inU(r)).forEach(r => push('nass', r));
+  nassRaw.filter(r => inU(r) && ok(r)).forEach(r => push('nass', r));
 
   // 6. kalimat (단어)
   kalimatRaw.filter(r => inU(r) && ok(r) && normalizeType(r.type) === 'kalimat')
