@@ -463,6 +463,11 @@ const TAB_NASS    = 'nass';
 
 const TYPE_EN = { unit:'UNIT', ptn:'PATTERN', drilla:'DRILL A', drillb:'DRILL B', writing:'WRITING', exp:'EXPRESSION', kalimat:'KALIMAT', nass:'NASS' };
 const TYPE_KO = { unit:'유닛',  ptn:'패턴',   drilla:'드릴A',   drillb:'드릴B',   writing:'쓰기',    exp:'표현',        kalimat:'단어',      nass:'지문' };
+const LAHJA_FLAG = {
+  EGY: 'assets/icons/icon-egypt.png',
+  LEV: 'assets/icons/icon-lebanon.png',
+  GLF: 'assets/icons/icon-saudi.png',
+};
 
 // ── 상태 ──────────────────────────────────────────────
 let slides = [], current = 0;
@@ -621,7 +626,12 @@ function renderSlide() {
   // 중앙 타입 레이블 업데이트
   const typeLabel = TYPE_EN[s.type] || s.type.toUpperCase();
   const nassNum = s.type === 'nass' ? (() => { const m = getRowId(s.data).match(/(\d+)$/); return m ? ' · nass-' + m[1] : ''; })() : '';
-  document.getElementById('ui-tr').textContent = typeLabel + nassNum;
+  const lahja = (s.data?.lahja || '').toUpperCase().trim();
+  const flagSrc = LAHJA_FLAG[lahja];
+  const flagHtml = flagSrc
+    ? `<img src="${flagSrc}" style="width:1.1em;height:1.1em;border-radius:50%;vertical-align:middle;margin-left:0.5em;opacity:0.9;">`
+    : '';
+  document.getElementById('ui-tr').innerHTML = typeLabel + nassNum + flagHtml;
 
   // 상단 좌측: 현재 유닛 정보(unit탭) + 섹션 탭
   const tl = document.getElementById('ui-tl');

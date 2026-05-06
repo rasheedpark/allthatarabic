@@ -130,6 +130,18 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; }
   display:flex; flex-direction:column; gap:16px;
 }
 
+/* ── 타입 태그 + 라흐자 국기 ── */
+.slide-type-tag {
+  font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:2px; color:var(--sub); opacity:0.55;
+  text-align:center;
+  display:flex; align-items:center; justify-content:center; gap:5px;
+}
+.lahja-flag {
+  width:1.4em; height:1.4em;
+  border-radius:50%; vertical-align:middle; opacity:0.9;
+}
+
 /* ── 아랍어 ── */
 .arabic-text {
   font-family:var(--font-ar);
@@ -499,6 +511,11 @@ const TYPE_KO = {
   unit:'유닛', ptn:'패턴', drilla:'드릴A', drillb:'드릴B',
   writing:'쓰기', exp:'표현', kalimat:'단어', nass:'지문'
 };
+const LAHJA_FLAG = {
+  EGY: 'assets/icons/icon-egypt.png',
+  LEV: 'assets/icons/icon-lebanon.png',
+  GLF: 'assets/icons/icon-saudi.png',
+};
 
 /* ━━━━ 상태 ━━━━ */
 let slides = [], current = 0;
@@ -685,6 +702,17 @@ function renderContent(area, s) {
   const inner = document.createElement('div');
   inner.className = 'slide-inner';
   area.appendChild(inner);
+
+  // 타입 태그 + 라흐자 국기
+  const typeKo = TYPE_KO[s.type] || s.type;
+  const lahja  = (s.data?.lahja || '').toUpperCase().trim();
+  const flagSrc = LAHJA_FLAG[lahja];
+  const tag = document.createElement('div');
+  tag.className = 'slide-type-tag';
+  tag.innerHTML = typeKo + (flagSrc
+    ? `<img src="${flagSrc}" class="lahja-flag">`
+    : '');
+  inner.appendChild(tag);
 
   const cssMode = (s.data.css||'').trim();
   if (cssMode === 'baseline')  renderBaseline(inner, s);
