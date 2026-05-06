@@ -830,6 +830,7 @@ function buildSectionTabs() {
     const ko = (s.data.korean || '').substring(0, 14);
     const btn = document.createElement('button');
     btn.className = 'sec-tab';
+    btn.dataset.key = 'ptn_' + idx;
     btn.onclick = () => goTo(idx);
     btn.textContent = ko;
     container.appendChild(btn);
@@ -840,9 +841,34 @@ function buildSectionTabs() {
     const firstIdx = slides.findIndex(s => s.pg === curPg && s.type === sec.key);
     const btn = document.createElement('button');
     btn.className = 'sec-tab' + (firstIdx === -1 ? ' disabled' : '');
+    btn.dataset.key = sec.key;
     if (firstIdx !== -1) btn.onclick = () => goTo(firstIdx);
     btn.innerHTML = `${sec.ko}<small>${sec.en}</small>`;
     container.appendChild(btn);
+  });
+
+  updateSectionTabs();
+}
+
+function updateSectionTabs() {
+  const container = document.getElementById('section-tabs');
+  if (!container) return;
+  const curType = slides[current]?.type;
+
+  // 패턴 하위 슬라이드(ptn/drilla/writing)이면 가장 가까운 이전 ptn 탭 활성화
+  let activePtnKey = null;
+  if (curType === 'ptn' || curType === 'drilla' || curType === 'writing') {
+    for (let i = current; i >= 0; i--) {
+      if (slides[i]?.type === 'ptn') { activePtnKey = 'ptn_' + i; break; }
+    }
+  }
+
+  container.querySelectorAll('.sec-tab').forEach(btn => {
+    const k = btn.dataset.key;
+    let isActive = false;
+    if (activePtnKey && k === activePtnKey) isActive = true;
+    else if (!activePtnKey && k === curType) isActive = true;
+    btn.classList.toggle('active', isActive);
   });
 }
 // ── 인덱스 빌드 ───────────────────────────────────────

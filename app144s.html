@@ -1029,9 +1029,27 @@ function buildSectionTabs() {
 
 function updateSectionTabs() {
   const curType = slides[current]?.type;
+
+  // 현재 슬라이드가 패턴 하위(ptn/drilla/writing)이면 해당 패턴 탭을 활성화
+  let activePtnKey = null;
+  if (curType === 'ptn' || curType === 'drilla' || curType === 'writing') {
+    // 현재 위치 이하에서 가장 가까운 이전 ptn 슬라이드 인덱스 찾기
+    for (let i = current; i >= 0; i--) {
+      if (slides[i]?.type === 'ptn') { activePtnKey = 'ptn_' + i; break; }
+    }
+  }
+
   document.querySelectorAll('#sec-tabs-bar .sec-tab').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.key === curType);
+    const k = btn.dataset.key;
+    let isActive = false;
+    if (activePtnKey && k === activePtnKey) {
+      isActive = true;
+    } else if (!activePtnKey && k === curType) {
+      isActive = true;
+    }
+    btn.classList.toggle('active', isActive);
   });
+
   const active = document.querySelector('#sec-tabs-bar .sec-tab.active');
   if (active) active.scrollIntoView({ inline:'nearest', behavior:'smooth' });
 }
