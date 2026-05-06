@@ -634,7 +634,7 @@ function renderSlide() {
       `<div>` +
         `<div style="font-size:clamp(0.45rem,0.7vw,0.6rem);text-transform:uppercase;letter-spacing:2px;color:var(--sub);opacity:0.6;margin-bottom:0.2rem;">${curPgU}</div>` +
         `<div style="font-family:'Noto Sans Arabic',serif;direction:rtl;font-size:clamp(0.9rem,1.8vw,1.4rem);font-weight:700;line-height:1.3;">${tlArabic}</div>` +
-        `<div style="font-size:clamp(0.6rem,1vw,0.85rem);color:var(--sub);">${tlKorean}</div>` +
+        `<div style="font-size:clamp(0.6rem,1vw,0.85rem);color:var(--sub);font-weight:400;">${tlKorean}</div>` +
       `</div>` +
       `<div id="section-tabs"></div>` +
     `</div>`;
@@ -824,15 +824,15 @@ function buildSectionTabs() {
   container.innerHTML = '';
   const curPg = slides[current]?.pg;
 
-  // 패턴별 동적 탭 (korean 값)
+  // 패턴별 동적 탭 — 두 줄: "패턴" + 한국어 이름
   slides.forEach((s, idx) => {
     if (s.pg !== curPg || s.type !== 'ptn') return;
-    const ko = (s.data.korean || '').substring(0, 14);
+    const ko = (s.data.korean || '').substring(0, 18);
     const btn = document.createElement('button');
     btn.className = 'sec-tab';
     btn.dataset.key = 'ptn_' + idx;
     btn.onclick = () => goTo(idx);
-    btn.textContent = ko;
+    btn.innerHTML = `패턴<small>${ko}</small>`;
     container.appendChild(btn);
   });
 

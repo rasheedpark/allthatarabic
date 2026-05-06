@@ -1004,13 +1004,14 @@ function buildSectionTabs() {
   const bar = document.getElementById('sec-tabs-bar');
   bar.innerHTML = '';
 
-  // 패턴별 동적 탭
+  // 패턴별 동적 탭 — 두 줄: "패턴" + 한국어 이름
   slides.forEach((s, idx) => {
     if (s.type !== 'ptn') return;
+    const ko = (s.data.korean||'').substring(0, 18);
     const btn = document.createElement('button');
     btn.className = 'sec-tab';
     btn.dataset.key = 'ptn_' + idx;
-    btn.textContent = (s.data.korean||'').substring(0, 14);
+    btn.innerHTML = `패턴<small>${ko}</small>`;
     btn.onclick = () => goTo(idx);
     bar.appendChild(btn);
   });
