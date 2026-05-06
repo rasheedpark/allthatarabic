@@ -147,6 +147,37 @@ body {
   font-weight: normal;
   letter-spacing: 0.05em;
 }
+/* ── write 애니메이션 모드 ── */
+.write-pair-row {
+  display: flex; flex-direction: row-reverse;
+  align-items: baseline;
+  gap: clamp(4px, calc(12cqi / var(--items, 4)), 20px);
+}
+.write-pair {
+  display: flex; flex-direction: column;
+  align-items: center;
+  gap: clamp(10px, 2.5vw, 24px);
+}
+.write-arabic-letter {
+  font-family: 'Dongol', 'Noto Kufi Arabic', serif;
+  font-weight: 400;
+  font-size: clamp(2rem, calc(60cqi / var(--items, 3)), 5.5rem);
+  color: var(--text);
+  line-height: 1;
+}
+.write-token {
+  display: inline-block;
+  vertical-align: baseline;
+  clip-path: inset(-40% 0% -40% 100%); /* 완전히 숨김 (오른쪽에서 왼쪽으로 등장) */
+}
+.write-pair-label {
+  font-size: clamp(0.6rem, 1.2vw, 0.85rem);
+  font-weight: 500;
+  color: var(--sub);
+  text-align: center;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
 /* ── 나스 korean 힌트 ── */
 .nass-korean-hint {
   font-size: clamp(0.65rem, 1.2vw, 0.9rem);
@@ -669,6 +700,11 @@ function renderSlide() {
     updateIndex(); return;
   }
 
+  if (cssMode === 'write') {
+    renderWrite(s);
+    updateIndex(); return;
+  }
+
   const isWriting = s.type === 'writing';
   const isSentence = /^[AG]/i.test(s.pg || '');
   const arOp = arabicVisible ? '1' : '0';
@@ -754,6 +790,74 @@ function renderBaseline(s) {
   });
 
   document.getElementById('text-area').innerHTML = '';
+}
+
+function renderWrite(s) {
+  const d = s.data;
+  const tokens = (d.arabic || '').trim().split(/\s+/).filter(Boolean);
+  const noteText = d.note || d.transliteration || '';
+  const labels = noteText
+    ? noteText.trim().split(/\s+/).map(l => l.replace(/_/g, ' '))
+    : [];
+
+  const arabicArea = document.getElementById('arabic-area');
+  arabicArea.innerHTML = '';
+
+  const pairRow = document.createElement('div');
+  pairRow.className = 'write-pair-row';
+  pairRow.style.setProperty('--items', tokens.length || 1);
+
+  tokens.forEach((ch, i) => {
+    const pair = document.createElement('div');
+    pair.className = 'write-pair';
+
+    const letter = document.createElement('span');
+    letter.className = 'write-arabic-letter';
+
+    const token = document.createElement('span');
+    token.className = 'write-token';
+    token.textContent = ch;
+    letter.appendChild(token);
+    pair.appendChild(letter);
+
+    if (labels[i]) {
+      const label = document.createElement('span');
+      label.className = 'write-pair-label';
+      label.textContent = labels[i];
+      pair.appendChild(label);
+    }
+    pairRow.appendChild(pair);
+
+    // 오른쪽→왼쪽 wipe 애니메이션 (글자 길이에 비례한 속도)
+    const charCount = Array.from(ch).length;
+    const wipeDuration = 0.5 + charCount * 0.5;
+    setTimeout(() => {
+      if (!token.isConnected) return;
+      token.style.transition = `clip-path ${wipeDuration}s linear`;
+      requestAnimationFrame(() => {
+        token.style.clipPath = 'inset(-40% 0% -40% 0%)';
+      });
+    }, 400 + i * (wipeDuration * 1000 + 600));
+  });
+
+  arabicArea.appendChild(pairRow);
+
+  // 오버플로 축소 보정
+  requestAnimationFrame(() => {
+    if (!pairRow.isConnected) return;
+    const avail = (arabicArea.clientWidth ?? 0) - 48;
+    const actual = pairRow.scrollWidth;
+    if (actual > avail && avail > 0) {
+      const sc = Math.max(0.6, avail / actual);
+      pairRow.style.transform = `scale(${sc.toFixed(4)})`;
+      pairRow.style.transformOrigin = 'center top';
+    }
+  });
+
+  // 한국어 번역 (meaningVisible 토글 적용)
+  const op = meaningVisible ? '1' : '0';
+  document.getElementById('text-area').innerHTML =
+    `<div class="korean" style="opacity:${op}">${parseText(d.korean || '')}</div>`;
 }
 
 function renderNass(s) {
