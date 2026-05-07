@@ -46,8 +46,7 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; }
 }
 
 /* ── 해석 토글 ── */
-.app.meaning-hidden .korean-text,
-.app.meaning-hidden .note-text { display:none; }
+.app.meaning-hidden .korean-text { display:none; }   /* 한국어 번역만 숨김 */
 .app.meaning-hidden .ptn-summary { display:flex !important; }
 
 /* ── 상단 바 ── */
@@ -842,11 +841,12 @@ function renderPtn(inner, s) {
     inner.appendChild(kr);
   }
 
-  // 노트
-  if (d.note) {
+  // 음가 (note 또는 transliteration)
+  const ptnNote = d.note || d.transliteration || '';
+  if (ptnNote) {
     const nt = document.createElement('div');
     nt.className = 'note-text';
-    nt.innerHTML = parseText(d.note);
+    nt.innerHTML = parseText(ptnNote);
     inner.appendChild(nt);
   }
 

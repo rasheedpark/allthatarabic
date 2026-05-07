@@ -18,10 +18,13 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --bg:     #F2F4F6;
+  --surface:#FFFFFF;
   --accent: #1D49FF;
   --text:   #12205A;
   --sub:    #888FAC;
   --border: #D5DAE8;
+  --accent-soft: rgba(29,73,255,0.08);
+  --accent-wash: #EAF0FF;
 }
 html, body { height: 100%; overflow: hidden; }
 body {
@@ -424,6 +427,559 @@ body {
 #start-overlay .start-btn:hover {
   background: var(--accent); color: #fff;
 }
+
+/* ── 교재 초안 B5 뷰 ── */
+body.book-view {
+  overflow: auto;
+  min-height: 100%;
+  height: auto;
+  background:
+    linear-gradient(180deg, rgba(29,73,255,0.05), rgba(29,73,255,0) 280px),
+    var(--bg);
+}
+body.book-view #progress,
+body.book-view #ui-tl,
+body.book-view #ui-bl,
+body.book-view #ui-br,
+body.book-view #sidebar,
+body.book-view #main,
+body.book-view #toolbar,
+body.book-view #start-overlay {
+  display: none !important;
+}
+#book-root {
+  width: 100%;
+  min-height: 100vh;
+  padding: clamp(18px, 3vw, 42px);
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 28px;
+}
+body.book-view #book-root { display: flex; }
+.book-page {
+  width: min(92vw, 860px);
+  aspect-ratio: 176 / 250;
+  min-height: 1220px;
+  background: var(--surface);
+  border: 1px solid rgba(18,32,90,0.08);
+  box-shadow: 0 22px 70px rgba(18,32,90,0.16);
+  padding: clamp(22px, 2.4vw, 34px);
+  position: relative;
+  overflow: hidden;
+}
+.book-page::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 9px;
+  background: var(--accent);
+}
+.book-header {
+  display: grid;
+  grid-template-columns: 94px 1fr;
+  gap: 16px;
+  align-items: stretch;
+  margin-bottom: 14px;
+}
+.book-unit-badge {
+  background: var(--accent);
+  color: #fff;
+  min-height: 88px;
+  padding: 13px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 7px;
+  position: relative;
+  overflow: hidden;
+}
+.book-unit-badge::after {
+  content: "";
+  position: absolute;
+  right: -28px;
+  bottom: -34px;
+  width: 90px;
+  height: 90px;
+  border: 18px solid rgba(255,255,255,0.18);
+  border-radius: 50%;
+}
+.book-unit-label {
+  font-size: 12px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  opacity: 0.82;
+}
+.book-unit-no {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+}
+.book-title-band {
+  background: var(--accent-wash);
+  border-left: 7px solid var(--accent);
+  padding: 14px 18px;
+  border-radius: 7px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+.book-title-ar {
+  font-family: 'Noto Sans Arabic', serif;
+  direction: rtl;
+  text-align: left;
+  font-size: clamp(28px, 3.5vw, 42px);
+  line-height: 1.25;
+  font-weight: 700;
+  color: var(--text);
+}
+.book-title-ko {
+  margin-top: 4px;
+  font-size: 16px;
+  color: var(--sub);
+  line-height: 1.45;
+}
+.book-patterns {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 36px;
+}
+.book-pattern {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 10px;
+}
+.book-mark {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 4px;
+}
+.book-mark span {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: var(--accent);
+  color: #fff;
+  font-family: 'Noto Sans Arabic', serif;
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 8px 18px rgba(29,73,255,0.18);
+}
+.book-section {
+  background: #F8FAFF;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 9px 12px 11px;
+  min-width: 0;
+}
+.book-pattern-head {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.72fr) 1fr;
+  gap: 13px;
+  align-items: center;
+  padding-bottom: 7px;
+  border-bottom: 1px solid rgba(29,73,255,0.16);
+}
+.book-ptn-ar {
+  font-family: 'Noto Sans Arabic', serif;
+  direction: rtl;
+  text-align: right;
+  font-size: clamp(27px, 3.8vw, 42px);
+  line-height: 1.18;
+  font-weight: 700;
+  color: var(--text);
+}
+.book-ptn-ko {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--text);
+}
+.book-ptn-trans {
+  margin-top: 3px;
+  font-size: 10px;
+  color: var(--sub);
+  line-height: 1.35;
+}
+.book-script {
+  padding: 7px 0 7px;
+  font-size: 10.5px;
+  line-height: 1.48;
+  color: #314079;
+  column-count: 2;
+  column-gap: 18px;
+}
+.book-script p,
+.book-script .book-script-item {
+  break-inside: avoid;
+  margin-bottom: 5px;
+}
+.book-script-item {
+  display: flex;
+  gap: 6px;
+}
+.book-script-item::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.book-repertory {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #fff;
+  border: 1px solid rgba(18,32,90,0.09);
+}
+.book-repertory td {
+  border-top: 1px solid rgba(18,32,90,0.08);
+  padding: 4px 7px;
+  vertical-align: middle;
+  height: 30px;
+}
+.book-repertory tr:first-child td { border-top: none; }
+.book-rep-ko {
+  width: 28%;
+  color: #526080;
+  font-size: 10px;
+  line-height: 1.35;
+  text-align: left;
+  background: #FBFCFF;
+}
+.book-rep-ar {
+  width: 22%;
+  font-family: 'Noto Sans Arabic', serif;
+  direction: rtl;
+  text-align: right;
+  font-size: 19px;
+  line-height: 1.15;
+  font-weight: 700;
+  color: var(--text);
+}
+.book-rep-trans {
+  display: block;
+  margin-top: 2px;
+  direction: ltr;
+  text-align: right;
+  font-family: 'Spoqa Han Sans Neo', 'Apple SD Gothic Neo', sans-serif;
+  font-size: 7.5px;
+  line-height: 1.1;
+  color: var(--sub);
+  font-weight: 500;
+}
+.book-empty {
+  padding: 14px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--sub);
+  font-size: 13px;
+  background: #fff;
+}
+.book-footer {
+  position: absolute;
+  left: clamp(22px, 2.4vw, 34px);
+  right: clamp(22px, 2.4vw, 34px);
+  bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--sub);
+  font-size: 11px;
+  border-top: 1px solid rgba(18,32,90,0.1);
+  padding-top: 9px;
+}
+.book-footer strong {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+/* ── 참고 교재형 새 양식 ── */
+.book-page.lesson-page {
+  padding: 0;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+.lesson-hero {
+  background: #F1F3F8;
+  padding: 30px 48px 24px;
+  display: grid;
+  grid-template-columns: 134px 1fr;
+  gap: 22px;
+  align-items: stretch;
+}
+.lesson-unit-card {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 12px;
+  min-height: 132px;
+  padding: 16px 17px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+.lesson-unit-card::after {
+  content: "";
+  position: absolute;
+  right: -34px;
+  bottom: -38px;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  border: 20px solid rgba(255,255,255,0.18);
+}
+.lesson-unit-label {
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  opacity: 0.78;
+}
+.lesson-unit-no {
+  font-size: 52px;
+  line-height: 0.9;
+  font-weight: 900;
+}
+.lesson-head-main {
+  min-width: 0;
+  border-left: 7px solid var(--accent);
+  background: #EAF0FF;
+  border-radius: 12px;
+  padding: 17px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.lesson-pattern-label {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.lesson-title {
+  color: var(--text);
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1.25;
+  word-break: keep-all;
+}
+.lesson-head-ko {
+  margin-top: 6px;
+  color: var(--sub);
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 700;
+}
+.lesson-main {
+  padding: 42px 66px 40px;
+  min-height: 360px;
+}
+.lesson-arabic {
+  font-family: 'Noto Sans Arabic', serif;
+  direction: rtl;
+  text-align: left;
+  color: var(--text);
+  font-size: 76px;
+  font-weight: 800;
+  line-height: 1.12;
+  margin-bottom: 8px;
+}
+.lesson-trans {
+  color: var(--sub);
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+.lesson-korean {
+  color: #141B34;
+  font-size: 25px;
+  line-height: 1.45;
+  font-weight: 800;
+  word-break: keep-all;
+  margin-bottom: 20px;
+}
+.lesson-script {
+  max-width: 700px;
+  color: #121829;
+  font-size: 18px;
+  line-height: 1.72;
+  font-weight: 700;
+  word-break: keep-all;
+}
+.lesson-script .highlight-text,
+.lesson-script strong {
+  color: var(--accent);
+  font-weight: 800;
+}
+.lesson-script-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px 20px;
+  margin-top: 16px;
+  color: #2E3D72;
+  font-size: 14px;
+  line-height: 1.48;
+  font-weight: 600;
+}
+.lesson-script-list div {
+  position: relative;
+  padding-left: 13px;
+}
+.lesson-script-list div::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.lesson-practice {
+  background: #F1F1F2;
+  padding: 36px 52px 50px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  flex: 1;
+}
+.lesson-example-table-wrap {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 22px 22px;
+  box-shadow: 6px 7px 0 rgba(18,32,90,0.14);
+}
+.lesson-table-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #737780;
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+.lesson-table-icon {
+  width: 24px;
+  height: 24px;
+  border: 1.5px solid #8F7AD9;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #8F7AD9;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.lesson-example-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.lesson-example-table td {
+  border-top: 1px solid rgba(18,32,90,0.1);
+  padding: 10px 10px;
+  vertical-align: middle;
+}
+.lesson-example-table tr:first-child td {
+  border-top: none;
+}
+.lesson-cell-ar {
+  font-family: 'Noto Sans Arabic', serif;
+  direction: rtl;
+  text-align: right;
+  color: var(--text);
+  font-size: 34px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+.lesson-cell-ko {
+  color: #111;
+  font-size: 16px;
+  line-height: 1.45;
+  font-weight: 700;
+  word-break: keep-all;
+}
+.lesson-cell-trans {
+  display: block;
+  margin-top: 2px;
+  direction: ltr;
+  text-align: right;
+  font-family: 'Spoqa Han Sans Neo', 'Apple SD Gothic Neo', sans-serif;
+  color: var(--accent);
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+.lesson-cell-ar-only {
+  text-align: right;
+}
+.lesson-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #111827;
+  font-size: 13px;
+  padding: 0 58px 28px;
+  background: #F1F1F2;
+}
+.lesson-footer strong {
+  color: var(--accent);
+  font-weight: 900;
+}
+.lesson-page-number {
+  border-left: 1.5px solid #111827;
+  padding-left: 10px;
+}
+
+@media (max-width: 760px) {
+  #book-root { padding: 12px; }
+  .book-page {
+    width: 100%;
+    min-height: auto;
+    aspect-ratio: auto;
+    padding: 20px;
+    overflow: visible;
+  }
+  .book-header,
+  .book-pattern,
+  .book-pattern-head {
+    grid-template-columns: 1fr;
+  }
+  .book-unit-badge {
+    min-height: 84px;
+    flex-direction: row;
+    align-items: end;
+  }
+  .book-mark {
+    justify-content: flex-start;
+  }
+  .book-script {
+    column-count: 1;
+  }
+  .book-footer {
+    position: static;
+    margin-top: 18px;
+  }
+}
 </style>
 </head>
 <body>
@@ -468,6 +1024,8 @@ body {
   <div id="text-area"></div>
 </div>
 
+<div id="book-root"></div>
+
 <!-- 단축키 바 -->
 <div id="toolbar">
   <button class="tb-btn" id="btn-menu"><span class="kb">M</span> 메뉴</button>
@@ -486,14 +1044,16 @@ const AUDIO_BASE = 'https://storage.googleapis.com/all-that-arabic-14';
 const AUDIO_FOLDER = 'listening144';
 
 // 시트 탭명
-const TAB_UNIT    = 'unit';
+const TAB_UNIT    = 'units';
 const TAB_PATTERN = 'pattern';
+const TAB_REPERTORY = 'repertory';
 const TAB_DRILL   = 'drill';
-const TAB_KALIMAT = 'kalimat/exp';
+const TAB_EXPRESSION = 'expression';
+const TAB_KALIMAT = 'kalimat';
 const TAB_NASS    = 'nass';
 
-const TYPE_EN = { unit:'UNIT', ptn:'PATTERN', drilla:'DRILL A', drillb:'DRILL B', writing:'WRITING', exp:'EXPRESSION', kalimat:'KALIMAT', nass:'NASS' };
-const TYPE_KO = { unit:'유닛',  ptn:'패턴',   drilla:'드릴A',   drillb:'드릴B',   writing:'쓰기',    exp:'표현',        kalimat:'단어',      nass:'지문' };
+const TYPE_EN = { unit:'UNIT', ptn:'PATTERN', repertory:'REPERTORY', drilla:'DRILL A', drillb:'DRILL B', drillc:'DRILL C', writing:'WRITING', exp:'EXPRESSION', kalimat:'KALIMAT', nass:'NASS' };
+const TYPE_KO = { unit:'유닛',  ptn:'패턴',   repertory:'레퍼토리', drilla:'드릴A',   drillb:'드릴B',   drillc:'드릴C',   writing:'쓰기',    exp:'표현',        kalimat:'단어',      nass:'지문' };
 const LAHJA_FLAG = {
   EGY: 'assets/icons/icon-egypt.png',
   LEV: 'assets/icons/icon-lebanon.png',
@@ -516,8 +1076,10 @@ function normalizeType(t) {
   const tl = t.toLowerCase().trim();
   if (tl === 'unit')    return 'unit';
   if (tl === 'ptn')     return 'ptn';
+  if (tl === 'repertory' || tl === 'repertorie') return 'repertory';
   if (tl === 'drilla')  return 'drilla';
   if (tl === 'drillb')  return 'drillb';
+  if (tl === 'drillc')  return 'drillc';
   if (tl === 'writing') return 'writing';
   if (tl === 'exp')     return 'exp';
   if (tl === 'kalimat') return 'kalimat';
@@ -601,6 +1163,10 @@ async function buildSlides(baseUnit) {
     fetchSheetData(TAB_KALIMAT),
     fetchSheetData(TAB_NASS),
   ]);
+  const [repertoryRaw, expressionRaw] = await Promise.all([
+    fetchSheetData(TAB_REPERTORY),
+    fetchSheetData(TAB_EXPRESSION),
+  ]);
 
   const ok  = r => (r.status || '').toLowerCase() === 'confirmed';
   const inU = r => (r.u || '') === baseUnit;
@@ -609,22 +1175,29 @@ async function buildSlides(baseUnit) {
   // 1. 유닛 슬라이드
   unitRaw.filter(r => inU(r) && ok(r)).forEach(r => push('unit', r));
 
-  // 2. 패턴별: 패턴 → drillA + writing
+  // 2. 패턴별: 패턴 → 레퍼토리/쓰기 → drillA
   patternRaw.filter(r => inU(r) && ok(r)).forEach(ptn => {
     push('ptn', ptn);
-    const ref = ptn['id_ptn(no)'] || '';
-    drillRaw
-      .filter(r => inU(r) && ok(r) && r.ref_ptn === ref &&
-        (normalizeType(r.type) === 'drilla' || normalizeType(r.type) === 'writing'))
+    const ref = ptn['id_ptn(no)'] || ptn.id_ptn || '';
+    repertoryRaw
+      .filter(r => inU(r) && ok(r) && r.ref_ptn === ref)
       .forEach(r => push(normalizeType(r.type), r));
+    drillRaw
+      .filter(r => inU(r) && ok(r) && r.ref_ptn === ref && normalizeType(r.type) === 'drilla')
+      .forEach(r => push('drilla', r));
   });
 
-  // 3. drillB (연습)
-  drillRaw.filter(r => inU(r) && ok(r) && normalizeType(r.type) === 'drillb')
-    .forEach(r => push('drillb', r));
+  // ref_ptn이 아직 없는 drillA는 유닛 연습으로 뒤에 표시
+  drillRaw.filter(r => inU(r) && ok(r) && normalizeType(r.type) === 'drilla' && !r.ref_ptn)
+    .forEach(r => push('drilla', r));
+
+  // 3. drillB/C (연습)
+  drillRaw.filter(r => inU(r) && ok(r) &&
+      (normalizeType(r.type) === 'drillb' || normalizeType(r.type) === 'drillc'))
+    .forEach(r => push(normalizeType(r.type), r));
 
   // 4. exp (표현)
-  kalimatRaw.filter(r => inU(r) && ok(r) && normalizeType(r.type) === 'exp')
+  expressionRaw.filter(r => inU(r) && ok(r) && normalizeType(r.type) === 'exp')
     .forEach(r => push('exp', r));
 
   // 5. nass (지문)
@@ -644,6 +1217,196 @@ async function buildSlides(baseUnit) {
 
   buildIndex();
   renderSlide();
+}
+
+// ── 교재 초안 렌더링 ───────────────────────────────────
+function renderScriptBlock(text) {
+  if (!text) return '';
+  return text
+    .split(/\n+/)
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => {
+      if (line.startsWith('- ')) {
+        return `<div class="book-script-item">${parseText(line.slice(2).trim())}</div>`;
+      }
+      return `<p>${parseText(line)}</p>`;
+    })
+    .join('');
+}
+
+function chunkPairs(rows) {
+  const pairs = [];
+  for (let i = 0; i < rows.length; i += 2) pairs.push([rows[i], rows[i + 1]]);
+  return pairs;
+}
+
+function hasHangul(text) {
+  return /[가-힣]/.test(text || '');
+}
+
+function renderRepCell(row, chapter) {
+  if (!row) return '<td class="book-rep-ko"></td><td class="book-rep-ar"></td>';
+  const showTrans = String(chapter || '') === '0' && row.transliteration;
+  const korean = hasHangul(row.korean) ? row.korean : '';
+  return `
+    <td class="book-rep-ko">${parseText(korean)}</td>
+    <td class="book-rep-ar" dir="rtl">
+      ${parseText(row.arabic || '')}
+      ${showTrans ? `<span class="book-rep-trans">${parseText(row.transliteration)}</span>` : ''}
+    </td>`;
+}
+
+function renderRepertoryTable(rows, chapter) {
+  if (!rows.length) return '<div class="book-empty">이 패턴에 연결된 레퍼토리가 아직 없습니다.</div>';
+  const body = chunkPairs(rows).map(pair => `
+    <tr>
+      ${renderRepCell(pair[0], chapter)}
+      ${renderRepCell(pair[1], chapter)}
+    </tr>
+  `).join('');
+  return `<table class="book-repertory"><tbody>${body}</tbody></table>`;
+}
+
+function firstSentence(text) {
+  const clean = (text || '').replace(/\s+/g, ' ').trim();
+  if (!clean) return '';
+  const parts = clean.split(/(?<=[.!?。]|요\.|다\.)\s+/);
+  return (parts[0] || clean).slice(0, 86);
+}
+
+function renderLessonScript(text) {
+  const lines = (text || '')
+    .split(/\n+/)
+    .map(line => line.trim())
+    .filter(Boolean);
+  const prose = lines.find(line => !line.startsWith('- ')) || '';
+  return `
+    <div class="lesson-script">
+      ${prose ? `<p>${parseText(prose)}</p>` : ''}
+    </div>
+  `;
+}
+
+function renderLessonArabicCell(row, chapter, extraClass = '') {
+  if (!row) return `<td class="lesson-cell-ar ${extraClass}"></td>`;
+  const showTrans = String(chapter || '') === '0' && row.transliteration;
+  return `
+    <td class="lesson-cell-ar ${extraClass}" dir="rtl">
+      ${parseText(row.arabic || '')}
+      ${showTrans ? `<span class="lesson-cell-trans">${parseText(row.transliteration)}</span>` : ''}
+    </td>
+  `;
+}
+
+function renderLessonKoreanCell(row) {
+  return `<td class="lesson-cell-ko">${row && hasHangul(row.korean) ? parseText(row.korean) : ''}</td>`;
+}
+
+function renderLessonExampleTable(rows, chapter) {
+  if (!rows.length) {
+    return '<div class="book-empty">연결된 예문이 아직 없습니다.</div>';
+  }
+  const hasKorean = rows.some(row => hasHangul(row.korean));
+  let tableRows = '';
+
+  if (hasKorean) {
+    for (let i = 0; i < rows.length; i += 2) {
+      const left = rows[i];
+      const right = rows[i + 1];
+      tableRows += `
+        <tr>
+          ${renderLessonArabicCell(left, chapter)}
+          ${renderLessonKoreanCell(left)}
+          ${renderLessonArabicCell(right, chapter)}
+          ${renderLessonKoreanCell(right)}
+        </tr>
+      `;
+    }
+  } else {
+    for (let i = 0; i < rows.length; i += 4) {
+      const group = rows.slice(i, i + 4);
+      tableRows += `
+        <tr>
+          ${[0, 1, 2, 3].map(idx => renderLessonArabicCell(group[idx], chapter, 'lesson-cell-ar-only')).join('')}
+        </tr>
+      `;
+    }
+  }
+
+  return `<table class="lesson-example-table"><tbody>${tableRows}</tbody></table>`;
+}
+
+function renderLessonExampleBlock(title, rows, chapter) {
+  return `
+    <section class="lesson-example-table-wrap">
+      <div class="lesson-table-title">
+        <span class="lesson-table-icon">☷</span>
+        <strong>${title}</strong>
+      </div>
+      ${renderLessonExampleTable(rows, chapter)}
+    </section>
+  `;
+}
+
+async function renderUnitBook(baseUnit) {
+  document.body.classList.add('book-view');
+  currentPg = baseUnit;
+
+  const [unitRaw, patternRaw, repertoryRaw] = await Promise.all([
+    fetchSheetData(TAB_UNIT),
+    fetchSheetData(TAB_PATTERN),
+    fetchSheetData(TAB_REPERTORY),
+  ]);
+
+  const ok = r => (r.status || '').toLowerCase() === 'confirmed';
+  const unit = unitRaw.find(r => r.u === baseUnit && ok(r)) || unitRaw.find(r => r.u === baseUnit) || {};
+  const chapter = unit.c || '';
+  const marks = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح'];
+  const patterns = patternRaw
+    .filter(r => r.u === baseUnit && ok(r) && normalizeType(r.type) === 'ptn')
+    .sort((a, b) => (a['id_ptn(no)'] || a.id_ptn || '').localeCompare(b['id_ptn(no)'] || b.id_ptn || '', undefined, { numeric: true }));
+
+  const pages = patterns.map((ptn, idx) => {
+    const ref = ptn['id_ptn(no)'] || ptn.id_ptn || '';
+    const reps = repertoryRaw
+      .filter(r => r.u === baseUnit && ok(r) && normalizeType(r.type) === 'repertory' && r.ref_ptn === ref);
+    const unitNo = baseUnit.replace(/^[A-Za-z]+0*/, '') || baseUnit;
+    const mark = marks[idx] || (idx + 1);
+    const noteText = ptn.note || ptn.transliteration || '';
+    return `
+      <article class="book-page lesson-page">
+        <header class="lesson-hero">
+          <div class="lesson-unit-card">
+            <div class="lesson-unit-label">Unit</div>
+            <div class="lesson-unit-no">${parseText(unitNo)}</div>
+          </div>
+          <div class="lesson-head-main">
+            <div class="lesson-pattern-label">Pattern ${idx + 1}</div>
+            <div class="lesson-title">${parseText(mark)}. ${parseText(ptn.korean || unit.korean || baseUnit)}</div>
+            <div class="lesson-head-ko">${parseText(unit.korean || '')}</div>
+          </div>
+        </header>
+        <main class="lesson-main">
+          <div class="lesson-arabic" dir="rtl">${parseText(ptn.arabic || '')}</div>
+          <div class="lesson-trans">${parseText(noteText)}</div>
+          <div class="lesson-korean">${parseText(ptn.korean || '')}</div>
+          ${renderLessonScript(ptn.script || ptn.memo || '')}
+        </main>
+        <section class="lesson-practice">
+          ${renderLessonExampleBlock('예문', reps, chapter)}
+        </section>
+        <footer class="lesson-footer">
+          <span><strong>All That Arabic</strong> 1.4.4 B5 draft</span>
+          <span class="lesson-page-number">${parseText(baseUnit)} · ${idx + 1}/${patterns.length}</span>
+        </footer>
+      </article>
+    `;
+  });
+
+  document.getElementById('book-root').innerHTML = pages.length
+    ? pages.join('')
+    : '<article class="book-page lesson-page"><div class="book-empty">이 유닛의 confirmed 패턴이 아직 없습니다.</div></article>';
 }
 
 // ── renderSlide ────────────────────────────────────────
@@ -684,7 +1447,7 @@ function renderSlide() {
   // 나스 지문 버튼: 나스 슬라이드에서만 표시
   document.getElementById('btn-nass').style.display = s.type === 'nass' ? 'flex' : 'none';
   // 오디오 버튼: 패턴 슬라이드에서는 숨김
-  document.getElementById('btn-audio').style.display = s.type === 'pattern' ? 'none' : '';
+  document.getElementById('btn-audio').style.display = s.type === 'ptn' ? 'none' : '';
 
   // ── 나스 슬라이드 ──
   if (s.type === 'nass') {
@@ -715,7 +1478,7 @@ function renderSlide() {
   const noteText = d.note || d.transliteration || '';
   document.getElementById('text-area').innerHTML = `
     <div class="korean" style="opacity:${op}">${parseText(d.korean || '')}</div>
-    ${noteText ? `<div class="note" style="opacity:${op}">${parseText(noteText)}</div>` : ''}
+    ${noteText ? `<div class="note" style="opacity:1">${parseText(noteText)}</div>` : ''}
   `;
 
   updateIndex();
@@ -928,6 +1691,7 @@ function toggleSidebar() {
 // ── 섹션 탭 ────────────────────────────────────────────
 const SEC_FIXED = [
   { key:'drillb',  ko:'연습', en:'Drill B'    },
+  { key:'drillc',  ko:'심화', en:'Drill C'    },
   { key:'exp',     ko:'표현', en:'Expression' },
   { key:'nass',    ko:'지문', en:'Nass'       },
   { key:'kalimat', ko:'단어', en:'Kalimat'    },
@@ -969,9 +1733,9 @@ function updateSectionTabs() {
   if (!container) return;
   const curType = slides[current]?.type;
 
-  // 패턴 하위 슬라이드(ptn/drilla/writing)이면 가장 가까운 이전 ptn 탭 활성화
+  // 패턴 하위 슬라이드(ptn/repertory/drilla/writing)이면 가장 가까운 이전 ptn 탭 활성화
   let activePtnKey = null;
-  if (curType === 'ptn' || curType === 'drilla' || curType === 'writing') {
+  if (curType === 'ptn' || curType === 'repertory' || curType === 'drilla' || curType === 'writing') {
     for (let i = current; i >= 0; i--) {
       if (slides[i]?.type === 'ptn') { activePtnKey = 'ptn_' + i; break; }
     }
@@ -1116,7 +1880,9 @@ async function init() {
     await Promise.all([
       fetchSheetData(TAB_UNIT),
       fetchSheetData(TAB_PATTERN),
+      fetchSheetData(TAB_REPERTORY),
       fetchSheetData(TAB_DRILL),
+      fetchSheetData(TAB_EXPRESSION),
       fetchSheetData(TAB_KALIMAT),
       fetchSheetData(TAB_NASS),
     ]);
@@ -1127,9 +1893,15 @@ async function init() {
       .map(r => r.u || '')
       .filter(Boolean);
 
-    const savedPg = new URLSearchParams(location.search).get('unit');
+    const params = new URLSearchParams(location.search);
+    const savedPg = params.get('unit');
     const startPg = (savedPg && baseUnits.includes(savedPg)) ? savedPg : (baseUnits[0] || 'A01');
-    await buildSlides(startPg);
+    const view = (params.get('view') || params.get('mode') || '').toLowerCase();
+    if (view === 'book' || view === 'sheet' || view === 'print') {
+      await renderUnitBook(startPg);
+    } else {
+      await buildSlides(startPg);
+    }
   } catch(e) {
     document.getElementById('loading').textContent = '로딩 실패: ' + e.message;
     console.error(e); return;
