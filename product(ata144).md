@@ -1,3 +1,5 @@
+> **현재 초안 (Draft)** — 이 문서는 작성 중이며 내용이 변경될 수 있습니다.
+
 # 올댓아라빅 All That Arabic 1.4.4
 ---
 
@@ -52,13 +54,15 @@
 - **C** — 챕터명. 각 챕터는 하나의 공통 테마를 공유하며, 정규수업 기준 한 챕터가 1개월(8회 수업)을 구성하는 것을 가정한다.
 - **U** — 유닛 번호. 한 유닛은 하나의 대표 패턴을 가지며, 여기에 따라올 수 있는 2–4개의 서브패턴을 포함할 수 있다.
 - **arabic** — 해당 양식(패턴·드릴·표현·지문·어휘 등)에 따라 사용자가 배울 핵심 내용을 표시한다. 앱에 노출되며 가릴 수 있다.
-- **korean / note** — arabic을 부연하는 한국어 의미와 참고사항. 앱에 노출되며 가릴 수 있다.
+- **korean** — arabic을 부연하는 한국어 의미. 앱에 노출되며 가릴 수 있다.
+- **transliteration** — 아랍어 발음을 로마자로 표기한 음가. 앱에 노출되며 가릴 수 있다. 코드 내 고유식별자(id) 구성에도 사용된다.
 - **type** — 해당 데이터의 성격을 정의한다. 후술한다.
-- **key** — 해당 데이터의 고유 식별자.
+- **status** — 해당 데이터의 작업 상태를 나타낸다. 앱에는 confirmed 상태의 데이터만 노출된다.
+- **id** — 해당 데이터의 고유 식별자. 타입별로 산출 규칙이 다르며 후술한다.
 - **lahja** — 지역(방언) 코드. 기본값은 MSA이며 내용에 따라 구별된다.
 - **script** — 레퍼토리 고유의 표준화된 설명 방식.
-- **url** — 해당 데이터 파일의 위치. 앱과 연동된다.
 - **css** — 앱에 노출되는 데이터의 고유 표시 양식을 지정한다.
+- **url** — 해당 데이터 파일의 위치. 앱과 연동된다.
 - **중복** — 데이터의 활용 빈도를 추적한다.
 
 <svg viewBox="0 0 760 430" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:760px;" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif;">
@@ -124,219 +128,54 @@
 ### 타입type
 type은 해당 데이터의 성격을 정의한다.
 
-- **패턴pattern**
-	- **ptn** — 드릴탭에 입력된 패턴 항목. 선생님용 앱 화면에 **PATTERN**으로 표시된다.
-	- **ptnA** — pattern탭에 입력된 핵심 패턴. 해당 유닛의 대표 패턴을 나타내며, 사이드바 내비게이터에 표시된다.
-	- **ptnB** — 따라오는 패턴. 같은 유닛에 함께 노출되는 서브패턴을 나타낸다.
+- **unit** — 유닛의 타이틀 역할을 한다. 해당 유닛의 대표 패턴을 보여주며, 앱에서 유닛 구분자로 표시된다.
 
-- **드릴drill** — 사용자가 배웠던 패턴을 반복 연습하기 위한 것이다. 패턴 활용에 가장 적합한 어휘를 선정해 사용한다. 이전 유닛에서 이미 배운 kalimat·expression, 또는 해당 유닛에서 새로 도입되는 kalimat·expression만 사용 가능하다. 관측에 따라 변경될 수 있다.
-	  - **레퍼토리repertory** — 패턴을 설명하기 위한 대표 예문을 나타낸다. script 값이 앱에 노출되는 화면에서의 표준 설명 방식을 정의한다.
-	  - **미쌀mithāl** — 레퍼토리와 함께 쓰이는 패턴 설명용 예문이다. 인강과 교재 설명파트에 노출된다.
-	  - **드릴drillA** — 수업에 노출되며 교재 연습파트에 해당한다.
-	  - **드릴drillB** — 수업에는 미노출이며 추후 추가 연습문제 또는 사용자용 앱에 활용 예정이다.
+- **ptn** — 사용자가 말하기로 배워야 할 핵심 패턴이다. 아랍어를 패턴화해 발화를 통한 학습을 지향하는 이 방법론의 핵심 내용이다. `no_ptn`(순서값)과 `id_ptn`(고유식별자)으로 식별된다. 추후 ptnA(핵심 패턴)·ptnB(서브 패턴)으로 세분화할 예정이며, 1.4.4에서는 **ptn**으로 통일한다.
 
-- **표현expression** — kalimat탭에 입력된 표현 항목. type = `exp`, status = confirmed인 항목만 선생님용 앱에 노출된다.
+- **repertory** — 패턴 설명 시 함께 제시되는 예시이다. 항상 해당 패턴 직후에 붙어 나오며, ref값으로 패턴과 연결된다. `id_rep` = 유닛코드 + `_rep_` + note. 패턴이 노출될 때 레퍼토리도 함께 표시된다. 유닛 연결 외에 패턴과도 연결할지는 추후 결정한다.
 
-- **나스nass** — nass탭에 입력된 지문 항목. status = confirmed인 항목만 선생님용 앱에 노출된다.
+- **drill** — 핵심 패턴을 말하기로 연습하기 위한 예문들이다. `id_drill` = 유닛코드 + `_drill_` + note. 기본적으로 유닛과 연결되며, 해당 유닛에 나온 패턴들이 골고루 포함되어야 한다. 패턴과의 직접 연결 여부는 추후 결정한다.
 
-> **타입type별 key값 산출규칙에 대해**, key_값은 type_note값으로 자동 산출된다. -> **산출 규칙**: `key_type = type_note` 유닛·타입·순서와 무관하게 note 값이 그대로 고유식별자가 된다.
+	  - **drillA** — 핵심예문. 앱에서 **drill**로 노출. 해당 유닛의 모든 패턴·레퍼토리 종료 후 일괄 표시. darss 콘텐츠 미포함. 교재 연습문제 "읽기/따라읽기" 섹션에 배치.
+	  - **drillB** — 추가예문. 앱에서 **practice**로 노출. nass 이후에 표시. `{{...}}`로 감싼 부분은 앱과 교재 모두에서 빈칸으로 처리되어 학습자가 직접 유추하는 연습문제로 활용된다.
+	  - **drillC** — 부가예문. `{{...}}`로 감싼 부분은 빈칸 처리되는 것은 동일하나, 앱과 교재 모두에 노출되지 않는다. 추후 별도 용도로 활용 예정.
 
-### 앱 Application
+- **exp** — 패턴으로 정규화하기 어려운 빈출 표현이다. 유닛과의 연관성을 권장하나 자유롭게 지정 가능하다. `id_exp` = 유닛코드 + `_exp_` + note. 앱에서 drillA 이후에 노출된다.
 
-데이터시트에 입력된 콘텐츠는 두 개의 앱으로 노출된다. 선생님용 앱과 사용자용 앱은 같은 데이터를 공유하지만 용도와 디자인이 다르다. 선생님용 앱은 오프라인·온라인 수업 현장을 가정하며 TV나 모니터 등 가로로 넓은 화면에 최적화되어 있고, 선생님이 수업 흐름에 맞게 직접 조작하며 진행하는 도구다. 사용자용 앱은 복습을 가정하며 모바일 화면에 최적화되어 있고, 사용자가 혼자 접속해 배운 패턴을 반복 연습하는 용도로 쓴다. 두 앱 모두 슬라이드 방식으로 콘텐츠가 표시되며, 아랍어·한국어를 필요에 따라 가릴 수 있다. 사용자용 앱에는 말하기 기능이 추가될 예정이다.
+- **nass** — 해당 유닛의 패턴과 표현을 조합한 지문이다. `id_nass` = 유닛코드 + `_nass_` + note. 기본 형태는 따라하기로 시작하며, 수알(سؤال)이 포함된 경우 올말맞추기가 메인 활동이 된다. 앱과 교재 모두에 노출된다.
 
-**알파버전 앱의 데이터 연결 방식**은 다음과 같다. 앱은 단일 HTML 파일로, 별도 서버 없이 브라우저에서 직접 실행된다. 페이지 로드 시 Google Sheets의 Visualization API(`gviz/tq`, JSONP 방식)로 시트를 불러온다. 불러온 데이터는 `status = confirmed`인 행만 추려내고, U열(유닛 번호) 기준으로 묶은 뒤 `buildSlides()` 함수가 패턴 → 레퍼토리 → 드릴 → 나스 순으로 슬라이드 배열을 생성한다. 오디오는 각 행의 `key` 값으로 GCS 경로를 직접 조합한다(`/listening/{key}.mp3`, 실패 시 `.wav` 폴백).
+	- **nass+** — 예비용 지문이다. nass와 동일한 형식으로 작성되며, 추후 레벨테스트 등에 활용된다. 앱과 교재에는 노출되지 않는다.
 
-이 구조는 빠른 제작과 검증을 위한 알파 단계의 방식이다. 이후 마르카즈아라빅이 자체 제작하는 LMS 시스템과 연동하는 방향으로 업데이트할 예정이며, 그 단계에서 실제 제품화가 이루어진다.
+- **kalimat** — 유닛별 사용 어휘를 제한하는 단어 목록이다. 앱에서 가장 마지막에 노출되며 유닛별 단어장으로 제공된다.
 
-- 선생님용 앱: 가로 대형 화면 / 수업 진행 / 슬라이드 조작
-- 사용자용 앱: 모바일 최적화 / 자율 복습 / 스와이프 이동 / 말하기 기능 예정
-- 기술 스택: 단일 HTML 파일, 외부 의존성 없음
-- 데이터 로딩: Google Sheets Visualization API (JSONP), 4개 탭 병렬 로드
-- 슬라이드 생성: `buildSlides()` — drill탭 + kalimat탭(exp) + nass탭을 병렬 로드 후 status=confirmed 필터, 시트 순서 그대로 슬라이드 배열 생성
-- 오디오: `key` → GCS URL 직접 조합 → `.wav` 폴백
+> **id 산출 규칙** (변경됨): 모든 타입에서 `유닛코드_type_note` 형식을 따른다.
+> - `id_drill` = `{u}_drill_{note}` (예: `A01_drill_bana·ta`)
+> - `id_rep` = `{u}_rep_{note}` (예: `A01_rep_bana·ta`)
+> - `id_exp` = `{u}_exp_{note}` (예: `A01_exp_ṣabāḥ-al-khayr`)
+> - `id_nass` = `{u}_nass_{note}` (예: `A01_nass_al-usra`)
+>
+> 시트 수식: `=U열셀&"_drill_"&note열셀` (각 탭 type명에 맞게 변경)
 
-#### 기술 요구사항 및 인프라 연결 Technical Setup
+#### 상태값 Status
 
-이 섹션은 ATA 1.4.4 앱을 처음 보는 개발자나 AI가 전체 연결 구조를 파악할 수 있도록 작성했다.
+제품 제작에 있어 모든 데이터의 상태값(status)을 다음과 같이 정의한다.
 
-**1. 앱 파일 및 배포 (GitHub)**
+- **inbox** — 검토 전 단계. 아이디어나 내용을 일단 기록해둔 상태.
+- **draft** — 초기 작성 단계. 내용이 갖춰지기 시작한 상태.
+- **hold** — 보류. 작업을 일시 중단하거나 판단을 미룬 상태.
+- **confirmed** — 확정. 앱과 교재에 반영된다.
 
-앱은 단일 HTML 파일 하나로 구성된다. 빌드 도구, 서버, 프레임워크 없음.
+#### 시트 탭 구조 (1.4.4)
 
-| 항목 | 내용 |
-|---|---|
-| 저장소 | https://github.com/rasheedpark/allthatarabic |
-| 배포 방식 | GitHub Pages (main 브랜치 자동 배포) |
-| 선생님용 앱 URL | https://rasheedpark.github.io/allthatarabic/app144.html |
-| 사용자용 앱 URL | https://rasheedpark.github.io/allthatarabic/app144s.html |
-| 인증 방식 | Personal Access Token (repo 권한) — macOS 키체인 또는 remote URL에 포함 |
-
-로컬 경로(선생님용): `/공유 드라이브/마르카즈아라빅 팀 드라이브/제품products/ATA-14/app144.html`  
-로컬 경로(사용자용): `/공유 드라이브/마르카즈아라빅 팀 드라이브/제품products/ATA-14/app144s.html`
-
-`git push origin main` 하면 수분 내 GitHub Pages에 자동 반영된다.
-
-**2. 콘텐츠 데이터 (Google Sheets)**
-
-앱은 서버 없이 브라우저에서 Google Sheets를 직접 읽는다. Google Visualization API (`gviz/tq`) JSONP 방식을 사용하며, 시트가 **"링크가 있는 모든 사용자"** 로 공개 설정되어 있어야 한다.
-
-| 항목 | 내용 |
-|---|---|
-| 시트 ID | `1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8` |
-| 시트 URL | https://docs.google.com/spreadsheets/d/1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8 |
-| 읽기 엔드포인트 | `https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:json&sheet={탭명}&headers=1` |
-
-**탭 구조** (앱이 로드하는 탭: 4개):
-
-| 탭명 | 앱 로드 | 포함 타입 | 주요 컬럼 |
-|---|---|---|---|
-| `pattern` | ✅ 내비게이터용 | ptnA, ptnB | C, U, arabic, korean, note, type, key_ptn |
-| `drill` | ✅ 메인 슬라이드 | ptn, repertory, mithāl, drillA, drillB, summary, writing | C, U, arabic, korean, note, type, status, key_drill, key_patn, lahja, script |
-| `kalimat` | ✅ 표현 슬라이드 | exp, kalimat | C, U, arabic, korean, note, type, status, key_drill |
-| `nass` | ✅ 나스 슬라이드 | nass | C, U, arabic, korean, note, type, status, id_nass, ptn_key |
-| `kalam` | — | — | 미사용 |
-| `alam` | — | — | 미사용 |
-| `words` | — | — | 미사용 |
-
-`status = confirmed`인 행만 앱에 노출된다. pattern탭은 status 무관하게 내비게이터용으로만 로드하며 ptnA 중 confirmed인 것만 사이드바에 표시된다.
-
-Claude가 시트를 직접 읽고 쓰기 위한 별도 인증:
-- 인증 방식: `gcloud auth login --enable-gdrive-access`
-- 토큰 발급: `gcloud auth print-access-token`
-- 헬퍼 스크립트: `~/.claude/sheets_helper.sh`
-
-**3. 오디오 파일 (Google Cloud Storage)**
-
-앱은 오디오 URL을 시트에서 읽지 않고, 각 행의 `key` 값으로 GCS 경로를 직접 조합한다.
-
-| 항목 | 내용 |
-|---|---|
-| 버킷명 | `all-that-arabic-14` |
-| 1.4.4 오디오 폴더 | `listening(144)/` |
-| URL 패턴 | `https://storage.googleapis.com/all-that-arabic-14/listening(144)/{key}.mp3` |
-| 폴백 | `.mp3` 실패 시 `.wav` 자동 시도 |
-| GCS 콘솔 | https://console.cloud.google.com/storage/browser/all-that-arabic-14 |
-
-`key` 값이 곧 파일명이다. 예: `key = exp_as-salāmu ʿalaykum` → 파일명 `exp_as-salāmu ʿalaykum.mp3`.
-
-파일은 버킷에서 **공개 읽기(Public)** 로 설정되어야 한다.
-
-**4. 파일 저장 위치 (Google Drive)**
-
-| 항목 | 경로 / 링크 |
-|---|---|
-| 팀 드라이브 루트 | https://drive.google.com/drive/folders/1CUlbL3JH57MWZC1ViWU7Zt2y5HyTOQ3H |
-| ATA-14 폴더 | 팀 드라이브 내 `제품products/ATA-14/` |
-| 1.4.4 데이터시트 | ATA-14 폴더 내 `ATA-1.4.4.gsheet` |
-| 제품문서 | ATA-14 폴더 내 `product(ata144).md` |
-
-로컬 마운트 경로: `/Users/rasheedpark/Library/CloudStorage/GoogleDrive-someaugust17@gmail.com/공유 드라이브/마르카즈아라빅 팀 드라이브/제품products/ATA-14/`
-
-**5. 현재 미완료 요구사항**
-
-| 항목 | 상태 | 내용 |
+| 탭 | 역할 | 비고 |
 |---|---|---|
-| 오디오 폴더 경로 | ✅ 완료 | `listening(144)/` 경로로 반영됨 |
-| 내비게이터 재설계 | ✅ 완료 | M키 토글, ptnA confirmed 필터, 상단 좌측 고정, 섹션 탭 우측 배치 |
-| 표현/나스 슬라이드 로드 | ✅ 완료 | kalimat탭(exp)·nass탭 병렬 로드 추가 |
-| 사용자용 앱 | ✅ 완료 | `app144s.html` 제작 완료. 모바일 최적화, 스와이프, ptn summary 표시, 레퍼토리 생략 |
-| drillB 노출 여부 | 🔲 미결정 | 현재 앱에서 drillB 노출 여부 결정 필요 |
-| LMS 연동 | 🔲 장기 | 마르카즈아라빅 자체 LMS 시스템 구축 후 연동 |
+| **유닛탭** | 각 유닛의 대표 정보 | 기존 패턴탭에서 이름 변경 |
+| **패턴탭** | 각 패턴의 no_ptn·id_ptn 및 상세 내용 | 신설 |
+| **드릴탭** | drillA·drillB·drillC 데이터, 패턴과 연결 | 기존 탭 구조 수정 |
+| **표현탭** | exp 데이터 | 신설, kalimat탭과 분리 |
+| **칼리마트탭** | kalimat 단어 목록 | 기존 유지 |
+| **나스탭** | nass 지문 데이터 | 기존 유지 |
 
-#### 디자인 코드 Design Tokens
-
-**색상 팔레트**
-
-| 변수 | 값 | 용도 |
-|---|---|---|
-| `--bg` | `#F2F4F6` | 배경 |
-| `--surface` | `#ffffff` | 카드/패널 배경 |
-| `--accent` | `#1D49FF` | 강조 (포인트 컬러) |
-| `--accent-bg` | `rgba(29,73,255,0.08)` | 강조 배경 (하이라이트 박스) |
-| `--text` | `#12205A` | 본문 텍스트 |
-| `--sub` | `#888FAC` | 보조 텍스트·노트·비활성 버튼 |
-| `--border` | `#D5DAE8` | 구분선 |
-
-**타이포그래피**
-
-| 요소 | 폰트 | 크기 |
-|---|---|---|
-| 아랍어 (기본) | Noto Sans Arabic 700 | `clamp(3rem, 9vw, 9rem)` |
-| 아랍어 (문장형) | Noto Sans Arabic 700 | `clamp(2rem, 6vw, 6rem)` |
-| 아랍어 (쓰기체) | Dongol / Noto Kufi Arabic | 동일 |
-| 한국어 | Spoqa Han Sans Neo | `clamp(1.2rem, 3.5vw, 3.5rem)` |
-| 노트 | Spoqa Han Sans Neo | `clamp(0.9rem, 2.2vw, 2.2rem)` |
-| 타입 레이블 | Spoqa Han Sans Neo | `clamp(0.55rem, 0.85vw, 0.75rem)` |
-| 사이드바 헤더 | Spoqa Han Sans Neo | `clamp(1.1rem, 2.5vw, 1.6rem)` |
-| 인덱스 항목 | Spoqa Han Sans Neo | `clamp(0.75rem, 1.6vw, 1.1rem)` |
-| 단축키 바 | Spoqa Han Sans Neo | `clamp(0.6rem, 0.9vw, 0.78rem)` |
-
-행간: 아랍어 `1.6` / 한국어·노트 `1.4` / 단축키 리스트 `2.1`
-
-**레이아웃**
-
-메인 콘텐츠 영역은 `min(92vw, 1400px)`로 너비를 제한하고 화면 중앙에 배치한다. 수직 방향은 `flex column + justify: center`로 항상 화면 중앙에 정렬되며, 상하 패딩은 `clamp(60px, 10vh, 100px) / clamp(80px, 12vh, 120px)`이다. 4코너 UI 요소(패턴번호, 카운터, 저작권, 로고)는 `position: fixed`로 고정되며 clamp로 뷰포트에 따라 여백이 조정된다.
-
-**주요 컴포넌트 (선생님용 앱)**
-
-- **로딩 화면** — `--accent` 색상 배경 전체화면, 중앙에 흰색 로고(`ata-logo2.png`), 하단 `markazarabic 1.4.4 beta` 레이블(흰색, 투명도 0.75, letter-spacing 2.5px, 소문자)
-- **진행바** — 상단 고정, 높이 3px, `--accent` 색상, 슬라이드 진행률에 따라 너비 변화
-- **하이라이트 박스** — `border: 3px solid --accent` / `background: var(--accent-bg)` / `border-radius: 14px` / 패턴의 핵심 부분 강조용
-- **사이드바** — 너비 `min(440px, 92vw)`, 좌측 슬라이드 인입, `border-right: 1px solid var(--border)`, `box-shadow: 4px 0 24px rgba(29,73,255,0.10)`
-- **인덱스 항목 (`.idx-item`)** — `display:flex`, `gap:0.7rem`, `align-items:baseline`, `border-left: 4px solid transparent`, 활성 시 `--accent` border + `var(--accent-bg)` 배경. 아랍어(`idx-ar`)·한국어(`idx-ko`) 모두 `text-align:left`
-- **인덱스 태그 (`.idx-tag`)** — `font-size: 0.72em`, `background: var(--accent-bg)`, `border-radius: 4px`, 대문자
-- **상단 좌측 영역 (`#ui-tl`)** — `position:fixed`, `max-width:75vw`. 내부 구조: flex row로 ① ptnA 정보 영역(유닛번호 + 아랍어·한국어 가로 나란히) ② 섹션 탭 영역 순으로 배치
-- **섹션 탭 (`.sec-tab`)** — `border: 1px solid --border`, `border-radius: 6px`, `font-size: clamp(0.5rem, 0.85vw, 0.68rem)`, `padding: 2px 9px`. 활성: `--accent` 배경 + 흰색 텍스트. 비활성(해당 타입 없음): `opacity: 0.2`, 클릭 불가
-- **단축키 바** — 하단 중앙 고정, 투명 배경, 기본 `opacity: 0.6`, 활성 시 `opacity: 1`. 아이콘 없이 텍스트만 표시
-- **단축키 뱃지 (`.kb`)** — `background: var(--bg)`, `border: 1px solid var(--border)`, `border-radius: 3px`
-- **해석 토글 버튼** — `Space`키, 한국어·노트 텍스트 가리기/보기
-- **본문 토글 버튼** — `A`키, 아랍어 텍스트 가리기/보기 (opacity 0 처리)
-
-#### CSS 코드 CSS Codes
-
-데이터 행의 `css` 열에 코드를 입력하면 해당 슬라이드에 고유한 화면 표시 양식이 적용된다. ptn처럼 슬라이드 구조가 별도로 정의된 핵심 타입은 타입 자체에 고유 CSS가 자동 적용되며, `css` 열을 통해 추가적인 커스터마이징이 가능하다. 각 코드의 상세 CSS 정의는 [부록: CSS 코드 정의](appendix_css(ata144).md)를 참고한다.
-
-| css 코드 | 적용 대상 | 설명 |
-|---|---|---|
-| | | |
-
-#### 내비게이터 Navigator Logic
-
-슬라이드는 시트에 입력된 순서 그대로 노출된다. 별도 재정렬 없이 시트 순서가 곧 화면 순서다.
-
-**사이드바 (왼쪽 인덱스)**
-
-- `M`키 또는 메뉴 버튼으로 열고 닫는다.
-- pattern탭의 `ptnA` 타입 항목 중 `status = confirmed`인 것만 표시된다.
-- 각 항목은 **아랍어 / 한국어**를 줄바꿈해 한 행으로 표시하며, 둘 다 왼쪽 정렬이다.
-- 항목을 누르면 해당 유닛의 첫 슬라이드로 이동하고 사이드바가 닫힌다.
-
-**상단 좌측 고정 영역**
-
-어떤 슬라이드를 보고 있든 상관없이, 현재 유닛의 `ptnA` 아랍어와 한국어가 항상 고정 표시된다. 현재 슬라이드 내용이 아니라 해당 유닛의 대표 패턴이다.
-
-```
-[유닛번호]
-[ptnA 아랍어]  [ptnA 한국어]    [패턴] [드릴] [표현] [칼리마트] [나스]
-```
-
-- 아랍어와 한국어는 나란히(왼쪽 정렬)로 배치된다.
-- 섹션 탭은 ptnA 내용의 우측에 위치한다.
-
-**섹션 탭 (상단 우측)**
-
-현재 유닛 안에서 해당 타입의 첫 슬라이드로 점프한다. 해당 타입 슬라이드가 없으면 탭은 비활성(opacity 낮춤) 처리된다.
-
-| 탭 | 매칭 타입 | 데이터 출처 |
-|---|---|---|
-| 패턴 Pattern | `ptn`, `ptna` | drill탭 |
-| 드릴 Drill | `drilla` | drill탭 |
-| 표현 Expression | `exp` | kalimat탭 |
-| 칼리마트 Kalimat | `kalimat` | kalimat탭 |
-| 나스 Nass | `nass` | nass탭 |
-
----
 
 ### 사용자용 앱 User App (app144s)
 
