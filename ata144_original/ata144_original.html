@@ -216,6 +216,42 @@ body {
   direction: ltr; letter-spacing: 0.2px;
   white-space: nowrap;
 }
+
+/* ── c 모드 ──
+   baseline과 동일 그리드 구조이지만:
+   - 기준선(.bl-line) 없음 (DOM에서 미생성)
+   - 음가 라벨(.lbl) 표시 안 함 (DOM에서 미생성)
+   - 셀들을 수직 가운데 정렬 (베이스라인 정렬 대신)
+   → 글자 크기가 다른 토큰들도 시각적으로 가운데 라인에 모임 */
+.pattern-arabic.c {
+  position: relative;
+  display: flex;
+  direction: rtl;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  width: 100%;
+  padding: 22px 0 18px;
+  text-align: initial;
+}
+.pattern-arabic.c .blch {
+  flex: 0 0 calc(100% / 6);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px;
+  min-width: 0;
+}
+.pattern-arabic.c .blch .l {
+  font-family: var(--font-ar); font-weight: 700;
+  font-size: 2.1rem; line-height: 1;
+}
+.pattern-arabic.c .blch .l-triple {
+  font-family: var(--font-ar); font-weight: 500;
+  font-size: 0.95rem; line-height: 1.2;
+  color: var(--text);
+  white-space: nowrap;
+  text-align: center;
+}
+
 .pattern-arabic .hl-text { color: var(--hl-text); }
 .pattern-trans {
   font-size: 0.85rem;
@@ -410,6 +446,68 @@ body {
 }
 /* 같은 ref_ptn 그룹 안 카드 사이 — 나쓰 카드 사이 간격(12px)과 동일하게 */
 .drill-row-gap { height: 12px; }
+
+/* ── 2열 박스 모드 (`css = 'two'`) ──
+   드릴(`.drill-two`)·래퍼토리(`.repertory.cols-two`) 공용 마커 `.cols-two`.
+   박스가 좌→우 한 행에 2개씩 (LTR). 5열은 좁고 디폴트 카드는 너무 큰 항목용 중간 밀도. */
+.cols-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  direction: ltr;  /* 박스 배치는 좌→우 */
+}
+.cols-two .two-cell {
+  background: #fff;
+  border: 1px solid rgba(18,32,90,0.07);
+  border-radius: var(--r-md);
+  padding: 10px 14px 11px;
+  box-shadow: 0 1px 2px rgba(18,32,90,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cols-two .two-cell .ar-line {
+  justify-content: flex-end; /* RTL 셀에서 시각상 오른쪽 정렬 */
+  direction: rtl;
+}
+.cols-two .two-cell .ar-text {
+  font-family: var(--font-ar);
+  font-size: 1.08rem;
+  font-weight: 500;
+  color: var(--text);
+}
+.cols-two .two-cell .trans {
+  display: block;
+  font-family: var(--font-kr);
+  font-size: 0.68rem;
+  color: var(--sub-2);
+  font-style: italic;
+  direction: ltr;
+  text-align: right;
+  margin-top: 1px;
+  letter-spacing: 0.2px;
+}
+.cols-two .two-cell .ko {
+  font-family: var(--font-kr);
+  font-size: 0.78rem;
+  color: var(--sub);
+  direction: ltr;
+  text-align: left;
+  line-height: 1.45;
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px dashed var(--border-soft, var(--border));
+}
+/* 드릴 2열 박스 — 외곽 카드(.card 톤) 안에 .cols-two 그리드 */
+.drill-two {
+  background: #fff;
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  box-shadow: 0 1px 2px rgba(18,32,90,0.04);
+}
+.drill-two > .cols-two {
+  /* 외곽 카드 안에 그리드 그대로 */
+}
 
 /* 5열 그리드 테이블 (css=five) */
 /* 드릴 5열 박스 — 래퍼토리(.card 안의 .repertory.css-five)와 동일한 박스/셀 사이즈로 통일.
@@ -1067,6 +1165,33 @@ function renderBaseline(arabic, transliteration) {
   return `<div class="pattern-arabic baseline"><div class="bl-line"></div>${items}</div>`;
 }
 
+// css = 'c' — baseline과 동일 그리드 구조이지만 기준선 없음 + 음가 라벨 미표시 + 수직 가운데 정렬.
+function renderC(arabic) {
+  const lines = String(arabic || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const splitTokens = (line) => {
+    const sep = line.includes('|') ? /\s*\|\s*/ : /\s+/;
+    return line.split(sep).map(t => t.trim()).filter(Boolean);
+  };
+
+  if (lines.length >= 2) {
+    const top = splitTokens(lines[0]);
+    const bot = splitTokens(lines[1]);
+    const items = top.map((t, i) => `
+      <span class="blch">
+        <span class="l">${t}</span>
+        ${bot[i] ? `<span class="l-triple">${bot[i]}</span>` : ''}
+      </span>`).join('');
+    return `<div class="pattern-arabic c has-triple">${items}</div>`;
+  }
+
+  const tokens = lines[0] ? splitTokens(lines[0]) : [];
+  const items = tokens.map(t => `
+    <span class="blch">
+      <span class="l">${t}</span>
+    </span>`).join('');
+  return `<div class="pattern-arabic c">${items}</div>`;
+}
+
 // 앱과 동일하게 첫 글자의 기준선을 측정해서 가로선 위치 조정
 function adjustBaselines() {
   document.querySelectorAll('.pattern-arabic.baseline').forEach(wrap => {
@@ -1093,7 +1218,9 @@ function adjustBaselines() {
 //   • 그 외 → 2 페어 모드 (DOM: ar-ko-ar-ko, 시각적 우→좌)
 function renderRepertory(items, showTrans) {
   if (!items.length) return '';
-  const useFive = items.some(it => (it.css || '').trim().toLowerCase() === 'five');
+  const cssOf = it => (it.css || '').trim().toLowerCase();
+  const useTwo = items.some(it => cssOf(it) === 'two');
+  const useFive = items.some(it => cssOf(it) === 'five');
   const hasKorean = items.some(d => (d.korean || '').trim());
   const rows = [];
 
@@ -1102,6 +1229,16 @@ function renderRepertory(items, showTrans) {
   const arLine = (it, txt) =>
     `<span class="ar-line"><span class="ar-text">${txt}</span>${lahjaFlag(it?.lahja)}</span>`;
 
+  // 우선순위: two > five > 디폴트(페어/5열-fallback)
+  if (useTwo) {
+    const cells = items.map(it => {
+      const trans = (showTrans && it.transliteration)
+        ? `<span class="trans">${plain(it.transliteration)}</span>` : '';
+      const ko = it.korean ? `<span class="ko">${plain(it.korean)}</span>` : '';
+      return `<div class="two-cell">${arLine(it, plain(it.arabic || ''))}${trans}${ko}</div>`;
+    }).join('');
+    return `<div class="repertory cols-two">${cells}</div>`;
+  }
 
   if (useFive || !hasKorean) {
     for (let i = 0; i < items.length; i += 5) {
@@ -1160,17 +1297,20 @@ function renderPatternPage(unit, pattern, drills, opts) {
 
   const cssMode = (pattern.css || '').trim().toLowerCase();
   const isBaseline = cssMode === 'baseline';
-  const showLineTrans = showTrans && pattern.transliteration && !isBaseline;
+  const isC = cssMode === 'c';
+  const showLineTrans = showTrans && pattern.transliteration && !isBaseline && !isC;
 
   // 유닛 번호 (A01 → 1), 패턴 번호 (ptn001_… → 001)
   const unitNum = (parseInt((unit.u || '').replace(/\D/g, ''), 10) || 1);
   const ptnNo = ((pattern['id_ptn(no)'] || '').match(/(\d+)/)?.[1])
               || String(patternIdx + 1).padStart(3, '0');
 
-  // baseline 모드: 가운데 정렬 (별도 wrapper 없이)
+  // baseline / c 모드: 가운데 정렬 (별도 wrapper 없이)
   // 일반 모드: 우측 정렬 wrapper 안에 아랍어 + 음가
   const arabicSection = isBaseline
     ? renderBaseline(pattern.arabic, pattern.transliteration)
+    : isC
+    ? renderC(pattern.arabic)
     : `<div class="body-arabic-block">
          <div class="pattern-arabic">${parseInline(pattern.arabic || '')}</div>
          ${showLineTrans ? `<div class="pattern-trans">${plainTrans(pattern.transliteration)}</div>` : ''}
@@ -1260,7 +1400,21 @@ function _renderDrillBoxHtml(items, isB) {
   const renderTr = (s) => isB ? maskBlanks(s) : plain(s);
   const transOf = (it) => it.transliteration || it.note || '';
 
-  const useFive = items.some(it => (it.css || '').trim().toLowerCase() === 'five');
+  const cssOf = it => (it.css || '').trim().toLowerCase();
+  const useTwo = items.some(it => cssOf(it) === 'two');
+  const useFive = items.some(it => cssOf(it) === 'five');
+  // 우선순위: two > five > 디폴트
+  if (useTwo) {
+    const cells = items.map(it => {
+      const trv = transOf(it);
+      const tr = trv ? `<span class="trans">${renderTr(trv)}</span>` : '';
+      const ko = it.korean ? `<span class="ko">${plain(it.korean)}</span>` : '';
+      return `<div class="two-cell">` +
+        `<span class="ar-line"><span class="ar-text">${renderAr(it.arabic || '')}</span>${lahjaFlag(it.lahja)}</span>` +
+        `${tr}${ko}</div>`;
+    }).join('');
+    return `<div class="drill-two"><div class="cols-two">${cells}</div></div>`;
+  }
   if (useFive) {
     const rows = [];
     for (let i = 0; i < items.length; i += 5) {

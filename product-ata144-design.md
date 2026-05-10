@@ -396,6 +396,48 @@ const splitTokens = (line) => {
 
 기준선(`bl-line`) 위치는 폰트 로드 후 첫 글자(`.l`)의 baseline을 JS probe로 측정해 `top` 동적 설정 (`adjustBaselines()`).
 
+### c (가운데 정렬) CSS 코드
+
+`pattern.css = 'c'` 으로 지정한 패턴은 **baseline과 동일한 6칸 그리드 구조**를 쓰지만 다음이 다르다:
+- **기준선(.bl-line) 없음** — `<div class="bl-line">` DOM 미생성
+- **음가 라벨(.lbl) 표시 안 함** — `note` 컬럼이 있어도 출력하지 않음
+- **수직 가운데 정렬** — baseline이 글자 밑선을 기준으로 정렬하는 반면, `c`는 셀 내 콘텐츠를 vertical center에 배치 (글자 크기가 다른 토큰들도 시각적 가운데 라인에 모임)
+
+`pattern.arabic` 데이터 형식은 baseline과 동일 (1줄 또는 2줄, `|` 구분자 지원).
+
+```html
+<div class="pattern-arabic c">
+  <span class="blch"><span class="l">…</span></span>
+  ...
+</div>
+<!-- 2줄(has-triple) 케이스: -->
+<div class="pattern-arabic c has-triple">
+  <span class="blch">
+    <span class="l">…</span>
+    <span class="l-triple">…</span>
+  </span>
+  ...
+</div>
+```
+
+```css
+.pattern-arabic.c {
+  position: relative; display: flex;
+  direction: rtl;
+  justify-content: center; align-items: center;  /* 수직·수평 가운데 */
+  flex-wrap: nowrap; width: 100%;
+  padding: 22px 0 18px;
+}
+.pattern-arabic.c .blch {
+  flex: 0 0 calc(100% / 6);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px;
+}
+/* .l, .l-triple 폰트 사이즈는 baseline과 동일. .lbl 규칙 없음 (DOM 미생성). */
+```
+
+**구현 위치 (인쇄 교재)**: `renderC(arabic)` 함수 + `renderPatternPage()`에서 `cssMode === 'c'` 분기.
+
 ### 인쇄 스타일
 
 ```css
