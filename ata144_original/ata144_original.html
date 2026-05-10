@@ -878,10 +878,34 @@ body {
   color: var(--sub-2); font-size: 0.95rem;
 }
 
+/* ── 인쇄용 (B5 PDF 출력 = 화면 미리보기 1:1) ──
+   • @page size로 Chrome이 종이 사이즈를 B5(182×257)로 정확히 잡음 (기본 A4 방지)
+   • margin: 0 으로 헤더/푸터 영역 제거 (URL/날짜/페이지번호 자동 노출 방지)
+   • print-color-adjust: exact 로 회색 배경/카드/박스 색이 인쇄에서도 그대로 유지 */
+@page {
+  size: 182mm 257mm;
+  margin: 0;
+}
 @media print {
-  body { background: #fff; padding: 0; }
+  html, body {
+    background: #fff;
+    padding: 0;
+    margin: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   .unit-picker { display: none; }
-  .page { box-shadow: none; border-radius: 0; page-break-after: always; margin: 0; }
+  .page {
+    width: 182mm;
+    height: 257mm;
+    margin: 0;          /* 페이지 사이 여백 0 (각 .page = 한 종이) */
+    box-shadow: none;
+    border-radius: 0;
+    overflow: hidden;
+    page-break-after: always;
+    break-after: page;
+  }
+  .page:last-of-type { page-break-after: auto; break-after: auto; }
 }
 
 /* ── 모바일/태블릿 적응형 ─────────────────────────────
