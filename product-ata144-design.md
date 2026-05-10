@@ -263,3 +263,36 @@ const LAHJA_FLAG = {
 | 라흐자 국기 | ✅ | ✅ | — | ✅ |
 | 의미 토글 | Space 키 | 버튼 | — | — |
 | 음가 항상 표시 | ✅ | ✅ | — | ✅ |
+
+---
+
+## CSS 코드 (시트 `css` 컬럼)
+
+각 데이터 행의 `css` 값으로 표시 양식·노출 범위를 제어한다.
+
+### `ab` — 앱 전용 스크립트 (App-only script)
+
+`css = 'ab'` 으로 지정된 행은 **행 자체는 양쪽 모두 노출**되지만, **`script`(설명) 컬럼만 인쇄 교재(`ata144_original`)에서 숨겨지고**, **앱(`ata144_textbook` 등)에서는 정상 노출**된다.
+
+| 적용 대상 | arabic / korean / note | script (설명) |
+|---|---|---|
+| 교재 인쇄 원본 (`ata144_original`) | 정상 노출 | **숨김** |
+| 교재용 앱 (`ata144_textbook`) | 정상 노출 | 정상 노출 |
+| (선생님용 / 학생용) | — | 현재 미적용 |
+
+**용도**: 어휘·문장 자체는 인쇄 교재에도 들어가야 하지만, 부가 설명(`script`)은 인쇄에 넣기엔 분량 과다 / 인터랙션 전제 / 모바일 확장 의도일 때.
+
+**적용 대상 필드**: 현재는 `script` 컬럼만. (다른 필드 확장 시 본 표 갱신)
+
+**구현 위치 (인쇄 교재)**: `isAppOnly(row)` 헬퍼 + 두 렌더 지점:
+- `renderPatternPage()` — `pattern.script` 출력 분기
+- `renderExpressionPage()` 카드 빌더 — `exp.script` 출력 분기
+
+```javascript
+function isAppOnly(row) {
+  return (row?.css || '').trim().toLowerCase() === 'ab';
+}
+// 렌더 지점:
+${pattern.script && !isAppOnly(pattern) ? `<div class="pattern-script">…</div>` : ''}
+const script = exp.script && !isAppOnly(exp) ? `<div class="exp-script">…</div>` : '';
+```
