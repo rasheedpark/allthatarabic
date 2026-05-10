@@ -909,8 +909,11 @@ body {
 }
 
 /* ── 모바일/태블릿 적응형 ─────────────────────────────
-   B5 고정폭 → 화면폭에 맞춰 풀폭 스크롤 흐름. 디자인 토큰/구조는 그대로 유지. */
-@media (max-width: 768px) {
+   B5 고정폭 → 화면폭에 맞춰 풀폭 스크롤 흐름. 디자인 토큰/구조는 그대로 유지.
+   ⚠️ `screen and` 한정 — 인쇄(@media print) 시 발동 금지. B5 페이지의 CSS 폭은
+   ~688px라 print 컨텍스트에서도 768px breakpoint에 걸려 모바일 레이아웃으로
+   무너지는 사고 방지. */
+@media screen and (max-width: 768px) {
   body { padding: 0; background: var(--bg); }
 
   /* 유닛 픽커: 상단 고정 */
@@ -1006,7 +1009,7 @@ body {
 }
 
 /* 가장 좁은 모바일 (≤375px) — iPhone SE 등 */
-@media (max-width: 375px) {
+@media screen and (max-width: 375px) {
   .page-head { padding: 18px 12px 14px; }
   .page-body { padding: 10px 10px 12px; }
   .body-card { padding: 18px 16px 16px; }
