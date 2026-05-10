@@ -7,9 +7,9 @@
 ```
 allthatarabic/
 ├── index.html                       랜딩 (3개 앱 링크)
-├── ata144_teacher/index.html        선생님용 (수업 슬라이드)
-├── ata144_student/index.html        학생용 (모바일 복습)
-├── ata144_textbook/index.html       교재용 모바일 앱 (실험)
+├── ata144_teacher/ata144_teacher.html        선생님용 (수업 슬라이드)
+├── ata144_student/ata144_student.html        학생용 (모바일 복습)
+├── ata144_textbook/ata144_textbook.html       교재용 모바일 앱 (실험)
 ├── app144.html, app144s.html        옛 URL → 새 URL redirect
 ├── assets/                          공유 자산 (로고, 폰트, 국기 아이콘)
 ├── product-ata144.md                제품 문서 (메인)
@@ -24,9 +24,9 @@ allthatarabic/
 ## 배포 URL
 
 - 랜딩: https://rasheedpark.github.io/allthatarabic/
-- 선생님용: https://rasheedpark.github.io/allthatarabic/ata144_teacher/
-- 학생용: https://rasheedpark.github.io/allthatarabic/ata144_student/
-- 교재용 모바일: https://rasheedpark.github.io/allthatarabic/ata144_textbook/
+- 선생님용: https://rasheedpark.github.io/allthatarabic/ata144_teacher/ata144_teacher.html
+- 학생용: https://rasheedpark.github.io/allthatarabic/ata144_student/ata144_student.html
+- 교재용 모바일: https://rasheedpark.github.io/allthatarabic/ata144_textbook/ata144_textbook.html
 
 ## 데이터 소스
 
