@@ -31,7 +31,7 @@
 
 ### 디자인 토큰 / 시각 언어
 교재(`textbook144.html`)와 동일한 토큰을 사용:
-- `--accent: #1D49FF` / `--hl-text: #3554C6` / `--text: #12205A` / `--sub: #6E7591` 등
+- `--bg: #F2F4F6` / `--accent: #1D49FF` / `--hl-text: #3554C6` / `--text: #12205A` / `--sub: #888FAC` / `--border: #D5DAE8` (공통 토큰 — `product-ata144-design.md` 참고)
 - 폰트: Noto Sans Arabic + Spoqa Han Sans Neo
 - 카드 / 둥근 모서리 / 옅은 그림자 → 교재 카드와 동일
 
