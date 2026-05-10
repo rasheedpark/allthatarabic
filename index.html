@@ -1,1 +1,46 @@
-<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=app.html"></head></html>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>올댓아라빅 — All That Arabic</title>
+<link href="https://cdn.jsdelivr.net/gh/spoqa/spoqa-han-sans@latest/css/SpoqaHanSansNeo.css" rel="stylesheet">
+<style>
+  :root { --accent: #1D49FF; --text: #12205A; --sub: #6E7591; --bg: #F4F6FB; --border: #DDE2EE; }
+  *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Spoqa Han Sans Neo', sans-serif; background: var(--bg); color: var(--text);
+         min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .wrap { max-width: 480px; width: 100%; text-align: center; }
+  .logo { width: 80px; margin-bottom: 16px; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .ver { font-size: 11px; color: var(--sub); letter-spacing: 1.5px; margin-bottom: 32px; text-transform: uppercase; }
+  .apps { display: flex; flex-direction: column; gap: 12px; }
+  .app-link { display: block; padding: 18px 20px; background: white; border: 1px solid var(--border);
+              border-radius: 12px; text-decoration: none; color: var(--text); transition: all .15s; }
+  .app-link:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .app-link strong { display: block; font-size: 16px; margin-bottom: 3px; }
+  .app-link span { display: block; font-size: 12px; color: var(--sub); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img class="logo" src="assets/ata-logo2.png" alt="ATA">
+  <h1>올댓아라빅</h1>
+  <div class="ver">All That Arabic · v1.4.4</div>
+  <div class="apps">
+    <a class="app-link" href="ata144_teacher/">
+      <strong>선생님용</strong>
+      <span>수업 진행 슬라이드 (가로 화면)</span>
+    </a>
+    <a class="app-link" href="ata144_student/">
+      <strong>학생용</strong>
+      <span>모바일 복습 앱</span>
+    </a>
+    <a class="app-link" href="ata144_textbook/">
+      <strong>교재용 모바일</strong>
+      <span>교재 양식 인터랙티브 앱</span>
+    </a>
+  </div>
+</div>
+</body>
+</html>

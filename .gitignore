@@ -1,8 +1,38 @@
 .DS_Store
 *.gsheet
 *.pdf
+*.docx
+*.avif
+
+# Claude 작업폴더
+.claude/
+
+# 별도 프로젝트
+ATA-14s/
+
+# 오디오 파이프라인 (별도 폴더)
 ata-audio-pipeline/
+audio/
+audio144/
+audio144-unit1-sample/
+
+# 작업/임시
+exports/
+imgs/
+references/
+stylecode/
+tmp/
+1.0_참고자료/
+
+# 옛 파일
 서버시작.command
 ata1.4_index.html
 chapter1.html
-audio/
+
+# 임시 키 추출 스크립트
+key_extract_data.py
+key_update_key_ptn.py
+
+# 백업 등
+*~
+*.bak
