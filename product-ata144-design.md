@@ -466,10 +466,17 @@ const splitTokens = (line) => {
 |---|---|---|
 | 4 | 드릴 박스 합이 B5 한 페이지 초과 시 잘림 | `renderDrillPagesAsync` 도입 — 박스 atomic + off-screen 측정 + 빈 패킹 |
 | 4-1 | 페이지 분할 결과가 Chrome ↔ Safari 다름 | ① `document.fonts.ready` 대기 ② `PAGE_BUDGET = 740px` 하드코딩 |
+| 4-2 | DrillA와 DrillB가 같은 페이지에 섞여 학습 흐름이 한 묶음으로 보임 | **섹션 전환(A → B) 시 무조건 새 페이지로 분리** — 빈 패킹 시 `atom.section !== lastSection` 이면 강제 flush. 모바일 앱(`ata144_textbook`)도 동일 규칙 — `buildPagesForUnit`에서 type별 별도 page 푸시 (drilla / drillb / drillc / writing 각자 1 페이지) |
 | 5 | 안내문이 박스 없이 페이지 끝에 외롭게 남거나 두 번 반복 | 첫 등장의 첫 박스에만 1회, atomic — 첫 박스 이동 시 함께 이동 |
 | 5-1 | 안내문이 박스에 너무 붙어 박스 헤더처럼 읽힘 | `.drill-instruction { margin-bottom: 28px }` |
 | 5-2 | 디폴트 드릴 카드 사이 간격이 의도(2px)보다 12px씩 부풀어 보임 — 부모 `gap: 12px` 자동 누적 | `.drill-section { gap: 0 }` + 명시 div(`.drill-row-gap`/`.drill-box-gap`)로만 제어 |
 | 7 | 5열 모드 `*X*` 빈칸 처리 시 tatweel/`&nbsp;`로 셰이핑 끊김 | 글자 보존 + 색만 배경과 동일. `display: inline` 필수 |
+
+**미해결 / 추적 중**
+
+| # | 이슈 | 비고 |
+|---|---|---|
+| 8 | **유닛 2의 페이지 넘김이 데이터/렌더 로직에 암시적으로 묻혀 있음** — 어떤 박스가 왜 다음 페이지로 밀리는지 시트 행을 봐도 즉시 파악 불가. 명시적 표기 방식 필요(예: `pagebreak` 마커 컬럼 또는 ref_ptn 단위로 가시화) | 샘플링 단계라 우선 본 표에 기록. 추후 시트 컬럼 또는 css 코드로 명시 가능성 검토 |
 
 **폰트 크기 통일**
 
