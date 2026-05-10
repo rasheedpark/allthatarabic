@@ -306,10 +306,15 @@ body {
      → Noto Sans Arabic 글리프 자체 크기 차이만 남음 */
   font-size: 0.92em; /* 아랍어 글리프가 시각적으로 약간 더 커 보이는 점 보정 */
 }
-/* 인용 (>) — 부드러운 참고표시용 음영 */
-.pattern-script blockquote,
-.exp-script blockquote {
-  margin: 14px 0 0;
+/* 인용 (>) — 부드러운 참고표시용 음영. 박스 최하단에 배치되도록 wrapper(.pattern-quotes / .exp-quotes)로 감쌈. */
+.pattern-quotes,
+.exp-quotes {
+  margin-top: auto;     /* body-card / exp-card가 flex column이면 최하단으로 밀려남 */
+  padding-top: 24px;    /* 본문(스크립트)과의 여백 */
+}
+.pattern-quotes blockquote,
+.exp-quotes blockquote {
+  margin: 0;
   padding: 10px 14px;
   background: rgba(29, 73, 255, 0.05);
   border-left: 3px solid rgba(29, 73, 255, 0.3);
@@ -318,10 +323,8 @@ body {
   font-size: 0.78rem;
   line-height: 1.75;
 }
-.pattern-script blockquote:first-child,
-.exp-script blockquote:first-child { margin-top: 0; }
-.pattern-script blockquote p,
-.exp-script blockquote p { margin-bottom: 0; }
+.pattern-quotes blockquote p,
+.exp-quotes blockquote p { margin-bottom: 0; }
 
 /* ── 카드 영역 (회색) — 헤더 좌우 여백과 동일하게 정렬 ── */
 .page-cards {
@@ -467,8 +470,10 @@ body {
   gap: 2px;
 }
 .cols-two .two-cell .ar-line {
-  justify-content: flex-end; /* RTL 셀에서 시각상 오른쪽 정렬 */
+  display: flex;            /* inline-flex → block-flex (셀 폭 채우기) */
+  width: 100%;
   direction: rtl;
+  justify-content: flex-start;  /* direction:rtl 에서 start = 오른쪽 */
 }
 .cols-two .two-cell .ar-text {
   font-family: var(--font-ar);
@@ -1092,44 +1097,43 @@ function wrapArabicTokens(html) {
     '<span class="ar-tok">$1</span>'
   );
 }
+// 스크립트(설명) 텍스트를 본문(prose+bullets)과 인용(>)으로 분리해 반환.
+// 인용은 본문 어디에 등장하든 모두 모아 한 블록으로 합쳐, 호출자가 박스 최하단에 배치 가능.
 function renderScript(text) {
-  if (!text) return '';
+  if (!text) return { main: '', quotes: '' };
   const lines = text.split(/\n/).map(l => l.trim());
-  let html = '';
+  let main = '';
+  const allQuotes = [];
   let prose = [];
   let bullets = [];
-  let quotes = [];
   const flushProse = () => {
     if (prose.length) {
-      html += `<p>${prose.map(l => wrapArabicTokens(parseInline(l))).join(' ')}</p>`;
+      main += `<p>${prose.map(l => wrapArabicTokens(parseInline(l))).join(' ')}</p>`;
       prose = [];
     }
   };
   const flushBullets = () => {
     if (bullets.length) {
-      html += `<ul>${bullets.map(l => `<li>${wrapArabicTokens(parseInline(l))}</li>`).join('')}</ul>`;
+      main += `<ul>${bullets.map(l => `<li>${wrapArabicTokens(parseInline(l))}</li>`).join('')}</ul>`;
       bullets = [];
     }
   };
-  const flushQuotes = () => {
-    if (quotes.length) {
-      html += `<blockquote>${quotes.map(l => wrapArabicTokens(parseInline(l))).join('<br>')}</blockquote>`;
-      quotes = [];
-    }
-  };
   for (const l of lines) {
-    if (!l) { flushProse(); flushBullets(); flushQuotes(); continue; }
+    if (!l) { flushProse(); flushBullets(); continue; }
     if (l.startsWith('>')) {
       flushProse(); flushBullets();
-      quotes.push(l.replace(/^>\s*/, ''));
+      allQuotes.push(l.replace(/^>\s*/, ''));
       continue;
     }
     const m = l.match(/^[-•*]\s+(.+)$/);
-    if (m) { flushProse(); flushQuotes(); bullets.push(m[1]); }
-    else   { flushBullets(); flushQuotes(); prose.push(l); }
+    if (m) { flushProse(); bullets.push(m[1]); }
+    else   { flushBullets(); prose.push(l); }
   }
-  flushProse(); flushBullets(); flushQuotes();
-  return html;
+  flushProse(); flushBullets();
+  const quotes = allQuotes.length
+    ? `<blockquote>${allQuotes.map(l => wrapArabicTokens(parseInline(l))).join('<br>')}</blockquote>`
+    : '';
+  return { main, quotes };
 }
 function renderBaseline(arabic, transliteration) {
   // 데이터에 \n 으로 두 줄 들어 있으면 2-row 모드:
@@ -1337,7 +1341,12 @@ function renderPatternPage(unit, pattern, drills, opts) {
       <div class="body-card">
         ${arabicSection}
         ${pattern.korean ? `<div class="pattern-korean">${parseInline(pattern.korean)}</div>` : ''}
-        ${pattern.script && !isAppOnly(pattern) ? `<div class="pattern-script">${renderScript(pattern.script)}</div>` : ''}
+        ${(() => {
+          if (!pattern.script || isAppOnly(pattern)) return '';
+          const { main, quotes } = renderScript(pattern.script);
+          return (main ? `<div class="pattern-script">${main}</div>` : '')
+               + (quotes ? `<div class="pattern-quotes">${quotes}</div>` : '');
+        })()}
       </div>
     </div>
 
@@ -1723,8 +1732,13 @@ function renderExpressionPage(unit, expressions, opts) {
       ? `<div class="exp-trans">${plain(exp.transliteration)}</div>` : '';
     const korean = exp.korean
       ? `<div class="exp-korean">${parseInline(exp.korean)}</div>` : '';
-    const script = exp.script && !isAppOnly(exp)
-      ? `<div class="exp-script">${renderScript(exp.script)}</div>` : '';
+    let script = '';
+    if (exp.script && !isAppOnly(exp)) {
+      const { main, quotes } = renderScript(exp.script);
+      const mainHtml = main ? `<div class="exp-script">${main}</div>` : '';
+      const quotesHtml = quotes ? `<div class="exp-quotes">${quotes}</div>` : '';
+      script = mainHtml + quotesHtml;
+    }
     return `<div class="exp-card">
       <div class="exp-card-cols">
         <div class="exp-card-ko">${korean}</div>
