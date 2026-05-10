@@ -1,5 +1,15 @@
 # 모바일 앱 실험 — ATA 1.4.4
 
+> **현재 매핑 (2026-05 기준)**
+>
+> 본 문서가 작성될 당시의 실험용 파일명은 이후 정식 경로로 옮겨졌다. 본문의 옛 이름은 다음과 같이 매핑된다:
+>
+> | 본문 표기 (옛 이름) | 현재 경로 |
+> |---|---|
+> | `app144s.html` | `ata144_student/ata144_student.html` |
+> | `textbook144.html` (인쇄 교재) | `ata144_original/ata144_original.html` |
+> | `textbook144m.html` (모바일 실험) | `ata144_textbook/ata144_textbook.html` |
+
 > **맥락 (Context)**
 >
 > 올댓아라빅 1.4.4의 학생용 모바일 앱은 현재 `app144s.html` 한 가지가 운영 중이다 (제품 앱). 이 문서는 그 **공식 학생앱과 별개로**, 새로 만든 **교재 양식(`textbook144.html`)을 모바일 인터랙티브 앱으로 옮길 수 있을지** 실험하기 위한 기록이다.
@@ -154,10 +164,10 @@ URL 우선순위:
 
 ## 파일 인벤토리
 
-| 파일 | 역할 | 상태 |
+| 파일 (현재 경로) | 역할 | 상태 |
 |---|---|---|
-| `app144s.html` | 운영 중인 학생앱 (1.4.3 양식 기반) | **운영 중**, 손대지 않음 |
-| `textbook144.html` | 인쇄용 교재 (B5) | 운영 중 |
-| `textbook144m.html` | 모바일 앱 실험 (교재 양식 기반) | **실험 중** |
-| `product(ata144).md` | 제품 종합 문서 (앱 + 교재) | 운영 중 |
-| `mobile-experiment(ata144).md` | 본 문서 — 모바일 실험 기록 | (이 파일) |
+| `ata144_student/ata144_student.html` | 운영 중인 학생앱 (1.4.3 양식 기반) | **운영 중**, 손대지 않음 |
+| `ata144_original/ata144_original.html` | 인쇄용 교재 (B5) | 운영 중 |
+| `ata144_textbook/ata144_textbook.html` | 모바일 앱 실험 (교재 양식 기반) | **실험 중** |
+| `product-ata144.md` | 제품 종합 문서 (앱 + 교재) | 운영 중 |
+| `product-ata144-design(mobile).md` | 본 문서 — 모바일 실험 기록 | (이 파일) |

@@ -1,24 +1,26 @@
 # 올댓아라빅 (All That Arabic) — v1.4.4
 
-마르카즈아라빅 아랍어 교육 콘텐츠. 선생님용·학생용·교재용 모바일 앱.
+마르카즈아라빅 아랍어 교육 콘텐츠. 선생님용·학생용·교재용 모바일 앱 + 인쇄 교재 원본.
 
 ## 디렉토리 구조
 
 ```
 allthatarabic/
-├── index.html                       랜딩 (3개 앱 링크)
-├── ata144_teacher/ata144_teacher.html        선생님용 (수업 슬라이드)
-├── ata144_student/ata144_student.html        학생용 (모바일 복습)
-├── ata144_textbook/ata144_textbook.html       교재용 모바일 앱 (실험)
-├── app144.html, app144s.html        옛 URL → 새 URL redirect
-├── assets/                          공유 자산 (로고, 폰트, 국기 아이콘)
-├── product-ata144.md                제품 문서 (메인)
-├── product-ata144-appendix.md       CSS 부록
-├── product-ata144-audio-rules.md    오디오 생성 규칙
-├── product-ata144-image-rules.md    이미지 생성 규칙
-├── product-ata144-design(mobile).md 모바일 앱 실험 기록
-├── product-ata143.md                옛 1.4.3 문서 (참고)
-└── archive/                         옛 버전 (143, app, slides)
+├── index.html                                  랜딩 (앱 링크)
+├── ata144_teacher/ata144_teacher.html          선생님용 (수업 슬라이드)
+├── ata144_student/ata144_student.html          학생용 (모바일 복습)
+├── ata144_textbook/ata144_textbook.html        교재용 모바일 앱 (실험)
+├── ata144_original/ata144_original.html        교재 인쇄 원본 (B5)
+├── app144.html, app144s.html                   옛 URL → 새 URL redirect
+├── assets/                                     공유 자산 (로고, 폰트, 국기 아이콘)
+├── product-ata144.md                           제품 문서 (메인)
+├── product-ata144-appendix.md                  CSS 부록
+├── product-ata144-audio-rules.md               오디오 생성 규칙
+├── product-ata144-image-rules.md               이미지 생성 규칙
+├── product-ata144-design.md                    디자인 코드 문서
+├── product-ata144-design(mobile).md            모바일 앱 실험 기록
+├── product-ata143.md                           옛 1.4.3 문서 (참고)
+└── archive/                                    옛 버전 (143, app, slides)
 ```
 
 ## 배포 URL
@@ -27,6 +29,7 @@ allthatarabic/
 - 선생님용: https://rasheedpark.github.io/allthatarabic/ata144_teacher/ata144_teacher.html
 - 학생용: https://rasheedpark.github.io/allthatarabic/ata144_student/ata144_student.html
 - 교재용 모바일: https://rasheedpark.github.io/allthatarabic/ata144_textbook/ata144_textbook.html
+- 교재 인쇄 원본: https://rasheedpark.github.io/allthatarabic/ata144_original/ata144_original.html
 
 ## 데이터 소스
 
