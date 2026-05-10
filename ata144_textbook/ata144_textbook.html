@@ -10,16 +10,16 @@
 <style>
 /* ───────── 디자인 토큰 (교재와 공유) ───────── */
 :root {
-  --bg:        #F3F5F1;
+  --bg:        #F3F5F1;            /* 페이지 배경 — 차가운 네이비 베이스가 아닌 중립/약간 따뜻한 light gray */
   --surface:   #ffffff;
-  --accent:    #1D49FF;
+  --accent:    #1D49FF;            /* 액센트만 파랑 (브랜드 컬러 유지) */
   --accent-bg: rgba(29,73,255,0.08);
   --warm:      #F4C45B;
   --mint:      #DDEFE8;
-  --hl-text:   #3554C6;
-  --text:      #1a1f29;
-  --sub:       #6E7591;
-  --border:    #DDE2EE;
+  --hl-text:   #3554C6;            /* `*…*` 색 강조 — 액센트 계열이라 파랑 유지 */
+  --text:      #1a1f29;            /* 본문 — soft black charcoal (네이비 #12205A 아님) */
+  --sub:       #6E7591;            /* 보조 — 중립 gray (blue tint 최소화) */
+  --border:    #DDE2EE;            /* 구분선 — 매우 옅은 중립 light gray */
   --border-soft:#E9ECF3;
   --soft:      #f9fafc;
   --shadow:    0 1px 3px rgba(29,73,255,0.06), 0 0 0 1px rgba(29,73,255,0.03);
@@ -27,12 +27,12 @@
   --max-w: 640px;
   --font-kr: 'Spoqa Han Sans Neo','Apple SD Gothic Neo',sans-serif;
   --font-ar: 'Noto Sans Arabic', serif;
-  --ar-card-size: clamp(1.05rem, 4.3vw, 1.2rem);
-  --ar-nass-size: clamp(1rem, 4vw, 1.15rem);
-  --ar-pattern-size: clamp(1.55rem, 6.8vw, 2.05rem);
-  --trans-size: 11px;
-  --ko-size: 12px;
-  --script-size: 12px;
+  --ar-card-size: clamp(0.98rem, 4vw, 1.12rem);
+  --ar-nass-size: clamp(0.84rem, 3.4vw, 0.95rem);
+  --ar-pattern-size: clamp(1.2rem, 5.2vw, 1.55rem);
+  --trans-size: 10px;
+  --ko-size: 11px;
+  --script-size: 11px;
 }
 *,*::before,*::after { box-sizing:border-box; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
 html,body { height:100%; background:var(--bg); color:var(--text); font-family:var(--font-kr); -webkit-text-size-adjust:100%; }
@@ -131,6 +131,8 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
 .m-body {
   flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
   background:var(--bg);
+  touch-action:pan-y;          /* 가로 동작은 앱이 처리 (스와이프 페이지 이동) */
+  overscroll-behavior-x:none;  /* iOS Safari swipe-back 차단 */
 }
 .m-body::-webkit-scrollbar { width:0; }
 .m-page {
@@ -194,8 +196,8 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   margin-top:10px;
   padding-top:12px;
   border-top:1px solid var(--border-soft);
-  font-size:12px;
-  line-height:1.7;
+  font-size:var(--script-size);
+  line-height:1.6;
   color:var(--sub);
   text-align:left;
   white-space:pre-line;
@@ -233,25 +235,26 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
 }
 .m-card .m-ar {
   font-family:var(--font-ar); direction:rtl;
-  font-size:var(--ar-card-size); font-weight:700; line-height:1.45;
+  font-size:var(--ar-card-size); font-weight:500; line-height:1.45;
   color:var(--text); text-align:center;
   padding:2px 2px 1px;
 }
 .m-card .m-trans {
   font-size:var(--trans-size); color:var(--sub);
   text-align:center; line-height:1.4;
-  font-style:italic;
+  font-style:italic; font-weight:400;
   letter-spacing:.2px;
 }
 .m-card .m-ko {
   font-size:var(--ko-size); color:var(--text);
+  font-weight:500;
   text-align:center; line-height:1.4;
 }
 .m-pair {
   display:grid;
   grid-template-columns:minmax(0,.9fr) minmax(0,1.2fr);
   gap:10px;
-  align-items:center;
+  align-items:start;
 }
 .m-pair-left {
   text-align:left;
@@ -270,29 +273,45 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
 }
 @media (min-width:660px) {
   :root {
-    --ar-card-size: 1.42rem;
-    --ar-nass-size: 1.26rem;
-    --ar-pattern-size: 2.25rem;
-    --trans-size: .8rem;
-    --ko-size: .88rem;
+    --ar-card-size: 1.3rem;
+    --ar-nass-size: 1.1rem;
+    --ar-pattern-size: 2rem;
+    --trans-size: .74rem;
+    --ko-size: .8rem;
   }
   .m-pair { grid-template-columns:minmax(0,1fr) minmax(0,1.25fr); gap:20px; }
 }
-.m-card .m-flag {
-  position:absolute; top:10px; right:10px;
-  width:18px; height:18px; border-radius:50%;
-  opacity:.85;
+.m-flag {
+  display:inline-block;
+  width:12px; height:12px;
+  border-radius:50%;
+  vertical-align:middle;
+  opacity:1;
+  flex-shrink:0;
 }
 .m-flags {
-  display:flex;
-  justify-content:center;
+  display:inline-flex;
+  align-items:center;
   gap:4px;
+  vertical-align:middle;
 }
-.m-flags .m-flag {
-  position:static;
-  width:15px;
-  height:15px;
+/* 아랍어 라인 안 인라인 깃발 (표현/래퍼토리 페어/드릴 non-five) */
+.m-ar-line {
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;  /* RTL에서 start = 오른쪽 */
+  gap:6px;
+  direction:rtl;
 }
+.m-ar-line .m-ar { padding:0; }
+/* 나스 카드 — 좌측 한국어 칸 하단 깃발 */
+.m-pair-left .m-flags {
+  margin-top:8px;
+  justify-content:flex-start;
+}
+/* 5열 모드만 깃발 미표시 (좁은 칸). 2열 모드는 깃발 표시 */
+.m-rep-grid:not(.cols-two) .m-flags,
+.m-drill-grid:not(.cols-two) .m-flags { display:none; }
 
 /* 탭 가능한 아랍어 (오디오) */
 .tap-audio { cursor:pointer; transition:color .18s; }
@@ -306,18 +325,21 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
 }
 .m-card.pattern .m-ar {
   font-size:var(--ar-pattern-size);
+  font-weight:600;
   padding:14px 4px 8px;
 }
 .m-card.pattern .m-ko {
+  font-size:12px;
+  font-weight:600;
   margin-top:2px;
-  line-height:1.75;
+  line-height:1.7;
 }
 .m-card.pattern .m-trans {
   margin-top:0;
 }
 .m-card.pattern .m-summary {
   margin-top:10px;
-  font-size:13px; line-height:1.76; color:var(--sub);
+  font-size:var(--script-size); line-height:1.65; color:var(--sub);
   text-align:left;
 }
 .m-card.pattern .m-summary .bullet {
@@ -346,8 +368,7 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
 
 /* ───────── 표현 카드 (작게, 인쇄 카드 느낌) ───────── */
 .m-card.exp { gap:7px; }
-.m-card.exp .m-ar { font-size:var(--ar-card-size); font-weight:600; }
-.m-card.exp .m-ko { font-weight:600; }
+.m-card.exp .m-ar { font-size:var(--ar-card-size); }
 
 /* ───────── 드릴 표 ───────── */
 .m-drill-table {
@@ -364,8 +385,45 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   direction:rtl;
 }
 @media (max-width:480px) {
-  .m-rep-grid,
-  .m-drill-grid { grid-template-columns:repeat(4, 1fr); gap:14px 2px; }
+  .m-rep-grid:not(.cols-two),
+  .m-drill-grid:not(.cols-two) { grid-template-columns:repeat(4, 1fr); gap:14px 2px; }
+}
+/* 2열 모드 (`css = 'two'`) — 박스가 좌우로 2개씩 */
+.m-rep-grid.cols-two,
+.m-drill-grid.cols-two {
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  direction:ltr;  /* 박스 배치는 좌→우 */
+}
+.cols-two .drill-cell {
+  align-items:stretch;
+  background:var(--surface);
+  border:1px solid rgba(18,32,90,0.07);
+  border-radius:10px;
+  padding:10px 12px 11px;
+  box-shadow:0 1px 2px rgba(18,32,90,0.035);
+  gap:3px;
+}
+.cols-two .m-ar-line {
+  justify-content:flex-start;  /* RTL: start = 오른쪽 */
+  direction:rtl;
+}
+.cols-two .dc-ar,
+.cols-two .dc-trans {
+  text-align:right;
+  direction:rtl;
+}
+.cols-two .dc-ko {
+  font-family:var(--font-kr);
+  font-size:var(--ko-size);
+  font-weight:400;
+  color:var(--sub);
+  text-align:left;
+  line-height:1.45;
+  margin-top:5px;
+  padding-top:5px;
+  border-top:1px dashed var(--border-soft);
+  direction:ltr;
 }
 .m-rep-table {
   background:var(--surface);
@@ -391,14 +449,14 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   font-family:var(--font-ar);
   direction:rtl;
   text-align:right;
-  font-size:19px;
-  line-height:1.65;
-  font-weight:500;
+  font-size:17px;
+  line-height:1.6;
+  font-weight:400;
 }
 .m-row-trans {
   margin-top:2px;
-  font-size:10px;
-  line-height:1.45;
+  font-size:9.5px;
+  line-height:1.4;
   color:var(--sub);
   font-style:italic;
   direction:ltr;
@@ -406,7 +464,7 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
 }
 .m-row-ko {
   font-size:12px;
-  line-height:1.55;
+  line-height:1.5;
   color:var(--sub);
   text-align:left;
 }
@@ -419,12 +477,12 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   color:transparent;
   -webkit-text-fill-color:transparent;
   background:#E7EBF2;
-  border-radius:4px;
-  padding:0 3px;
+  border-radius:3px;
+  padding:0;
 }
 .drill-cell .dc-ar {
   font-family:var(--font-ar); direction:rtl;
-  font-size:18px; font-weight:700; color:var(--text);
+  font-size:16px; font-weight:500; color:var(--text);
   line-height:1.4;
 }
 .drill-cell .dc-trans {
@@ -436,7 +494,7 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
 
 /* ───────── 나스(지문) 카드 ───────── */
 .m-card.nass .m-ar {
-  font-size:var(--ar-nass-size); font-weight:500; line-height:2;
+  font-size:var(--ar-nass-size); font-weight:500; line-height:1.6;
   white-space:pre-line;
   padding:2px 0 0;
 }
@@ -448,7 +506,7 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   border-top:1px dashed var(--border-soft);
 }
 .m-card.nass .m-trans { white-space:pre-line; }
-.m-card.nass .m-ko    { white-space:pre-line; }
+.m-card.nass .m-ko    { white-space:pre-line; font-weight:400; }
 
 /* ───────── baseline (알파벳) ───────── */
 .m-baseline {
@@ -470,8 +528,9 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
 }
 .m-bl-grid::after {
   content:''; position:absolute;
-  left:7%; right:7%; top:36px;
+  left:7%; right:7%; top:var(--bl-top, 36px);
   height:1.5px; background:rgba(29,73,255,.22);
+  pointer-events:none;
 }
 .m-bl-cell {
   flex:0 0 calc(100% / 6);
@@ -485,8 +544,8 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
 }
 .m-bl-letter {
   font-family:var(--font-ar);
-  font-size:clamp(2rem, 9.5vw, 3.05rem);
-  text-align:center; font-weight:700; color:var(--text);
+  font-size:clamp(1.7rem, 8vw, 2.5rem);
+  text-align:center; font-weight:600; color:var(--text);
   line-height:1; z-index:1;
 }
 .m-bl-triple {
@@ -679,7 +738,7 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
    ============================================================ */
 
 const SHEET_ID    = '1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8';
-const AUDIO_BASE  = 'https://storage.googleapis.com/all-that-arabic-14/listening144';
+const AUDIO_BASE  = 'https://storage.googleapis.com/all-that-arabic-14/audio';
 const IMG_BASE    = 'https://storage.googleapis.com/all-that-arabic-14/img';
 
 const TABS = {
@@ -693,10 +752,10 @@ const TABS = {
 };
 
 const LAHJA_FLAG = {
-  EGY: '../assets/icons/icon-egypt.svg',
-  EGP: '../assets/icons/icon-egypt.svg',
-  LEV: '../assets/icons/icon-lebanon.svg',
-  GLF: '../assets/icons/icon-saudi.svg',
+  EGY: '../assets/icons/icon-egypt.png',
+  EGP: '../assets/icons/icon-egypt.png',
+  LEV: '../assets/icons/icon-lebanon.png',
+  GLF: '../assets/icons/icon-saudi.png',
 };
 
 // 섹션 순서 (mob-experiment 와이어 그대로: 표현 → 패턴 → 드릴 → 지문)
@@ -805,8 +864,9 @@ function audioUrlsFor(row) {
   if (row?.url) return [row.url.trim()];
   const id = getRowId(row) || fallbackAudioKey(row);
   if (!id) return [];
+  const unit = row?.u || state.unit;
   const enc = encodeURIComponent(id.normalize('NFD')).replace(/%2C/gi, ',');
-  return [`${AUDIO_BASE}/${enc}.mp3`, `${AUDIO_BASE}/${enc}.wav`];
+  return [`${AUDIO_BASE}/${unit}/${enc}.wav`, `${AUDIO_BASE}/${unit}/${enc}.mp3`];
 }
 
 function lahjaFlags(row) {
@@ -1046,12 +1106,24 @@ function renderCard(row) {
   left.className = 'm-pair-left';
   const right = document.createElement('div');
   right.className = 'm-pair-right';
+  const flagsHtml = renderFlags(row);
   if (row.arabic) {
     const ar = document.createElement('div');
     ar.className = 'm-ar tap-audio';
     ar.innerHTML = parseInline(row.arabic);
     ar.addEventListener('click', () => playAudio(row, ar));
-    right.appendChild(ar);
+    // 표현 카드: 깃발 인라인 / 나스 카드: 좌측 한국어 칸 하단
+    if (flagsHtml && row._kind !== 'nass') {
+      const line = document.createElement('div');
+      line.className = 'm-ar-line';
+      line.appendChild(ar);
+      const flagWrap = document.createElement('span');
+      flagWrap.innerHTML = flagsHtml;
+      line.appendChild(flagWrap.firstChild);
+      right.appendChild(line);
+    } else {
+      right.appendChild(ar);
+    }
   }
   const trans = row.note || row.transliteration || '';
   if (trans) {
@@ -1065,6 +1137,11 @@ function renderCard(row) {
     ko.className = 'm-ko';
     ko.innerHTML = parseInline(row.korean);
     left.appendChild(ko);
+  }
+  if (flagsHtml && row._kind === 'nass') {
+    const flagWrap = document.createElement('span');
+    flagWrap.innerHTML = flagsHtml;
+    left.appendChild(flagWrap.firstChild);
   }
   pair.appendChild(left);
   pair.appendChild(right);
@@ -1140,26 +1217,34 @@ function renderScriptLines(text) {
 }
 
 function renderRepertory(rows) {
-  const five = rows.some(r => (r.css || '').trim() === 'five') || rows.every(r => !r.korean);
+  const cssOf = r => (r.css || '').trim().toLowerCase();
+  if (rows.some(r => cssOf(r) === 'two')) return renderGridTable(rows, 'm-rep-table', false, 2);
+  const five = rows.some(r => cssOf(r) === 'five') || rows.every(r => !r.korean);
   if (five) return renderGridTable(rows, 'm-rep-table', false);
   const wrap = document.createElement('div');
   rows.forEach(r => wrap.appendChild(renderPairRow(r)));
   return wrap;
 }
 
-function renderGridTable(rows, className = 'm-drill-table', blanks = false) {
+function renderGridTable(rows, className = 'm-drill-table', blanks = false, cols = 5) {
   const wrap = document.createElement('div');
   wrap.className = className;
   const grid = document.createElement('div');
   grid.className = className === 'm-rep-table' ? 'm-rep-grid' : 'm-drill-grid';
+  if (cols === 2) grid.classList.add('cols-two');
   rows.forEach(r => {
     const cell = document.createElement('div');
     cell.className = 'drill-cell';
     const ar = blanks ? parseDrillBlank(r.arabic || '') : parseInline(r.arabic || '');
     const tr = blanks ? parseDrillBlank(r.note || r.transliteration || '') : parseTrans(r.note || r.transliteration || '');
-    cell.innerHTML = `
-      <span class="dc-ar tap-audio">${ar}</span>
+    const flagsHtml = renderFlags(r);
+    let html = `
+      <span class="m-ar-line"><span class="dc-ar tap-audio">${ar}</span>${flagsHtml}</span>
       <span class="dc-trans m-trans">${tr}</span>`;
+    if (cols === 2 && r.korean) {
+      html += `<span class="dc-ko m-ko">${parseInline(r.korean)}</span>`;
+    }
+    cell.innerHTML = html;
     cell.querySelector('.tap-audio')?.addEventListener('click', e => playAudio(r, e.currentTarget));
     grid.appendChild(cell);
   });
@@ -1172,12 +1257,12 @@ function renderPairRow(r, blanks = false) {
   row.className = 'm-rep-row';
   const ar = blanks ? parseDrillBlank(r.arabic || '') : parseInline(r.arabic || '');
   const tr = blanks ? parseDrillBlank(r.note || r.transliteration || '') : parseTrans(r.note || r.transliteration || '');
+  const flagsHtml = renderFlags(r);
   row.innerHTML = `
     <div class="m-row-ko m-ko">${parseInline(r.korean || '')}</div>
     <div>
-      <div class="m-row-ar tap-audio">${ar}</div>
+      <div class="m-ar-line"><div class="m-row-ar tap-audio">${ar}</div>${flagsHtml}</div>
       <div class="m-row-trans m-trans">${tr}</div>
-      ${renderFlags(r)}
     </div>`;
   row.querySelector('.tap-audio')?.addEventListener('click', e => playAudio(r, e.currentTarget));
   return row;
@@ -1195,8 +1280,11 @@ function renderDrillPage(wrap, rows, chapter) {
     instr.textContent = drillInstruction(type, state.unit, chapter);
     section.appendChild(instr);
     groupByRef(groupRows).forEach(group => {
-      const five = group.rows.some(r => (r.css || '').trim() === 'five') || group.rows.every(r => !r.korean);
-      if (five) section.appendChild(renderGridTable(group.rows, 'm-drill-table', type !== 'drilla'));
+      const cssOf = r => (r.css || '').trim().toLowerCase();
+      const useTwo = group.rows.some(r => cssOf(r) === 'two');
+      const five = group.rows.some(r => cssOf(r) === 'five') || group.rows.every(r => !r.korean);
+      if (useTwo) section.appendChild(renderGridTable(group.rows, 'm-drill-table', type !== 'drilla', 2));
+      else if (five) section.appendChild(renderGridTable(group.rows, 'm-drill-table', type !== 'drilla'));
       else {
         const box = document.createElement('div');
         group.rows.forEach(r => {
@@ -1370,7 +1458,34 @@ function paintCurrent() {
   renderHead();
   renderTabs();
   renderBody();
+  // baseline 기준선 동적 정렬 — 폰트 로드 완료 후 첫 글자 baseline에 맞춤
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(adjustBaselines);
+  } else {
+    requestAnimationFrame(adjustBaselines);
+  }
 }
+
+function adjustBaselines() {
+  document.querySelectorAll('.m-bl-grid').forEach(grid => {
+    const letter = grid.querySelector('.m-bl-letter');
+    if (!letter) return;
+    // height:0 + vertical-align:baseline 프로브 — 프로브 top이 곧 baseline 위치
+    const probe = document.createElement('span');
+    probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;';
+    letter.appendChild(probe);
+    const probeRect = probe.getBoundingClientRect();
+    const gridRect = grid.getBoundingClientRect();
+    probe.remove();
+    const baselineFromTop = probeRect.top - gridRect.top;
+    if (baselineFromTop > 0) grid.style.setProperty('--bl-top', baselineFromTop + 'px');
+  });
+}
+
+window.addEventListener('resize', () => {
+  clearTimeout(window._blTimer);
+  window._blTimer = setTimeout(adjustBaselines, 120);
+});
 
 /* ───────── refresh ───────── */
 function refresh() {
@@ -1412,7 +1527,8 @@ document.getElementById('body').addEventListener('touchend', e => {
   const t = e.changedTouches[0];
   const dx = t.clientX - touchStartX;
   const dy = t.clientY - touchStartY;
-  if (Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+  // 가로 40px 이상 + 가로가 세로의 1.2배 이상 → 페이지 이동 (RTL은 자연스러운 방향)
+  if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
     goPage(dx < 0 ? +1 : -1);
   }
 }, { passive:true });
