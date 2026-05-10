@@ -241,12 +241,14 @@ ID가 `type_note` 기반이므로, 같은 표현이 여러 유닛에서 등장�
 |---|---|
 | 저장소 | https://github.com/rasheedpark/allthatarabic |
 | 배포 방식 | GitHub Pages (main 브랜치 자동 배포) |
-| 선생님용 앱 URL | https://rasheedpark.github.io/allthatarabic/app144.html |
-| 사용자용 앱 URL | https://rasheedpark.github.io/allthatarabic/app144s.html |
+| 선생님용 앱 URL | https://rasheedpark.github.io/allthatarabic/ata144_teacher/ata144_teacher.html |
+| 사용자용 앱 URL | https://rasheedpark.github.io/allthatarabic/ata144_student/ata144_student.html |
+| 구URL 리다이렉트 | `/app144.html` → teacher, `/app144s.html` → student (redirect stub) |
 | 인증 방식 | Personal Access Token (repo 권한) — macOS 키체인 또는 remote URL에 포함 |
 
-로컬 경로(선생님용): `/공유 드라이브/마르카즈아라빅 팀 드라이브/제품products/ATA-14/app144.html`  
-로컬 경로(사용자용): `/공유 드라이브/마르카즈아라빅 팀 드라이브/제품products/ATA-14/app144s.html`
+로컬 경로(선생님용): `ATA-14/allthatarabic/ata144_teacher/ata144_teacher.html`  
+로컬 경로(사용자용): `ATA-14/allthatarabic/ata144_student/ata144_student.html`  
+에셋 경로(앱 기준): `../assets/` (하위 폴더에서 참조)
 
 `git push origin main` 하면 수분 내 GitHub Pages에 자동 반영된다.
 
@@ -260,19 +262,21 @@ ID가 `type_note` 기반이므로, 같은 표현이 여러 유닛에서 등장�
 | 시트 URL | https://docs.google.com/spreadsheets/d/1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8 |
 | 읽기 엔드포인트 | `https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:json&sheet={탭명}&headers=1` |
 
-**탭 구조** (앱이 로드하는 탭: 4개):
+**탭 구조**:
 
 | 탭명 | 앱 로드 | 포함 타입 | 주요 컬럼 |
 |---|---|---|---|
-| `pattern` | ✅ 내비게이터용 | ptnA, ptnB | C, U, arabic, korean, note, type, key_ptn |
-| `drill` | ✅ 메인 슬라이드 | ptn, repertory, mithāl, drillA, drillB, summary, writing | C, U, arabic, korean, note, type, status, key_drill, key_patn, lahja, script |
-| `kalimat` | ✅ 표현 슬라이드 | exp, kalimat | C, U, arabic, korean, note, type, status, key_drill |
+| `units` | ✅ 유닛 슬라이드 | unit | C, U, arabic, korean, note, type, status, id_unit |
+| `pattern` | ✅ 내비게이터/패턴 슬라이드 | ptnA, ptnB, ptn | C, U, arabic, korean, note, type, status, id_ptn, id_ptn(no) |
+| `drill` | ✅ 메인 슬라이드 | ptn, repertory, mithāl, drillA, drillB, summary, writing | C, U, arabic, korean, note, type, status, id_drill, ref_ptn, lahja, script, css, url |
+| `kalimat` | ✅ 표현/단어 슬라이드 | exp, kalimat | C, U, arabic, korean, note, type, status, id_kalimat |
 | `nass` | ✅ 나스 슬라이드 | nass | C, U, arabic, korean, note, type, status, id_nass, ptn_key |
-| `kalam` | — | — | 미사용 |
-| `alam` | — | — | 미사용 |
-| `words` | — | — | 미사용 |
 
-`status = confirmed`인 행만 앱에 노출된다. pattern탭은 status 무관하게 내비게이터용으로만 로드하며 ptnA 중 confirmed인 것만 사이드바에 표시된다.
+> **앱별 탭 사용**
+> - **학생용**: `units`, `pattern`, `drill`, `kalimat`, `nass` (5개)
+> - **선생님용**: 위 5개 + 추가로 `repertory`, `expression` 탭도 참조 (해당 탭이 있을 경우)
+
+`status = confirmed`인 행만 앱에 노출된다. pattern탭은 status 무관하게 내비게이터용으로도 로드하며 ptnA 중 confirmed인 것만 사이드바에 표시된다.
 
 Claude가 시트를 직접 읽고 쓰기 위한 별도 인증:
 - 인증 방식: `gcloud auth login --enable-gdrive-access`
@@ -302,7 +306,7 @@ Claude가 시트를 직접 읽고 쓰기 위한 별도 인증:
 | 팀 드라이브 루트 | https://drive.google.com/drive/folders/1CUlbL3JH57MWZC1ViWU7Zt2y5HyTOQ3H |
 | ATA-14 폴더 | 팀 드라이브 내 `제품products/ATA-14/` |
 | 1.4.4 데이터시트 | ATA-14 폴더 내 `ATA-1.4.4.gsheet` |
-| 제품문서 | ATA-14 폴더 내 `product(ata144).md` |
+| 제품문서 | ATA-14 폴더 내 `product-ata144.md` |
 
 로컬 마운트 경로: `/Users/rasheedpark/Library/CloudStorage/GoogleDrive-someaugust17@gmail.com/공유 드라이브/마르카즈아라빅 팀 드라이브/제품products/ATA-14/`
 

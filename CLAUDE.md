@@ -2,76 +2,123 @@
 
 ## 제품 개요
 올댓아라빅(All That Arabic) 아랍어 수업용 슬라이드 앱.
-현재 버전: **1.4.2** (`app142.html`)
+현재 버전: **1.4.4**
 
 ---
 
-## 스프레드시트 (1.4.2)
-**Sheet ID**: `1ZRSqvWf1kRRv6s-ifa56Pud1puQKdzbAGzLIstlN_M0`
+## 저장소 구조
+
+```
+ATA-14/
+├── allthatarabic/                   GitHub Pages 배포 폴더 (별도 git repo)
+│   ├── index.html                   랜딩 (3개 앱 링크)
+│   ├── ata144_teacher/ata144_teacher.html   선생님용 앱
+│   ├── ata144_student/ata144_student.html   학생용 앱
+│   ├── ata144_textbook/ata144_textbook.html 교재용 앱 (실험)
+│   ├── app144.html, app144s.html    옛 URL → 새 URL redirect stub
+│   └── assets/                     공유 자산 (로고, 폰트, 국기 아이콘)
+├── product-ata144.md                제품 문서 (메인)
+├── product-ata144-appendix.md       CSS 부록
+├── product-ata144-audio-rules.md    오디오 생성 규칙
+├── product-ata144-image-rules.md    이미지 생성 규칙
+├── product-ata144-design(mobile).md 모바일 앱 실험 기록
+└── archive/                         옛 버전 (142, 143)
+```
+
+### 배포 URL
+- 랜딩: https://rasheedpark.github.io/allthatarabic/
+- 선생님용: https://rasheedpark.github.io/allthatarabic/ata144_teacher/ata144_teacher.html
+- 학생용: https://rasheedpark.github.io/allthatarabic/ata144_student/ata144_student.html
+
+### 에셋 경로 (앱 내부)
+앱이 하위 폴더(`ata144_teacher/`, `ata144_student/`)에 있으므로 에셋을 `../assets/...`로 참조.
+- 폰트: `../assets/fonts/Dongol-Regular.otf`
+- 로고: `../assets/ata-logo2.png`
+- 국기: `../assets/icons/icon-egypt.png`, `icon-lebanon.png`, `icon-saudi.png`
+
+### 작업/배포 워크플로
+| 브랜치 | 역할 |
+|---|---|
+| `main` | 배포 — GitHub Pages가 서빙. |
+| `dev`  | 작업 — 일상 작업 모두 여기서. |
+
+```bash
+# 일상 작업
+git checkout dev
+# 파일 수정
+git add .
+git commit -m "메시지"
+git push origin dev
+
+# 배포
+git checkout main
+git merge dev
+git push origin main
+git checkout dev
+```
+
+---
+
+## 스프레드시트 (1.4.4)
+**Sheet ID**: `1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8`
 
 ### 시트 탭 구조
-| 탭 | 주요 컬럼 | U열 형식 |
+| 탭명 | 포함 타입 | 주요 컬럼 |
 |---|---|---|
-| `pattern` | arabic, korean, note, category, id_pattern | 없음 (비어있음) |
-| `repertory` | c, u, arabic, korean, note, category, id_repertory, id_pattern | `p1`, `p2`... |
-| `drill` | c, u, arabic, korean, note, category, id_drill, id_pattern | `p1`, `p2`... |
-| `expression` | c, u, arabic, korean, note, category, id_expression, id_pattern | `1`, `2`... (숫자) |
-| `nass` | arabic, korean, note, category, id_words, id_pattern, sual | `1`, `2`... (숫자) |
+| `units` | unit | C, U, arabic, korean, note, type, status, id_unit |
+| `pattern` | ptnA, ptnB | C, U, arabic, korean, note, type, status, id_ptn, id_ptn(no) |
+| `drill` | ptn, repertory, mithāl, drillA, drillB, summary, writing | C, U, arabic, korean, note, type, status, id_drill, ref_ptn, lahja, script, css, url |
+| `kalimat` | exp, kalimat | C, U, arabic, korean, note, type, status, id_kalimat |
+| `nass` | nass | C, U, arabic, korean, note, type, status, id_nass, ptn_key |
 
-### id_pattern 명명 규칙
-- `P01`, `P01a`, `P01b`, `P01c` → 유닛 p1의 서브패턴
-- `P02`, `P02a`, `P02b` → 유닛 p2의 서브패턴
-- 패턴 시트의 C/U열은 비어있음. id_pattern으로만 그룹 판단.
+> **TAB 상수 (앱 코드)**
+> - `TAB_UNIT = 'units'` (단수 아님, 복수)
+> - `TAB_KALIMAT = 'kalimat'` (exp와 kalimat 타입 모두 이 탭에 있음)
+> - 선생님용 앱은 추가로 `TAB_REPERTORY = 'repertory'`, `TAB_EXPRESSION = 'expression'` 탭도 참조
 
-### U열 매핑 (유닛 번호 대응)
-- repertory/drill의 `u = "p1"` ↔ expression/nass의 `u = "1"` (p1 = 1)
-- `p2` ↔ `2`, `p3` ↔ `3` ...
+### 슬라이드 순서 (buildSlides 기준)
+```
+유닛 슬라이드 (unit)
+패턴별 반복:
+  패턴 슬라이드 (ptn)
+  → 레퍼토리 슬라이드 (repertory, ref_ptn 매칭)
+  → 드릴A 슬라이드 (drillA, ref_ptn 매칭)
+드릴B/C (연습, 해당 유닛 전체)
+표현 슬라이드 (exp)
+나스 슬라이드 (nass)
+단어 슬라이드 (kalimat)
+```
+
+### status 필터
+- 모든 탭에서 `status = confirmed`인 행만 앱에 노출된다.
 
 ---
 
-## 슬라이드 구조 (핵심 규칙)
+## 앱 구조
 
-### 슬라이드 순서
-유닛별로 다음 순서를 반복:
+### 공통
+- **단일 HTML 파일** — 외부 JS/CSS 없음 (구글 폰트·CDN 폰트 제외)
+- JSONP(gviz/tq)로 구글 시트 직접 읽음
+- `_cache` 객체로 탭별 데이터 메모리 캐시
+- `status = confirmed` 필터 적용
+- 오디오: GCS `all-that-arabic-14/listening144/{key}.mp3` (실패 시 `.wav` 폴백)
 
-```
-유닛 p1
-├── 서브패턴 P01
-│   ├── 패턴 슬라이드 (id_pattern = "P01")
-│   ├── 레퍼토리 슬라이드 (id_pattern = "P01", id_repertory 순)
-│   └── 드릴 슬라이드 (id_pattern = "P01", id_drill 순)
-├── 서브패턴 P01a
-│   ├── 패턴 슬라이드 (id_pattern = "P01a")
-│   ├── 레퍼토리 슬라이드 (id_pattern = "P01a")
-│   └── 드릴 슬라이드 (id_pattern = "P01a")
-├── 서브패턴 P01b
-│   ├── 패턴 슬라이드
-│   ├── 레퍼토리 슬라이드 (id_pattern = "P01b")
-│   └── 드릴 슬라이드 (id_pattern = "P01b")
-├── 서브패턴 P01c ...
-├── 익스프레션 슬라이드 (expression u = "1", id_expression 순)
-└── 나스 슬라이드 (nass u = "1", id_words 순)
+### 선생님용 앱 (`ata144_teacher.html`)
+- 대형 화면 (TV, 모니터) 최적화, 가로 레이아웃
+- 키보드: `←→` 이동, `Space` 해석 토글, `A` 아랍어 토글, `M` 사이드바, `S` 오디오, `T` 나스 지문
+- 상단 좌측: 유닛 정보 + 섹션 탭 (패턴/연습/표현/지문/단어)
+- 상단 중앙: 슬라이드 타입 레이블 + 라흐자 국기
+- `css = 'write'`: Dongol 폰트 + R→L clip-path 와이프 애니메이션
+- `css = 'baseline'`: 글자 하단 라인 정렬 그리드
+- Book view 모드(`B` 키): B5 교재 초안 PDF 형태로 렌더링
+- `container-type: inline-size` on `#arabic-area` (cqi 단위 필요)
 
-유닛 p2 (같은 구조 반복)
-...
-```
-
-### 핵심 규칙
-1. **패턴끼리 먼저 묶으면 안 됨** — 서브패턴 하나씩 순서대로 처리
-2. 각 서브패턴 안에서: **패턴 → 레퍼토리 → 드릴** 순
-3. 서브패턴 정렬: id_pattern 알파벳 순 (P01 < P01a < P01b < P01c)
-4. 레퍼토리/드릴 연결 기준: **id_pattern 컬럼** (u열이 아님)
-5. 익스프레션/나스는 해당 유닛의 모든 서브패턴이 끝난 뒤에 표시
-6. 익스프레션/나스 필터: expression u="1" = p1, u="2" = p2 (숫자 대응)
-
----
-
-## 앱 구조 (app142.html)
-
-- **단일 HTML 파일** — 외부 JS/CSS 없음
-- JSONP로 구글 시트 직접 읽음 (`&headers=1`)
-- 키보드: `←→` 이동, `Space` 해석 토글, `M` 사이드바, `S` 오디오, `T` 나스 지문
-- 배포: GitHub Pages (`https://rasheedpark.github.io/allthatarabic/app142.html`)
+### 학생용 앱 (`ata144_student.html`)
+- 모바일 최적화, 세로 레이아웃
+- 스와이프(터치) + 버튼 이동
+- 레퍼토리 슬라이드 생략 (학생 복습 목적)
+- 패턴 요약(ptn summary) 표시
+- `TAB_UNIT = 'units'`, `TAB_KALIMAT = 'kalimat'`
 
 ---
 
@@ -85,8 +132,26 @@
 2. **지시대명사** — 대거 알리프(ـٰ) 없이 파트하로 표기
    - هَذَا ✓ / هٰذَا ✗ — ذَلِكَ ✓ / ذٰلِكَ ✗
 
-3. **음가(romanization)** — 항상 소문자 + 발음구별부호 사용
+3. **음가(romanization)** — `note` 컬럼. 항상 소문자 + 발음구별부호
    - ā ī ū / ʕ / ṣ ḍ ṭ ẓ ḥ / th dh sh
+   - 앱에서 항상 표시 (의미 토글 영향 받지 않음)
+
+---
+
+## ID 명명 규칙
+
+모든 행은 ARRAYFORMULA로 자동 생성되는 고유 ID를 가진다.
+
+| 탭 | id 컬럼 | 형식 | 예시 |
+|---|---|---|---|
+| `units` | `id_unit` | `{U}_{slug(note)}` | `A01_ba-ta-tha-nun-ya` |
+| `pattern` | `id_ptn` | `ptn_{slug}` | `ptn_ba-bu-bi` |
+| `pattern` | `id_ptn(no)` | `ptn{NNN}_{slug}` | `ptn002_ba-bu-bi` |
+| `drill` | `id_drill` | `{type_lower}_{slug}` | `drilla_banata` |
+| `kalimat` | `id_kalimat` | `{type_lower}_{slug}` | `exp_as-salamu`, `kalimat_ana` |
+| `nass` | `id_nass` | `nass_{첫3단어_slug}` | `nass_as-salamu-alaykum` |
+
+`slug(note)`: note값을 소문자·하이픈 정규화한 문자열.
 
 ---
 
@@ -97,12 +162,5 @@
 2. **`exp`** 타입으로 등록된 표현
 
 - 해당 유닛에 kalimat가 없으면 → 이전 유닛까지 누적된 `exp`만 사용
-- drill, repertorie, summary, pattern 등 다른 타입에만 있는 단어는 **절대 사용 불가**
+- drill, repertory, summary, pattern 등 다른 타입에만 있는 단어는 **절대 사용 불가**
 - 이름(alam 타입)은 사용 가능
-
----
-
-## 향후 계획
-- 챕터별 파일 생성 (선생님에게 링크 공유)
-- 마스터앱: 챕터 선택 가능한 통합 버전
-- 두 번째, 세 번째 제품 양식은 추후 정의
