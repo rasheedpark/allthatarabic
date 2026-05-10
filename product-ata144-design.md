@@ -466,7 +466,7 @@ const splitTokens = (line) => {
 |---|---|---|
 | 4 | 드릴 박스 합이 B5 한 페이지 초과 시 잘림 | `renderDrillPagesAsync` 도입 — 박스 atomic + off-screen 측정 + 빈 패킹 |
 | 4-1 | 페이지 분할 결과가 Chrome ↔ Safari 다름 | ① `document.fonts.ready` 대기 ② `PAGE_BUDGET = 740px` 하드코딩 |
-| 4-2 | DrillA와 DrillB가 같은 페이지에 섞여 학습 흐름이 한 묶음으로 보임 | **섹션 전환(A → B) 시 무조건 새 페이지로 분리** — 빈 패킹 시 `atom.section !== lastSection` 이면 강제 flush. 모바일 앱(`ata144_textbook`)도 동일 규칙 — `buildPagesForUnit`에서 type별 별도 page 푸시 (drilla / drillb / drillc / writing 각자 1 페이지) |
+| 4-2 | DrillA와 DrillB가 같은 페이지에 섞여 학습 흐름이 한 묶음으로 보임 | **조건부 분리** — 합쳐서 한 페이지(`PAGE_BUDGET`) 안에 들어가면 같이(예: 1과), 넘으면 A → B 전환 시 강제로 새 페이지(예: 2과). 빈 패킹 전 `combinedTotalHeight ≤ PAGE_BUDGET` 사전 계산해 `allFitsInOnePage` 플래그로 분기. 모바일 앱(`ata144_textbook`)은 스크롤 기반이라 overflow 개념이 없어 항상 한 페이지로 묶음 (단일 '드릴' 페이지) |
 | 5 | 안내문이 박스 없이 페이지 끝에 외롭게 남거나 두 번 반복 | 첫 등장의 첫 박스에만 1회, atomic — 첫 박스 이동 시 함께 이동 |
 | 5-1 | 안내문이 박스에 너무 붙어 박스 헤더처럼 읽힘 | `.drill-instruction { margin-bottom: 28px }` |
 | 5-2 | 디폴트 드릴 카드 사이 간격이 의도(2px)보다 12px씩 부풀어 보임 — 부모 `gap: 12px` 자동 누적 | `.drill-section { gap: 0 }` + 명시 div(`.drill-row-gap`/`.drill-box-gap`)로만 제어 |

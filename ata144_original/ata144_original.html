@@ -1606,11 +1606,30 @@ async function renderDrillPagesAsync(unit, drillA, drillB, opts) {
   // ── 빈 패킹 ──
   // 같은 페이지 내 atom 사이의 높이 보정:
   //   - 같은 section 연속 → drill-box-gap 14px 추가
-  //   - 다른 section 전환은 발생하지 않음 (아래 규칙으로 무조건 페이지 분리)
-  // 섹션 전환 규칙:
-  //   - DrillA → DrillB 는 한 페이지에 섞지 않고 **무조건 새 페이지로 시작**
-  //     (학습 흐름상 두 섹션은 분리된 활동. 시각적으로도 안내문/박스 정렬을 깔끔히 하기 위함)
+  //   - 다른 section 전환 → page-cards.gap 36px 추가
+  // 섹션 전환 규칙 (조건부):
+  //   - DrillA + DrillB 가 합쳐서 한 페이지에 다 들어가면 → 한 페이지에 같이 (예: 1과)
+  //   - 합쳐서 페이지를 넘으면 → A → B 전환 시 강제로 새 페이지 시작 (예: 2과)
+  //   학습 흐름상 두 섹션이 페이지 중간에서 끊기는 어색함을 피하면서, 단순 유닛은 한 장에
+  //   유지해 종이 절약.
   const BOX_GAP = 14;
+  const SECTION_GAP = 36;
+
+  // 모든 atom을 합쳤을 때 한 페이지에 들어가는지 미리 계산
+  const combinedTotalHeight = (() => {
+    let h = 0;
+    let lastSec = null;
+    for (let i = 0; i < allAtoms.length; i++) {
+      if (lastSec !== null) {
+        h += (allAtoms[i].section === lastSec) ? BOX_GAP : SECTION_GAP;
+      }
+      h += heights[i];
+      lastSec = allAtoms[i].section;
+    }
+    return h;
+  })();
+  const allFitsInOnePage = combinedTotalHeight <= PAGE_BUDGET;
+
   const pages = [];
   let cur = [];
   let curHeight = 0;
@@ -1627,14 +1646,15 @@ async function renderDrillPagesAsync(unit, drillA, drillB, opts) {
 
   allAtoms.forEach((atom, i) => {
     const h = heights[i];
-    // 섹션 전환(A → B) → 무조건 새 페이지
-    if (cur.length && atom.section !== lastSection) {
+    // 한 페이지에 다 들어가지 않을 때만: 섹션 전환(A → B) 시 강제로 페이지 분리
+    if (cur.length && atom.section !== lastSection && !allFitsInOnePage) {
       flushPage();
     }
-    const preGap = cur.length ? BOX_GAP : 0;
+    let preGap = 0;
+    if (cur.length) preGap = (atom.section === lastSection) ? BOX_GAP : SECTION_GAP;
     const need = h + preGap;
     if (curHeight + need > PAGE_BUDGET && cur.length) {
-      // 높이 초과 → 페이지 마감 후 새 페이지
+      // 페이지 높이 초과 → 페이지 마감 후 새 페이지
       flushPage();
       cur.push(atom);
       curHeight = h;

@@ -986,23 +986,16 @@ function buildPagesForUnit(unit) {
     });
   });
 
-  // 3. 드릴: 교재(인쇄)의 DrillA → DrillB 페이지 분리 규칙을 모바일에도 동일 적용.
-  //    drilla / drillb / drillc / writing 각각이 별도 페이지(스크롤 단위)로 분리됨.
-  //    네비게이션은 동일하게 '드릴' 섹션 탭 안의 연속 페이지로 표시.
+  // 3. 드릴: 한 학습 흐름(drillA → drillB → drillC → writing)을 한 페이지로 모음.
+  //    교재(인쇄)는 B5 페이지 overflow 시 A/B 분리하지만, 모바일은 스크롤이라
+  //    overflow 개념이 없어 항상 한 페이지에 같이 둠.
   const drillRows = rowsByUnit(TABS.drill, unit, t => ['drilla','drillb','drillc','writing'].includes(t));
   if (drillRows.length) {
-    const drillTypeOrder = ['drilla','drillb','drillc','writing'];
-    const drillTypeLabel = { drilla:'드릴 A', drillb:'드릴 B', drillc:'드릴 C', writing:'쓰기' };
-    drillTypeOrder.forEach(type => {
-      const typeRows = drillRows.filter(r => normType(r.type) === type);
-      if (!typeRows.length) return;
-      pages.push({
-        sec:'drill', kind:'drill',
-        title: drillTypeLabel[type],
-        subtitle: typeRows.length + '개',
-        rows: typeRows,
-        chapter: String(unitRow.C || unitRow.c || ''),
-      });
+    pages.push({
+      sec:'drill', kind:'drill',
+      title:'드릴', subtitle: drillRows.length + '개',
+      rows: drillRows,
+      chapter: String(unitRow.C || unitRow.c || ''),
     });
   }
 
