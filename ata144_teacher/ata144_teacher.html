@@ -1042,7 +1042,10 @@ body.book-view #book-root { display: flex; }
 // ── 설정 ──────────────────────────────────────────────
 const SHEET_ID   = '1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8';
 const AUDIO_BASE = 'https://storage.googleapis.com/all-that-arabic-14';
-const AUDIO_FOLDER = 'listening144';
+const AUDIO_FOLDER = 'audio';
+const AUDIO_EXTS = new URLSearchParams(location.search).get('audio') === 'wav'
+  ? ['.wav', '.mp3']
+  : ['.mp3', '.wav'];
 
 // 시트 탭명
 const TAB_UNIT    = 'units';
@@ -1088,10 +1091,15 @@ function normalizeType(t) {
   return tl;
 }
 
-function getRowU(r) { return r.u || ''; }
+function getRowU(r) { return r?.u || r?.U || ''; }
 
 function getRowId(r) {
-  return r.id_unit || r['id_ptn(no)'] || r.id_ptn || r.id_drill || r.id_kalimat || r.id_nass || '';
+  return r?.id_unit || r?.['id_ptn(no)'] || r?.id_ptn || r?.id_drill ||
+    r?.id_rep || r?.id_repertory || r?.id_kalimat || r?.id_expression || r?.id_nass || '';
+}
+
+function isAudioSlideType(type) {
+  return ['ptn', 'repertory', 'drilla', 'drillb', 'drillc', 'exp'].includes(type);
 }
 
 // ── JSONP 데이터 로더 ──────────────────────────────────
@@ -1447,8 +1455,8 @@ function renderSlide() {
 
   // 나스 지문 버튼: 나스 슬라이드에서만 표시
   document.getElementById('btn-nass').style.display = s.type === 'nass' ? 'flex' : 'none';
-  // 오디오 버튼: 패턴 슬라이드에서는 숨김
-  document.getElementById('btn-audio').style.display = s.type === 'ptn' ? 'none' : '';
+  // 오디오 버튼: 오디오 ID가 있는 학습 항목에서 표시
+  document.getElementById('btn-audio').style.display = isAudioSlideType(s.type) && getAudioUrls(s).length ? '' : 'none';
 
   // ── 나스 슬라이드 ──
   if (s.type === 'nass') {
@@ -1787,15 +1795,25 @@ function updateIndex() {
 // buildUnitButtons 제거 — 내비게이터로 대체
 
 // ── 오디오 URL ─────────────────────────────────────────
-// datasheet url 컬럼 우선, 없으면 GCS listening/ 경로 (mp3 → wav 순으로 시도)
+function encodeAudioPart(value) {
+  return encodeURIComponent(String(value).normalize('NFD')).replace(/%2C/gi, ',');
+}
+
+function getAudioUnit(s) {
+  return getRowU(s?.data) || s?.pg || currentPg || '';
+}
+
+// datasheet url 컬럼 우선, 없으면 GCS audio/{unit}/{id} 경로 (mp3 → wav 순으로 시도)
 function getAudioUrls(s) {
   if (!s) return [];
+  if (!isAudioSlideType(s.type)) return [];
   const d = s.data;
   const id = getRowId(d);
   if (d?.url) return [d.url.trim()];
-  if (!id) return [];
-  const base = `${AUDIO_BASE}/${AUDIO_FOLDER}/${encodeURIComponent(id.normalize('NFD')).replace(/%2C/gi,',')}`;
-  return [base + '.mp3', base + '.wav'];
+  const unit = getAudioUnit(s);
+  if (!id || !unit) return [];
+  const base = `${AUDIO_BASE}/${AUDIO_FOLDER}/${encodeAudioPart(unit)}/${encodeAudioPart(id)}`;
+  return AUDIO_EXTS.map(ext => base + ext);
 }
 
 function toggleAudio() {

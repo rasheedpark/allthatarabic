@@ -499,7 +499,10 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; }
 /* ━━━━ 설정 ━━━━ */
 const SHEET_ID    = '1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8';
 const AUDIO_BASE  = 'https://storage.googleapis.com/all-that-arabic-14';
-const AUDIO_FOLDER = 'listening144';
+const AUDIO_FOLDER = 'audio';
+const AUDIO_EXTS = new URLSearchParams(location.search).get('audio') === 'wav'
+  ? ['.wav', '.mp3']
+  : ['.mp3', '.wav'];
 const TAB_UNIT    = 'units';
 const TAB_PATTERN = 'pattern';
 const TAB_DRILL   = 'drill';
@@ -573,8 +576,14 @@ function normalizeType(t) {
   if (s === 'nass')    return 'nass';
   return s;
 }
-function getRowU(r)  { return r.u || ''; }
-function getRowId(r) { return r.id_unit || r['id_ptn(no)'] || r.id_ptn || r.id_drill || r.id_kalimat || r.id_nass || ''; }
+function getRowU(r)  { return r?.u || r?.U || ''; }
+function getRowId(r) {
+  return r?.id_unit || r?.['id_ptn(no)'] || r?.id_ptn || r?.id_drill ||
+    r?.id_rep || r?.id_repertory || r?.id_kalimat || r?.id_expression || r?.id_nass || '';
+}
+function isAudioSlideType(type) {
+  return ['ptn', 'repertory', 'drilla', 'drillb', 'drillc', 'exp'].includes(type);
+}
 
 function parseText(str) {
   if (!str) return '';
@@ -587,13 +596,23 @@ function parseText(str) {
     );
 }
 
+function encodeAudioPart(value) {
+  return encodeURIComponent(String(value).normalize('NFD')).replace(/%2C/gi, ',');
+}
+
+function getAudioUnit(s) {
+  return getRowU(s?.data) || s?.pg || currentUnit || '';
+}
+
 function getAudioUrls(s) {
+  if (!s || !isAudioSlideType(s.type)) return [];
   const d = s.data;
   const id = getRowId(d);
   if (d?.url) return [d.url.trim()];
-  if (!id) return [];
-  const base = `${AUDIO_BASE}/${AUDIO_FOLDER}/${encodeURIComponent(id.normalize('NFD')).replace(/%2C/gi,',')}`;
-  return [base+'.mp3', base+'.wav'];
+  const unit = getAudioUnit(s);
+  if (!id || !unit) return [];
+  const base = `${AUDIO_BASE}/${AUDIO_FOLDER}/${encodeAudioPart(unit)}/${encodeAudioPart(id)}`;
+  return AUDIO_EXTS.map(ext => base + ext);
 }
 
 /* ━━━━ buildSlides ━━━━ */
