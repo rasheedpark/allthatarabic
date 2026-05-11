@@ -20,6 +20,11 @@
   .app-link:hover { border-color: var(--accent); transform: translateY(-1px); }
   .app-link strong { display: block; font-size: 16px; margin-bottom: 3px; }
   .app-link span { display: block; font-size: 12px; color: var(--sub); }
+  .app-link .ver-tag { display: inline-block; font-size: 10px; color: var(--accent);
+    background: rgba(29,73,255,0.08); border-radius: 4px; padding: 1px 6px;
+    font-weight: 700; letter-spacing: .5px; margin-top: 4px; }
+  .section-label { font-size: 11px; color: var(--sub); text-transform: uppercase;
+    letter-spacing: 1.5px; margin: 20px 0 8px; text-align: left; }
 </style>
 </head>
 <body>
@@ -28,9 +33,14 @@
   <h1>올댓아라빅</h1>
   <div class="ver">All That Arabic · v1.4.4</div>
   <div class="apps">
+    <div class="section-label">v1.4.4</div>
     <a class="app-link" href="ata144_teacher/ata144_teacher.html">
       <strong>앱선생님</strong>
       <span>수업 진행 슬라이드 (가로 화면)</span>
+    </a>
+    <a class="app-link" href="ata144_student/ata144_student.html">
+      <strong>앱학생</strong>
+      <span>배운 패턴 모바일 복습</span>
     </a>
     <a class="app-link" href="ata144_textbook/ata144_textbook.html">
       <strong>앱교재</strong>
@@ -39,6 +49,11 @@
     <a class="app-link" href="ata144_original/ata144_original.html">
       <strong>교재</strong>
       <span>인쇄용 교재 원본 (B5)</span>
+    </a>
+    <div class="section-label">v1.4.3</div>
+    <a class="app-link" href="ata143_student/ata143_student.html">
+      <strong>앱학생 <span class="ver-tag">1.4.3</span></strong>
+      <span>구버전 학생용 슬라이드 복습앱</span>
     </a>
   </div>
 </div>
