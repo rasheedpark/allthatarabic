@@ -541,7 +541,8 @@ let currentPg       = null;
 // ── 유틸 ──────────────────────────────────────────────
 function normalizeType(t) {
   const s = (t || '').toLowerCase().trim();
-  if (s === 'summary')                         return 'summary';
+  if (s === 'summary')                          return 'summary';
+  if (s === 'pattern(a)' || s === 'pattern(p)') return 'summary'; // summary 없는 유닛 대체
   if (s === 'drill')                            return 'drill';
   if (s === 'exp' || s === 'expression')        return 'exp';
   if (s === 'nass')                             return 'nass';
