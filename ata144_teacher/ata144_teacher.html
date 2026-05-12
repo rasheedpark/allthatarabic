@@ -191,7 +191,7 @@ body {
 }
 /* ── 나스 korean 힌트 ── */
 .nass-korean-hint {
-  font-size: clamp(0.65rem, 1.2vw, 0.9rem);
+  font-size: clamp(0.9rem, 2vw, 1.6rem);  /* 키움: 일반 .korean의 ~40% — 다른 슬라이드보다 작지만 인지 가능 */
   color: var(--sub);
   opacity: 0.85;
   text-align: center;
@@ -264,7 +264,7 @@ body {
   opacity: 0.8;
 }
 .nass-note {
-  font-size: clamp(0.65rem, 0.9vw, 0.82rem);
+  font-size: clamp(0.85rem, 1.7vw, 1.4rem);  /* 키움: 일반 .note의 ~50% */
   color: var(--sub);
   text-align: center;
   line-height: 1.6;
@@ -1112,7 +1112,7 @@ function normalizeType(t) {
 function getRowU(r) { return r.u || ''; }
 
 function getRowId(r) {
-  return r.id_unit || r['id_ptn(no)'] || r.id_ptn || r.id_drill || r.id_kalimat || r.id_nass || '';
+  return r.id_unit || r['id_ptn(no)'] || r.id_ptn || r.id_drill || r.id_rep || r.id_repertory || r.id_kalimat || r.id_expression || r.id_nass || '';
 }
 
 // ── JSONP 데이터 로더 ──────────────────────────────────
@@ -1452,15 +1452,19 @@ function renderSlide() {
   // 진행바
   document.getElementById('progress').style.width = ((current+1)/slides.length*100)+'%';
 
-  // 중앙 타입 레이블 업데이트
+  // 중앙 타입 레이블 업데이트 (라하 깃발은 메인 콘텐츠 음가 밑으로 이동, ui-tr엔 안 둠)
   const typeLabel = TYPE_EN[s.type] || s.type.toUpperCase();
   const nassNum = s.type === 'nass' ? (() => { const m = getRowId(s.data).match(/(\d+)$/); return m ? ' · nass-' + m[1] : ''; })() : '';
-  const lahja = (s.data?.lahja || '').toUpperCase().trim();
-  const flagSrc = LAHJA_FLAG[lahja];
-  const flagHtml = flagSrc
-    ? `<img src="${flagSrc}" style="width:1.1em;height:1.1em;border-radius:50%;vertical-align:middle;margin-left:0.5em;opacity:0.9;">`
+  document.getElementById('ui-tr').innerHTML = typeLabel + nassNum;
+
+  // 라하 깃발 (멀티 라하 지원: 'GLF, LEV' → 두 개 표시)
+  const flagSrcs = (s.data?.lahja || '').toUpperCase().split(/[,\s]+/).map(t => t.trim()).filter(Boolean)
+    .map(l => LAHJA_FLAG[l]).filter(Boolean);
+  const lahjaBlockHtml = flagSrcs.length
+    ? `<div class="lahja-block" style="margin-top:0.6rem; display:flex; justify-content:center; gap:0.4rem;">${
+        flagSrcs.map(src => `<img src="${src}" style="width:clamp(22px,1.8vw,32px); height:clamp(22px,1.8vw,32px); border-radius:50%; opacity:0.92;">`).join('')
+      }</div>`
     : '';
-  document.getElementById('ui-tr').innerHTML = typeLabel + nassNum + flagHtml;
 
   // 상단 좌측: 현재 유닛 정보(unit탭) + 섹션 탭
   const tl = document.getElementById('ui-tl');
@@ -1515,6 +1519,7 @@ function renderSlide() {
   document.getElementById('text-area').innerHTML = `
     <div class="korean" style="opacity:${op}">${parseText(d.korean || '')}</div>
     ${noteText ? `<div class="note" style="opacity:1">${parseAr(noteText)}</div>` : ''}
+    ${lahjaBlockHtml}
   `;
 
   updateIndex();
