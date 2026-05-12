@@ -119,14 +119,17 @@ body {
 /* ── 아랍어 ── */
 .arabic {
   font-family: 'Noto Sans Arabic', serif;
-  font-size: clamp(2.2rem, 4vw, 4rem);
+  font-size: clamp(3.5rem, 7vw, 8rem);   /* P 유닛 기본 (짧은 단어/패턴) */
   font-weight: 700;
   direction: rtl;
   line-height: 1.6;
   text-align: center;
 }
+.arabic.arabic-a {
+  font-size: clamp(2.8rem, 5vw, 5.5rem); /* A 유닛 (문장형, 조금 작게) */
+}
 .arabic.arabic-sentence {
-  font-size: clamp(1.6rem, 3.5vw, 3.5rem);
+  font-size: clamp(1.8rem, 3.5vw, 4rem);
 }
 
 /* ── 한국어/노트 ── */
@@ -180,12 +183,15 @@ body {
 /* ── sentence 모드 ── */
 .sentence-ar {
   font-family: 'Noto Sans Arabic', serif;
-  font-size: clamp(1.8rem, 5vw, 4rem);
+  font-size: clamp(3.5rem, 7vw, 8rem);   /* P 유닛 기본 */
   font-weight: 700;
   text-align: center;
   direction: rtl;
   line-height: 1.55;
   color: var(--text);
+}
+.sentence-ar.sentence-a {
+  font-size: clamp(2.8rem, 5vw, 5.5rem); /* A 유닛 (문장형) */
 }
 .sentence-kr {
   font-size: clamp(0.9rem, 2.2vw, 1.5rem);
@@ -933,8 +939,10 @@ function fitArabicText(el) {
 function renderSentence(s) {
   const d = s.data;
   const arOp = arabicVisible ? '1' : '0';
+  const unitPrefix = (d.id_datasheet || '').charAt(0).toUpperCase();
+  const arClass = unitPrefix === 'A' ? 'sentence-ar sentence-a' : 'sentence-ar';
   document.getElementById('arabic-area').innerHTML =
-    `<div class="sentence-ar" style="opacity:${arOp};transition:opacity 0.3s;">${parseText(d.arabic || '')}</div>`;
+    `<div class="${arClass}" style="opacity:${arOp};transition:opacity 0.3s;">${parseText(d.arabic || '')}</div>`;
 
   const op = meaningVisible ? '1' : '0';
   const desc = d.script || d.note || '';
@@ -985,8 +993,10 @@ function renderSvo(s) {
 function renderNormal(s) {
   const d = s.data;
   const arOp = arabicVisible ? '1' : '0';
+  const unitPrefix = (d.id_datasheet || '').charAt(0).toUpperCase();
+  const arClass = unitPrefix === 'A' ? 'arabic arabic-a' : 'arabic';
   document.getElementById('arabic-area').innerHTML =
-    `<div class="arabic" style="opacity:${arOp};transition:opacity 0.3s;">${parseText(d.arabic || '')}</div>`;
+    `<div class="${arClass}" style="opacity:${arOp};transition:opacity 0.3s;">${parseText(d.arabic || '')}</div>`;
 
   const op = meaningVisible ? '1' : '0';
   const noteText = d.note || d.transliteration || '';
