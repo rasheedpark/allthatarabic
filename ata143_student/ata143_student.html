@@ -639,7 +639,7 @@ async function buildSlides(baseUnit) {
 
   const dsRows = dsRaw.filter(r => {
     const t = normalizeType(r.type);
-    if (!['summary','drill','exp'].includes(t)) return false;
+    if (!['summary','drill','exp','repertorie'].includes(t)) return false;
     if (!subReg.test(getRowU(r))) return false;
     const s = (r.status || '').toLowerCase();
     return s === '' || s === 'confirmed';
