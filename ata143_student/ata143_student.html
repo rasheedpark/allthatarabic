@@ -126,7 +126,7 @@ body {
   text-align: center;
 }
 .arabic.arabic-sentence {
-  font-size: clamp(2rem, 6vw, 6rem);
+  font-size: clamp(1.6rem, 4vw, 4rem);
 }
 
 /* ── 한국어/노트 ── */
@@ -677,7 +677,8 @@ function renderSlide() {
   document.getElementById('progress').style.width = ((current + 1) / slides.length * 100) + '%';
 
   // ui-tr: 타입 레이블
-  const typeLabel = TYPE_EN[s.type] || s.type.toUpperCase();
+  const origType = (s.data?.type || '').toLowerCase().trim();
+  const typeLabel = origType.startsWith('pattern') ? 'PATTERN' : (TYPE_EN[s.type] || s.type.toUpperCase());
   const nassNum = s.type === 'nass'
     ? (() => { const m = getRowId(s.data).match(/(\d+)$/); return m ? ' · nass-' + m[1] : ''; })()
     : '';
@@ -705,8 +706,12 @@ function renderSlide() {
 
   // 나스 지문 버튼
   document.getElementById('btn-nass').style.display = s.type === 'nass' ? 'flex' : 'none';
-  // 오디오 버튼
-  document.getElementById('btn-audio').style.display = isAudioSlide(s) ? '' : 'none';
+  // 오디오 버튼 — 항상 표시, 오디오 없으면 흐리게
+  const hasAudio = isAudioSlide(s);
+  const audioBtn = document.getElementById('btn-audio');
+  audioBtn.style.display = '';
+  audioBtn.style.opacity = hasAudio ? '1' : '0.3';
+  audioBtn.disabled = !hasAudio;
 
   // 렌더 분기
   if (s.type === 'nass') { renderNass(s); updateIndex(); return; }
@@ -902,12 +907,35 @@ function renderDongol(s) {
   document.getElementById('text-area').innerHTML = '';
 }
 
+// ── fitArabicText ──────────────────────────────────────
+// 아랍어 텍스트가 컨테이너 너비를 초과하면 글자 크기를 줄여 한 줄에 맞춤
+function fitArabicText(el) {
+  requestAnimationFrame(() => {
+    if (!el || !el.isConnected) return;
+    const container = el.closest('#arabic-area') || el.parentElement;
+    const containerW = container ? container.clientWidth - 48 : el.clientWidth;
+    if (!containerW) return;
+    // 현재 폰트 크기
+    const fs = parseFloat(window.getComputedStyle(el).fontSize);
+    // 한 줄로 펼쳤을 때 너비 측정
+    const origWS = el.style.whiteSpace;
+    el.style.whiteSpace = 'nowrap';
+    const scrollW = el.scrollWidth;
+    el.style.whiteSpace = origWS;
+    if (scrollW <= containerW) return; // 이미 한 줄에 들어감
+    const ratio = containerW / scrollW;
+    const newFs = Math.max(Math.floor(fs * ratio * 0.97), 18);
+    el.style.fontSize = newFs + 'px';
+  });
+}
+
 // ── renderSentence ─────────────────────────────────────
 function renderSentence(s) {
   const d = s.data;
   const arOp = arabicVisible ? '1' : '0';
   document.getElementById('arabic-area').innerHTML =
     `<div class="sentence-ar" style="opacity:${arOp};transition:opacity 0.3s;">${parseText(d.arabic || '')}</div>`;
+  fitArabicText(document.querySelector('#arabic-area .sentence-ar'));
 
   const op = meaningVisible ? '1' : '0';
   const desc = d.script || d.note || '';
@@ -960,6 +988,7 @@ function renderNormal(s) {
   const arOp = arabicVisible ? '1' : '0';
   document.getElementById('arabic-area').innerHTML =
     `<div class="arabic" style="opacity:${arOp};transition:opacity 0.3s;">${parseText(d.arabic || '')}</div>`;
+  fitArabicText(document.querySelector('#arabic-area .arabic'));
 
   const op = meaningVisible ? '1' : '0';
   const noteText = d.note || d.transliteration || '';
