@@ -533,7 +533,7 @@ const AUDIO_EXTS = ['.mp3', '.wav'];
 const TAB_DS     = 'datasheet';
 const GID_NASS   = '847423907';
 
-const TYPE_EN = { summary:'SUMMARY', drill:'DRILL', exp:'EXPRESSION', nass:'NASS' };
+const TYPE_EN = { summary:'SUMMARY', drill:'DRILL', exp:'EXPRESSION', nass:'NASS', repertorie:'REPERTOIRE', repertory:'REPERTOIRE' };
 
 // ── 상태 ──────────────────────────────────────────────
 let slides = [], current = 0;
@@ -554,6 +554,7 @@ function normalizeType(t) {
   if (s === 'exp' || s === 'expression')        return 'exp';
   if (s === 'nass')                             return 'nass';
   if (s === 'writing')                          return 'writing';
+  if (s === 'repertorie' || s === 'repertory')  return 'repertorie';
   return s;
 }
 // u열이 비어있는 경우 id_datasheet 또는 id_nass에서 유닛 추출
@@ -685,7 +686,7 @@ function renderSlide() {
 
   // ui-tr: 타입 레이블
   const origType = (s.data?.type || '').toLowerCase().trim();
-  const typeLabel = origType.startsWith('pattern') ? 'PATTERN' : (TYPE_EN[s.type] || s.type.toUpperCase());
+  const typeLabel = origType.startsWith('pattern') ? 'PATTERN' : (TYPE_EN[s.type] || TYPE_EN[origType] || s.type.toUpperCase());
   const nassNum = s.type === 'nass'
     ? (() => { const m = getRowId(s.data).match(/(\d+)$/); return m ? ' · nass-' + m[1] : ''; })()
     : '';
@@ -944,6 +945,7 @@ function renderSentence(s) {
   const arClass = unitPrefix === 'A' ? 'sentence-ar sentence-a' : 'sentence-ar';
   document.getElementById('arabic-area').innerHTML =
     `<div class="${arClass}" style="opacity:${arOp};transition:opacity 0.3s;">${parseText(d.arabic || '')}</div>`;
+  fitArabicText(document.querySelector('#arabic-area .sentence-ar'));
 
   const op = meaningVisible ? '1' : '0';
   const desc = d.script || d.note || '';
@@ -998,6 +1000,7 @@ function renderNormal(s) {
   const arClass = unitPrefix === 'A' ? 'arabic arabic-a' : 'arabic';
   document.getElementById('arabic-area').innerHTML =
     `<div class="${arClass}" style="opacity:${arOp};transition:opacity 0.3s;">${parseText(d.arabic || '')}</div>`;
+  fitArabicText(document.querySelector('#arabic-area .' + arClass.split(' ')[0]));
 
   const op = meaningVisible ? '1' : '0';
   const noteText = d.note || d.transliteration || '';
