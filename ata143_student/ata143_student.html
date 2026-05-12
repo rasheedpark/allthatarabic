@@ -565,7 +565,7 @@ function getRowId(r) { return r?.id_datasheet || r?.id_nass || r?.id || ''; }
 function getBaseUnit(u) { return (u || '').replace(/[a-z]+$/, ''); }
 
 function isAudioSlide(s) {
-  return ['drill','exp'].includes(s.type) && !!(s.data?.url || getRowId(s.data));
+  return ['drill','exp','nass'].includes(s.type) && !!(s.data?.url || getRowId(s.data));
 }
 
 // ── JSONP 로더 ──────────────────────────────────────
