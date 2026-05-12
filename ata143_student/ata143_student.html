@@ -119,14 +119,14 @@ body {
 /* ── 아랍어 ── */
 .arabic {
   font-family: 'Noto Sans Arabic', serif;
-  font-size: clamp(3rem, 9vw, 9rem);
+  font-size: clamp(2.2rem, 4vw, 4rem);
   font-weight: 700;
   direction: rtl;
   line-height: 1.6;
   text-align: center;
 }
 .arabic.arabic-sentence {
-  font-size: clamp(1.6rem, 4vw, 4rem);
+  font-size: clamp(1.6rem, 3.5vw, 3.5rem);
 }
 
 /* ── 한국어/노트 ── */
@@ -935,7 +935,6 @@ function renderSentence(s) {
   const arOp = arabicVisible ? '1' : '0';
   document.getElementById('arabic-area').innerHTML =
     `<div class="sentence-ar" style="opacity:${arOp};transition:opacity 0.3s;">${parseText(d.arabic || '')}</div>`;
-  fitArabicText(document.querySelector('#arabic-area .sentence-ar'));
 
   const op = meaningVisible ? '1' : '0';
   const desc = d.script || d.note || '';
@@ -988,7 +987,6 @@ function renderNormal(s) {
   const arOp = arabicVisible ? '1' : '0';
   document.getElementById('arabic-area').innerHTML =
     `<div class="arabic" style="opacity:${arOp};transition:opacity 0.3s;">${parseText(d.arabic || '')}</div>`;
-  fitArabicText(document.querySelector('#arabic-area .arabic'));
 
   const op = meaningVisible ? '1' : '0';
   const noteText = d.note || d.transliteration || '';
