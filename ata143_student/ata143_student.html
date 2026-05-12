@@ -521,7 +521,7 @@ body {
 // ── 설정 ──────────────────────────────────────────────
 const SHEET_ID   = '16lEfx8CSJsU5EuDmF-9xlP9E_SGPa6TTcNhEeBg9ycg';
 const AUDIO_BASE = 'https://storage.googleapis.com/all-that-arabic-14';
-const AUDIO_FOLDER = 'audio';
+const AUDIO_FOLDER = 'listening';
 const AUDIO_EXTS = ['.mp3', '.wav'];
 const TAB_DS     = 'datasheet';
 const GID_NASS   = '847423907';
@@ -1161,10 +1161,10 @@ function getAudioUrls(s) {
   if (!s || !isAudioSlide(s)) return [];
   const d = s.data;
   if (d?.url) return [d.url.trim()];
-  const id   = getRowId(d);
-  const unit = s.pg || currentPg || '';
-  if (!id || !unit) return [];
-  const base = `${AUDIO_BASE}/${AUDIO_FOLDER}/${encodeAudioPart(unit)}/${encodeAudioPart(id)}`;
+  const id = getRowId(d);
+  if (!id) return [];
+  // 버킷 구조: listening/{id}.mp3 (unit 서브폴더 없음)
+  const base = `${AUDIO_BASE}/${AUDIO_FOLDER}/${encodeAudioPart(id)}`;
   return AUDIO_EXTS.map(ext => base + ext);
 }
 
