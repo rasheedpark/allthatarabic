@@ -232,32 +232,34 @@ ATA 1.4.4의 모든 산출물(인쇄 교재 + 3개 앱)에 일관되게 적용�
 - `#toolbar`: 하단 중앙 — 단축키 바
 - `#sidebar`: 좌측 슬라이드아웃 — 유닛 인덱스
 
-### 6.2 아랍어 텍스트
+### 6.2 아랍어 텍스트 (옵션 C — baseline과 격차 좁힘)
 
 ```css
 .arabic {
   font-family: var(--font-ar);
-  font-size: clamp(3rem, 9vw, 9rem);
+  font-size: clamp(3.5rem, 10vw, 9rem);   /* baseline(.bl-letter)과 동일 크기 */
   font-weight: 700;
   direction: rtl;
   line-height: 1.6;
 }
 .arabic.arabic-sentence {
-  font-size: clamp(2rem, 6vw, 6rem); /* 문장형 유닛(A/G) */
+  font-size: clamp(2.5rem, 8vw, 8rem);    /* 문장형 유닛(A/G) — 일반의 80% */
 }
 ```
+
+> **격차 정책**: baseline 큰 글자(`.bl-letter`)와 일반 아랍어(`.arabic`)는 **동일 크기**(10vw / max 9rem). 1280px 화면에서 둘 다 128px. 큰 화면에서도 9rem(144px)으로 같이 도달. sentence 모드는 비-sentence의 80%.
 
 ### 6.3 한국어 / 노트
 
 ```css
 .korean {
-  font-size: clamp(1.2rem, 3.5vw, 3.5rem);
+  font-size: clamp(1.4rem, 4vw, 4rem);
   transition: opacity 0.3s;
 }
 .note {
-  font-size: clamp(0.9rem, 2.2vw, 2.2rem);
+  font-size: clamp(1.05rem, 2.6vw, 2.5rem);
   color: var(--sub);
-  opacity: 1; /* 항상 표시 */
+  opacity: 1; /* 항상 표시 — baseline 음가 라벨(.bl-label)과 동일 크기 */
 }
 ```
 
@@ -274,18 +276,108 @@ ATA 1.4.4의 모든 산출물(인쇄 교재 + 3개 앱)에 일관되게 적용�
 .sec-tab.disabled { opacity: 0.25; pointer-events: none; }
 ```
 
-탭 구성: `패턴<small>한국어명</small>` (패턴별 동적) + `연습/표현/지문/단어` (고정)
+**탭 구성** (좌→우, 데이터 없는 섹션은 disabled):
 
-### 6.5 단축키
+| 위치 | 라벨 (한국어/영어) | 매칭 슬라이드 타입 |
+|---|---|---|
+| 동적 (패턴 수만큼) | `패턴 / ptn001` — 패턴 번호 형식 (`id_ptn(no)`에서 `ptn\d+` 추출) | `ptn` (각 패턴별 첫 슬라이드로 점프) |
+| 고정 | `드릴 / Drill A` | `drilla` |
+| 고정 | `연습 / Drill B` | `drillb` |
+| 고정 | `심화 / Drill C` | `drillc` |
+| 고정 | `표현 / Expression` | `exp` |
+| 고정 | `지문 / Nass` | `nass` |
+| 고정 | `단어 / Kalimat` | `kalimat` |
+
+```js
+const SEC_FIXED = [
+  { key:'drilla',  ko:'드릴', en:'Drill A'    },
+  { key:'drillb',  ko:'연습', en:'Drill B'    },
+  { key:'drillc',  ko:'심화', en:'Drill C'    },
+  { key:'exp',     ko:'표현', en:'Expression' },
+  { key:'nass',    ko:'지문', en:'Nass'       },
+  { key:'kalimat', ko:'단어', en:'Kalimat'    },
+];
+```
+
+**활성 규칙**:
+- 현재 슬라이드가 `ptn`/`repertory`/`writing` → 가장 가까운 이전 `ptn` 슬라이드의 동적 패턴 탭 활성
+- 현재 슬라이드가 `drilla` 이상 → 해당 고정 탭 활성 (drilla는 별도 탭으로 분리됨)
+
+### 6.5 상단 좌측 유닛 라벨 (`#ui-tl`)
+
+A01 유닛코드(작게) / ptnA 대표 아랍어 / 한국어 — 3행. 줄간격을 충분히 벌려 가독성 확보:
+
+```js
+// 인라인 스타일 — 슬라이드 갱신 시 매번 set
+ui-tl.innerHTML = `
+  <div style="display:flex;align-items:center;gap:1.4rem;">
+    <div>
+      <div style="font-size:clamp(0.45rem,0.7vw,0.6rem); text-transform:uppercase;
+                   letter-spacing:2px; color:var(--sub); opacity:0.6;
+                   margin-bottom:0.5rem;">${unitCode}</div>
+      <div style="font-family:var(--font-ar); direction:rtl;
+                   font-size:clamp(0.9rem,1.8vw,1.4rem); font-weight:700;
+                   line-height:1.4; margin-bottom:0.35rem;">${ptnArabic}</div>
+      <div style="font-size:clamp(0.6rem,1vw,0.85rem); color:var(--sub);
+                   font-weight:400; line-height:1.5;">${unitKorean}</div>
+    </div>
+    <div id="section-tabs"></div>
+  </div>`;
+```
+
+### 6.6 단축키 / 도구바
+
+**도구바 (`#toolbar`, 4 버튼)**:
+
+| 버튼 | 키 | 동작 |
+|---|---|---|
+| 메뉴 | `M` | 사이드바 토글 |
+| 오디오 | `S` | 오디오 재생/정지 |
+| 한국어 가리기 | `Space` | 한국어 의미 토글 (`해석` 아닌 `한국어 가리기` 라벨) |
+| 본문 | `A` | 아랍어 본문 가리기/보기 (opacity 0) |
+
+**키바인딩만 (UI 버튼 없음)**:
 
 | 키 | 동작 |
 |---|---|
 | `←` `→` | 슬라이드 이동 |
-| `Space` | 한국어 의미 토글 |
-| `M` | 사이드바 토글 |
+| `T` | 나스 지문 토글 (T 버튼은 UI에서 제거됨 — 의미가 없어 생략, 키만 유지) |
 | `B` | Book View 모드 토글 (인쇄 미리보기) |
-| `S` | 오디오 재생 |
 | `Esc` | 사이드바 닫기 |
+
+### 6.7 드릴 슬라이드 순서
+
+선생님앱은 한 슬라이드에 한 행씩 표시. **드릴 순서**는:
+
+1. **유닛 슬라이드**
+2. **패턴 묶음** (각 패턴별로):
+   - 패턴 본문
+   - 예문 (repertory) — 옛 명칭 "레퍼토리"는 UI에서 "예문"으로 표기 (`TYPE_KO.repertory = '예문'`)
+3. **모든 drillA 모음** — 패턴별 매칭(`ref_ptn`)을 먼저, 유닛 공통(`ref_ptn` 빈 행)을 마지막
+4. **drillB → drillC**
+5. **expression** (표현)
+6. **nass** (지문)
+7. **kalimat** (단어)
+
+drillA가 패턴 묶음과 분리되어 모음으로 표시되는 점이 1.4.3과의 차이. 패턴 학습 후 "드릴" 탭 클릭 시 모든 drillA를 연속 학습 가능.
+
+### 6.8 오디오 URL (1.4.4 신구조)
+
+```js
+function getAudioUrls(s) {
+  if (s?.data?.url) return [s.data.url.trim()];
+  const id = getRowId(s.data);
+  const unit = (s.data?.u || s.pg || '').trim();
+  if (!id || !unit) return [];
+  const enc = encodeURIComponent(id.normalize('NFD')).replace(/%2C/gi, ',');
+  const base = `https://storage.googleapis.com/all-that-arabic-14/audio/${unit}/${enc}`;
+  return [base + '.mp3', base + '.wav'];  // mp3 우선 → wav 폴백
+}
+```
+
+- 경로: `audio/{유닛코드}/{id}.{ext}` (옛 `listening144/` 구조 폐기)
+- 확장자 우선순위: `.mp3` → 실패 시 `.wav` 시도 (audio-rules 규칙)
+- `data.url` 컬럼이 있으면 그 값 우선
 
 ---
 
@@ -321,9 +413,29 @@ ATA 1.4.4의 모든 산출물(인쇄 교재 + 3개 앱)에 일관되게 적용�
 
 > **주의**: `*` `_` 문자는 마크업 용도이므로 ID 슬러그 생성 시 제거된다 (`product-ata144.md`의 "ID 산출 규칙 v2" 참고).
 
-### 8.2 `css = 'baseline'` (알파벳 페이지 전용)
+### 8.2 `css = 'baseline'` (알파벳 페이지 전용 — 3행 표)
 
-A01~A06, G 시리즈 등 알파벳/그룹 글자를 6칸 비례 그리드로 표시.
+A01~A06, G 시리즈 등 알파벳/그룹 글자를 **3행 표**(글자 / 위치별 연결형 / 음가 라벨)로 표시. 둘째 줄 연결형이 비어있으면 2행만 렌더.
+
+**데이터 형식 (`pattern.arabic`)**:
+```
+ب | ت | ث | ن | ي           ← 1줄: 단일 글자
+ببب | تتت | ثثث | ننن | ييي  ← 2줄: 위치별 연결형 (옵션)
+```
+- `note` 컬럼 = 음가 라벨 (공백 또는 `|` 구분)
+- 토큰 분리: `|` 있으면 `|`로, 없으면 공백으로
+
+**렌더 구조**:
+```html
+<div class="bl-wrap">
+  <div class="bl-line"></div>                     <!-- baseline 가로선 (JS 동적 위치) -->
+  <div class="bl-grid has-triple" style="--items: 5">
+    <!-- 행 1: 큰 글자 (.bl-letter)     × items -->
+    <!-- 행 2: 연결형  (.bl-triple)     × items (옵션) -->
+    <!-- 행 3: 음가    (.bl-label)      × items -->
+  </div>
+</div>
+```
 
 ```css
 .bl-wrap { position: relative; width: 100%; }
@@ -333,16 +445,25 @@ A01~A06, G 시리즈 등 알파벳/그룹 글자를 6칸 비례 그리드로 표
   grid-template-columns: repeat(var(--items, 5), 1fr);
   direction: rtl;
   column-gap: clamp(6px, 3vw, 28px);
+  row-gap: clamp(28px, 3vw, 48px);
 }
 .bl-letter {
   font-family: var(--font-ar);
-  font-size: clamp(3rem, calc(56vw / var(--items, 4)), 9rem);  /* 칸 수 비례 */
+  font-size: clamp(3.5rem, 10vw, 9rem);  /* 일반 .arabic과 동일 크기 (items 무관 고정) */
   font-weight: 700;
 }
-.bl-label { font-size: clamp(0.6rem, 1.2vw, 1rem); color: var(--sub); }
+.bl-triple {
+  font-family: var(--font-ar);
+  font-size: clamp(1.1rem, 4vw, 3.5rem);  /* letter의 약 40% */
+  font-weight: 500; line-height: 1.2; white-space: nowrap;
+}
+.bl-label {
+  font-size: clamp(1.05rem, 2.6vw, 2.5rem);  /* 일반 .note와 동일 크기 */
+  font-weight: 500; color: var(--sub);
+}
 ```
 
-데이터: `pattern.arabic` 컬럼에 토큰을 공백으로 구분 (`ب ت ث ن ي`). 글자 수가 6 미만이면 가운데 정렬.
+**baseline 가로선 동적 정렬**: 폰트 로드 후(`document.fonts.ready`) 첫 `.bl-letter`에 `vertical-align: baseline` 프로브를 일시 삽입해 baseline y좌표 측정 → `.bl-line.style.top` 동적 설정. 폭 오버플로 시 `transform: scale()` 자동 축소.
 
 ### 8.3 `css = 'write'` (쓰기 애니메이션 — 선생님용 전용)
 
@@ -422,6 +543,8 @@ drillB 등에서 학생이 채워야 할 부분을 빈칸으로 표시. **글자
 ```
 
 라흐자 국기 표시 시 `.css-five .ar-line .lahja-flag { width: 10px; height: 10px }`로 축소.
+
+> **선생님앱은 `five` 무시** — 슬라이드 한 장에 한 행씩 표시하는 형식이라 표·격자 모드는 의미 없음. 한 행씩 일반 슬라이드(아랍어 + 한국어 + 음가)로 떨어진다. `two`, `ab`, `c` 등 다른 css 값도 동일하게 무시 (선생님앱 분기는 `baseline` / `write`만).
 
 ### 8.5 라흐자(방언) 국기
 
@@ -510,3 +633,15 @@ body.book-view #book-root { display: flex; flex-direction: column; align-items: 
 - 좌우 페어 카드 정렬 표준: `align-items: baseline` (start/center 금지)
 - 나스 아랍어 line-height: `2` → `1.75`
 - 라하 국기 표준 통일: `.lahja-flag` 14px 원형 인라인 (교재 기준). 자체 `.m-flag` 클래스/절대배치 패턴 폐기. PNG 사용 (SVG의 nested `<image>` 차단 이슈)
+
+- **2026-05-12**: 선생님앱 옵션 C 적용 (baseline·일반 아랍어 격차 좁힘) + UI 다듬기
+  - 선생님앱 폰트 옵션 C: `.arabic` `9vw/9rem` → `10vw/9rem`, sentence `6vw/6rem` → `8vw/8rem`, `.korean` `3.5vw/3.5rem` → `4vw/4rem`, `.note` `2.2vw/2.2rem` → `2.6vw/2.5rem`
+  - **baseline 3행 표 신규**: `.bl-letter`는 일반 `.arabic`과 동일 크기 `10vw/9rem`, `.bl-triple`(연결형) 신규 `4vw/3.5rem`, `.bl-label`은 일반 `.note`와 동일 크기 (이전 `1.4vw/1.15rem`에서 대폭 키움)
+  - 섹션 탭: `Drill A` 별도 탭 신설 (이전엔 패턴 하위로 동작), 패턴 탭 라벨 한국어 이름 → 패턴 번호(`ptn001`) 형식, SEC_FIXED 6개로 확장
+  - 드릴 슬라이드 순서 재편: 패턴+예문 묶음 → 모든 drillA → drillB/C → exp → nass → kalimat
+  - `TYPE_KO.repertory`: '레퍼토리' → **'예문'**
+  - 좌상단 `#ui-tl`: 유닛코드/아랍어/한국어 3행 줄간격 확대 (margin-bottom 0.2→0.5rem, line-height 1.3→1.4/1.5)
+  - 도구바: `T 지문` 버튼 제거 (T 키바인딩은 유지), `Space 해석` → `Space 한국어 가리기` 라벨 변경
+  - 오디오 신구조: `listening144/{id}.mp3` 폐기 → `audio/{유닛코드}/{id}.{mp3|wav}`, mp3 우선 → wav 폴백
+  - 드릴B `*X*` 가리기: 선생님앱(슬라이드 형식)에서 `color: transparent` + `-webkit-text-fill-color: transparent` + 박스 alpha 0.14 (기존 0.08 대비 진하기 강화 — 글자 윤곽이 비치던 문제 해결)
+  - `css` 코드 처리: 선생님앱은 `baseline`/`write`만 분기, `five`/`two`/`ab`/`c` 등은 무시 (일반 슬라이드로)
