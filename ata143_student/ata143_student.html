@@ -549,6 +549,28 @@ const GID_NASS   = '847423907';
 
 const TYPE_EN = { summary:'SUMMARY', drill:'DRILL', exp:'EXPRESSION', nass:'NASS', repertorie:'REPERTOIRE', repertory:'REPERTOIRE' };
 
+// 라하 깃발 매핑 — 1.4.4와 동일
+const LAHJA_FLAG = {
+  EGY: '../assets/icons/icon-egypt.png',
+  LEV: '../assets/icons/icon-lebanon.png',
+  GLF: '../assets/icons/icon-saudi.png',
+};
+
+// 라하 블록 HTML — 멀티 라하 지원 ("GLF, LEV" → 두 개 표시)
+function lahjaBlockHtmlFor(s) {
+  const flagSrcs = (s?.data?.lahja || '').toUpperCase().split(/[,\s]+/).map(t => t.trim()).filter(Boolean)
+    .map(l => LAHJA_FLAG[l]).filter(Boolean);
+  return flagSrcs.length
+    ? `<div class="lahja-block" style="margin-top:0.6rem; display:flex; justify-content:center; gap:0.4rem;">${
+        flagSrcs.map(src => `<img src="${src}" style="width:clamp(22px,1.8vw,32px); height:clamp(22px,1.8vw,32px); border-radius:50%; opacity:0.92;">`).join('')
+      }</div>`
+    : '';
+}
+function appendLahjaBlock(s) {
+  const html = lahjaBlockHtmlFor(s);
+  if (html) document.getElementById('text-area').insertAdjacentHTML('beforeend', html);
+}
+
 // ── 상태 ──────────────────────────────────────────────
 let slides = [], current = 0;
 let meaningVisible  = true;
@@ -741,25 +763,27 @@ function renderSlide() {
   audioBtn.style.opacity = hasAudio ? '1' : '0.3';
   audioBtn.disabled = !hasAudio;
 
-  // 렌더 분기
-  if (s.type === 'nass') { renderNass(s); updateIndex(); return; }
-
+  // 렌더 분기 (early-return 없이 함수 선택만 — 끝에서 라하 깃발 append)
   const d = s.data;
   const cssMode = (d.css || '').trim().toLowerCase();
 
-  if (cssMode === 'baseline' || cssMode === 'baseline2') {
+  if (s.type === 'nass') {
+    renderNass(s);
+  } else if (cssMode === 'baseline' || cssMode === 'baseline2') {
     renderBaseline(s, { noLine: cssMode === 'baseline2' });
-    updateIndex(); return;
-  }
-  if (cssMode === 'write')    { renderWrite(s);    updateIndex(); return; }
-  if (cssMode === 'dongol')   { renderDongol(s);   updateIndex(); return; }
-  if (cssMode === 'sentence' || cssMode === 'nom') {
+  } else if (cssMode === 'write') {
+    renderWrite(s);
+  } else if (cssMode === 'dongol') {
+    renderDongol(s);
+  } else if (cssMode === 'sentence' || cssMode === 'nom') {
     renderSentence(s);
-    updateIndex(); return;
+  } else if (cssMode === 'svo') {
+    renderSvo(s);
+  } else {
+    renderNormal(s);
   }
-  if (cssMode === 'svo')      { renderSvo(s);      updateIndex(); return; }
 
-  renderNormal(s);
+  appendLahjaBlock(s);  // 라하 깃발 — 1.4.4와 동일 (음가 밑)
   updateIndex();
 }
 
@@ -1192,6 +1216,7 @@ function toggleMeaning() {
   const op = meaningVisible ? '1' : '0';
   if (s.type === 'nass') {
     renderNass(s);
+    appendLahjaBlock(s);  // 라하 깃발 재부착
   } else {
     document.querySelectorAll('#text-area .korean, #text-area .note, #text-area .sentence-kr, #text-area .svo-translation, #text-area .nass-korean-hint').forEach(el => {
       el.style.opacity = op;
@@ -1220,7 +1245,10 @@ function toggleNass() {
   nassTextVisible = !nassTextVisible;
   document.getElementById('btn-nass').classList.toggle('active', nassTextVisible);
   const s = slides[current];
-  if (s?.type === 'nass') renderNass(s);
+  if (s?.type === 'nass') {
+    renderNass(s);
+    appendLahjaBlock(s);  // 라하 깃발 재부착
+  }
 }
 
 function toggleSidebar() {
