@@ -146,6 +146,18 @@ body {
 }
 .highlight-text { color: var(--accent); font-weight: bold; }
 
+/* 명사문(nominal) 구분자 — css = 'nom' 행의 `|` */
+.nom-divider {
+  display: inline-block;
+  color: var(--sub);
+  opacity: 0.4;
+  font-size: 0.55em;
+  font-weight: 200;
+  margin: 0 0.5em;
+  vertical-align: 0.2em;
+  user-select: none;
+}
+
 /* ── 나스 슬라이드 ── */
 .nass-prompt {
   display: flex; flex-direction: column;
@@ -465,6 +477,11 @@ function parseText(str) {
     .replace(/\*([^*\n]+)\*/g, '<span class="highlight-text">$1</span>');
 }
 
+// 명사문 구분자 — `css = 'nom'` 행의 `|`를 옅은 회색 분리자로
+function applyNomDivider(html) {
+  return html.replace(/\s*\|\s*/g, '<span class="nom-divider">|</span>');
+}
+
 // ── buildSlides ────────────────────────────────────────
 // baseUnit: 'P01', 'G00', 'A01' 등 (서브패턴 접미 없는 기본 식별자)
 async function buildSlides(baseUnit) {
@@ -573,13 +590,15 @@ function renderSlide() {
   const d = s.data;
   const isWriting = s.type === 'writing';
   const isSentence = /^[AG]/i.test(s.pg || '');
+  const isNom = (d.css || '').trim().toLowerCase() === 'nom';
+  const wrap = html => isNom ? applyNomDivider(html) : html;
   document.getElementById('arabic-area').innerHTML =
-    `<div class="arabic${isWriting ? ' arabic-writing' : ''}${isSentence ? ' arabic-sentence' : ''}">${parseText(d.arabic || '')}</div>`;
+    `<div class="arabic${isWriting ? ' arabic-writing' : ''}${isSentence ? ' arabic-sentence' : ''}">${wrap(parseText(d.arabic || ''))}</div>`;
 
   // 래퍼토리: 해석 항상 표시 / 그 외: 전역 meaningVisible 상태 따름
   const op = (s.type === 'repertory' || meaningVisible) ? '1' : '0';
   document.getElementById('text-area').innerHTML = `
-    <div class="korean" style="opacity:${op}">${parseText(d.korean || '')}</div>
+    <div class="korean" style="opacity:${op}">${wrap(parseText(d.korean || ''))}</div>
     ${d.note ? `<div class="note" style="opacity:${op}">${parseText(d.note)}</div>` : ''}
   `;
 
@@ -591,10 +610,12 @@ function renderNass(s) {
   const sual = d.sual || '';
   // sual 없으면 arabic 바로 표시, 있으면 T로 토글
   const showArabic = nassTextVisible || !sual;
+  const isNom = (d.css || '').trim().toLowerCase() === 'nom';
+  const wrap = html => isNom ? applyNomDivider(html) : html;
 
   const nassTextHtml = `
     <div class="nass-arabic-wrap">
-      <div class="arabic" dir="rtl">${parseText(d.arabic || '')}</div>
+      <div class="arabic" dir="rtl">${wrap(parseText(d.arabic || ''))}</div>
     </div>`;
 
   const promptHtml = `<div class="nass-prompt"></div>`;
@@ -604,7 +625,7 @@ function renderNass(s) {
 
   const op = meaningVisible ? '1' : '0';
   document.getElementById('text-area').innerHTML = `
-    ${d.korean ? `<div class="nass-korean-hint" style="opacity:${op}">${parseText(d.korean)}</div>` : ''}
+    ${d.korean ? `<div class="nass-korean-hint" style="opacity:${op}">${wrap(parseText(d.korean))}</div>` : ''}
     ${d.note ? `<div class="note" style="opacity:${op}">${parseText(d.note)}</div>` : ''}
     ${sual ? `<div class="nass-sual-note">${parseText(sual)}</div>` : ''}
   `;

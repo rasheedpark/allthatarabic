@@ -236,6 +236,20 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
   background: rgba(13, 138, 127, 0.4);
   pointer-events: none;
 }
+/* css='baseline2' — 기준선 미표시 */
+.summary-pair-row.no-line .summary-baseline-line { display: none; }
+
+/* css='nom' — 명사문 구분자 (시작어 ‖ 서술어) */
+.nom-divider {
+  display: inline-block;
+  color: var(--text-sub);
+  opacity: 0.4;
+  font-size: 0.55em;
+  font-weight: 200;
+  margin: 0 0.5em;
+  vertical-align: 0.2em;
+  user-select: none;
+}
 
 /* 아랍어 글자 — 아이템 수에 비례 축소, 검은색 계열 */
 .summary-arabic-letter {
@@ -841,6 +855,11 @@ function parseText(str) {
     });
 }
 
+// \uBA85\uC0AC\uBB38 \uAD6C\uBD84\uC790 \u2014 `css = 'nom'` \uD589\uC758 `|`\uB97C \uC605\uC740 \uD68C\uC0C9 \uBD84\uB9AC\uC790\uB85C
+function applyNomDivider(html) {
+  return html.replace(/\s*\|\s*/g, '<span class="nom-divider">|</span>');
+}
+
 function getChoice(d, key) {
   return d['ch_' + key] || d['choice_' + key] || d[key] || '';
 }
@@ -1087,17 +1106,19 @@ function renderSummary(area, inner, s) {
     const isSep = ch => ch === '|' || ch === '<' || ch === '>';
     const romanLabels   = d.korean ? d.korean.trim().split(/\s+/).map(l => l.replace(/_/g, ' ')) : [];
 
-    if (cssMode === 'sentence') {
-      /* ── sentence 모드: 아랍어 한 문장을 통째로, 한국어 한 문장으로 ── */
+    if (cssMode === 'sentence' || cssMode === 'nom') {
+      /* ── sentence/nom 모드: 한 문장 통째로. nom이면 `|` 분리자 처리 ── */
+      const useNom = cssMode === 'nom';
+      const wrap = html => useNom ? applyNomDivider(html) : html;
       const arEl = document.createElement('div');
       arEl.className = 'summary-sentence-ar';
-      arEl.innerHTML = parseText(d.arabic);
+      arEl.innerHTML = wrap(parseText(d.arabic));
       header.appendChild(arEl);
 
       if (d.korean) {
         const krEl = document.createElement('div');
         krEl.className = 'summary-sentence-kr';
-        krEl.innerHTML = parseText(d.korean);
+        krEl.innerHTML = wrap(parseText(d.korean));
         header.appendChild(krEl);
       }
 
@@ -1141,20 +1162,24 @@ function renderSummary(area, inner, s) {
         header.appendChild(tr);
       }
 
-    } else if (cssMode === 'baseline') {
-      /* ── baseline 모드: 글자+음가 쌍 컬럼 + 기준선 ── */
+    } else if (cssMode === 'baseline' || cssMode === 'baseline2') {
+      /* ── baseline / baseline2 모드: 글자+음가 쌍 컬럼 (baseline2는 기준선 미표시) ── */
+      const noLine = cssMode === 'baseline2';
       const pairRow = document.createElement('div');
-      pairRow.className = 'summary-pair-row';
+      pairRow.className = 'summary-pair-row' + (noLine ? ' no-line' : '');
 
       // baseline 앵커
       const anchor = document.createElement('span');
       anchor.className = 'summary-baseline-anchor';
       pairRow.appendChild(anchor);
 
-      // baseline 선
-      const baseLine = document.createElement('div');
-      baseLine.className = 'summary-baseline-line';
-      pairRow.appendChild(baseLine);
+      // baseline 선 — baseline2면 생성 안 함
+      let baseLine = null;
+      if (!noLine) {
+        baseLine = document.createElement('div');
+        baseLine.className = 'summary-baseline-line';
+        pairRow.appendChild(baseLine);
+      }
 
       // 글자+음가 쌍 (RTL: row-reverse, | < > 는 구분자로 처리)
       let labelIdx = 0;
@@ -1185,8 +1210,9 @@ function renderSummary(area, inner, s) {
       pairRow.style.setProperty('--items', letterCount0);
       header.appendChild(pairRow);
 
-      // 오버플로 보정 후 baseline 선 위치 계산
+      // 오버플로 보정 후 baseline 선 위치 계산 (baseline2면 선 측정 스킵)
       fitRow(pairRow, () => {
+        if (!baseLine) return;
         const rowRect    = pairRow.getBoundingClientRect();
         const anchorRect = anchor.getBoundingClientRect();
         if (rowRect.height > 0)
