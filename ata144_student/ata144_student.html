@@ -171,8 +171,21 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; }
 }
 .hl-bold { font-weight:700; color:var(--accent); }
 
+/* 명사문(nominal) 구분자 — css = 'nom' 행의 `|` */
+.nom-divider {
+  display:inline-block;
+  color:var(--sub);
+  opacity:0.4;
+  font-size:0.55em;
+  font-weight:200;
+  margin:0 0.5em;
+  vertical-align:0.2em;
+  user-select:none;
+}
+
 /* ── baseline 모드: CSS Grid 정렬 ── */
 .bl-wrap { position:relative; width:100%; }
+.bl-wrap.no-line .bl-line { display:none; }  /* css='baseline2' — 기준선 미표시 */
 .bl-line {
   position:absolute; left:0; right:0; height:1.5px;
   background:rgba(29,73,255,0.3); pointer-events:none; z-index:0;
@@ -596,6 +609,12 @@ function parseText(str) {
     );
 }
 
+// 명사문 구분자 — `css = 'nom'` 행의 `|`를 옅은 회색 분리자로
+function applyNomDivider(html) {
+  return html.replace(/\s*\|\s*/g, '<span class="nom-divider">|</span>');
+}
+const isNomRow = r => (r?.css || '').trim().toLowerCase() === 'nom';
+
 function encodeAudioPart(value) {
   return encodeURIComponent(String(value).normalize('NFD')).replace(/%2C/gi, ',');
 }
@@ -732,8 +751,9 @@ function renderContent(area, s) {
     : '');
   inner.appendChild(tag);
 
-  const cssMode = (s.data.css||'').trim();
-  if (cssMode === 'baseline')  renderBaseline(inner, s);
+  const cssMode = (s.data.css||'').trim().toLowerCase();
+  if (cssMode === 'baseline' || cssMode === 'baseline2')
+                               renderBaseline(inner, s, { noLine: cssMode === 'baseline2' });
   else if (s.type === 'nass')  renderNass(inner, s);
   else if (s.type === 'ptn')   renderPtn(inner, s);
   else                         renderNormal(inner, s);
@@ -741,7 +761,8 @@ function renderContent(area, s) {
 
 /* ━━━━ baseline 모드: 1행 글자 + 2행 라벨 정렬 ━━━━ */
 /* ━━━━ baseline 모드: CSS Grid 정렬 ━━━━ */
-function renderBaseline(inner, s) {
+function renderBaseline(inner, s, opts = {}) {
+  const noLine = !!opts.noLine;  // css='baseline2'면 가로 기준선 미표시
   const d = s.data;
   // | 를 필터링한 토큰 목록
   const tokens = (d.arabic||'').trim().split(/\s+/).filter(t => t && t !== '|');
@@ -751,11 +772,13 @@ function renderBaseline(inner, s) {
     : [];
 
   const wrap = document.createElement('div');
-  wrap.className = 'bl-wrap';
+  wrap.className = 'bl-wrap' + (noLine ? ' no-line' : '');
 
-  const line = document.createElement('div');
-  line.className = 'bl-line';
-  wrap.appendChild(line);
+  const line = noLine ? null : document.createElement('div');
+  if (line) {
+    line.className = 'bl-line';
+    wrap.appendChild(line);
+  }
 
   const grid = document.createElement('div');
   grid.className = 'bl-grid';
@@ -793,7 +816,7 @@ function renderBaseline(inner, s) {
       grid.style.transformOrigin = 'center top';
     }
     requestAnimationFrame(() => {
-      if (!grid.isConnected || !firstLetter) return;
+      if (!grid.isConnected || !firstLetter || !line) return;
       const probe = document.createElement('span');
       probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;overflow:hidden;';
       firstLetter.appendChild(probe);
@@ -818,16 +841,18 @@ function renderBaseline(inner, s) {
 /* ━━━━ 일반 슬라이드 ━━━━ */
 function renderNormal(inner, s) {
   const d = s.data;
+  const nom = isNomRow(d);
+  const wrap = h => nom ? applyNomDivider(h) : h;
   const arEl = document.createElement('div');
   arEl.className = 'arabic-text';
-  arEl.innerHTML = parseText(d.arabic||'');
+  arEl.innerHTML = wrap(parseText(d.arabic||''));
   inner.appendChild(arEl);
   fitArabic(arEl);
 
   if (d.korean) {
     const kr = document.createElement('div');
     kr.className = 'korean-text';
-    kr.innerHTML = parseText(d.korean);
+    kr.innerHTML = wrap(parseText(d.korean));
     inner.appendChild(kr);
   }
   const noteText = d.note || d.transliteration || '';
@@ -842,12 +867,14 @@ function renderNormal(inner, s) {
 /* ━━━━ ptn 슬라이드 ━━━━ */
 function renderPtn(inner, s) {
   const d = s.data;
+  const nom = isNomRow(d);
+  const wrap = h => nom ? applyNomDivider(h) : h;
 
   // 아랍어
   if (d.arabic) {
     const arEl = document.createElement('div');
     arEl.className = 'arabic-text';
-    arEl.innerHTML = parseText(d.arabic);
+    arEl.innerHTML = wrap(parseText(d.arabic));
     inner.appendChild(arEl);
     fitArabic(arEl);
   }
@@ -856,7 +883,7 @@ function renderPtn(inner, s) {
   if (d.korean) {
     const kr = document.createElement('div');
     kr.className = 'korean-text';
-    kr.innerHTML = parseText(d.korean);
+    kr.innerHTML = wrap(parseText(d.korean));
     inner.appendChild(kr);
   }
 
@@ -922,6 +949,8 @@ function renderPtnDesc(text, container) {
 function renderNass(inner, s) {
   const d = s.data;
   const sual = d.sual || '';
+  const nom = isNomRow(d);
+  const nomWrap = h => nom ? applyNomDivider(h) : h;
 
   // 나스 지문 버튼 + 내용
   if (sual) {
@@ -936,7 +965,7 @@ function renderNass(inner, s) {
       wrap.className = 'passage-wrap';
       const ar = document.createElement('div');
       ar.className = 'nass-arabic';
-      ar.innerHTML = parseText(d.arabic);
+      ar.innerHTML = nomWrap(parseText(d.arabic));
       wrap.appendChild(ar);
       inner.appendChild(wrap);
     }
@@ -950,7 +979,7 @@ function renderNass(inner, s) {
     if (d.arabic) {
       const ar = document.createElement('div');
       ar.className = 'nass-arabic';
-      ar.innerHTML = parseText(d.arabic);
+      ar.innerHTML = nomWrap(parseText(d.arabic));
       inner.appendChild(ar);
     }
   }
@@ -958,7 +987,7 @@ function renderNass(inner, s) {
   if (d.korean) {
     const kr = document.createElement('div');
     kr.className = 'nass-hint korean-text';
-    kr.innerHTML = parseText(d.korean);
+    kr.innerHTML = nomWrap(parseText(d.korean));
     inner.appendChild(kr);
   }
   if (d.note) {
