@@ -215,6 +215,17 @@ body {
 }
 .highlight-text { color: var(--accent); font-weight: bold; }
 
+/* ── 명사문 구분자 (`css = 'nom'`) — 시작어 ‖ 서술어 ── */
+.nom-divider {
+  display: inline-block;
+  color: var(--sub);
+  opacity: 0.45;
+  font-weight: 300;
+  margin: 0 0.35em;
+  vertical-align: baseline;
+  user-select: none;
+}
+
 /* ── 드릴B 빈칸 (*X* 가리기) — 글자 자체는 안 보이게, 박스만 노출 ── */
 .drill-blank {
   display: inline;  /* ⚠️ inline 필수 — inline-block은 Arabic shaping 끊김 */
@@ -1179,6 +1190,11 @@ function parseDrillBlank(str) {
     .replace(/\*([^*\n]+)\*/g, '<span class="drill-blank">$1</span>');
 }
 
+// ── applyNomDivider — `css = 'nom'` 명사문 구분자: `|` → 옅은 회색 분리자
+function applyNomDivider(html) {
+  return html.replace(/\s*\|\s*/g, '<span class="nom-divider">|</span>');
+}
+
 // ── buildSlides ────────────────────────────────────────
 async function buildSlides(baseUnit) {
   slides = [];
@@ -1509,16 +1525,25 @@ function renderSlide() {
   const isWriting = s.type === 'writing';
   const isSentence = /^[AG]/i.test(s.pg || '');
   const isDrillB   = s.type === 'drillb';
+  const isNom      = cssMode === 'nom';
   const parseAr = isDrillB ? parseDrillBlank : parseText;  // 드릴B는 *X* 가리기
   const arOp = arabicVisible ? '1' : '0';
+  let arHtml = parseAr(d.arabic || '');
+  if (isNom) arHtml = applyNomDivider(arHtml);  // 명사문: `|`를 옅은 분리자로
   document.getElementById('arabic-area').innerHTML =
-    `<div class="arabic${isWriting ? ' arabic-writing' : ''}${isSentence ? ' arabic-sentence' : ''}" style="opacity:${arOp};transition:opacity 0.3s;">${parseAr(d.arabic || '')}</div>`;
+    `<div class="arabic${isWriting ? ' arabic-writing' : ''}${isSentence ? ' arabic-sentence' : ''}" style="opacity:${arOp};transition:opacity 0.3s;">${arHtml}</div>`;
 
   const op = meaningVisible ? '1' : '0';
   const noteText = d.note || d.transliteration || '';
+  let koHtml = parseText(d.korean || '');
+  let noteHtml = parseAr(noteText);
+  if (isNom) {
+    koHtml = applyNomDivider(koHtml);
+    noteHtml = applyNomDivider(noteHtml);
+  }
   document.getElementById('text-area').innerHTML = `
-    <div class="korean" style="opacity:${op}">${parseText(d.korean || '')}</div>
-    ${noteText ? `<div class="note" style="opacity:1">${parseAr(noteText)}</div>` : ''}
+    <div class="korean" style="opacity:${op}">${koHtml}</div>
+    ${noteText ? `<div class="note" style="opacity:1">${noteHtml}</div>` : ''}
     ${lahjaBlockHtml}
   `;
 

@@ -842,8 +842,11 @@ URL 풀패스: `https://storage.googleapis.com/all-that-arabic-14/img/{파일명
 | `_..._` (박스 강조) | `<span class="hl-box-inline">` 박스 | **제거** (다이아크리틱 클립 회피) |
 | `*...*` (색 강조) | `<span class="hl-text">` 색 강조 | `<span class="hl-text">` 색 강조 (유지) |
 | `\n` (줄바꿈) | 모든 곳에서 `<br>`로 변환 | (셀에는 보통 등장 안 함) |
+| `\|` (수직 막대, `css = 'nom'` 행만) | 명사문 시작어 ‖ 서술어 사이 — `<span class="nom-divider">\|</span>` 옅은 회색 분리자 | (셀에서도 동일 적용) |
 
 박스 강조(`_..._`)가 sukoon/diacritic이 있는 아랍어 글자(예: `بْ`)에서 윗 점/마크를 잘라먹는 문제 때문에 셀에서는 비활성. 색 강조(`*...*`)는 시각적으로 안전해 모든 곳에서 유지.
+
+`|`는 `css = 'nom'` (명사문, الجملة الاسمية) 행에서만 분리자로 치환된다. 다른 행에서는 그대로 표시. 자세한 사양·CSS는 [`product-ata144-design.md`](product-ata144-design.md) §8.3.7 참고.
 
 ---
 

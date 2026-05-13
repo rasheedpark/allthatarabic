@@ -174,6 +174,16 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   position:relative;
 }
 .hl-text { color:var(--hl-text); font-weight:inherit; }
+/* 명사문 구분자 (`css = 'nom'`) — 시작어 ‖ 서술어 */
+.nom-divider {
+  display:inline-block;
+  color:var(--sub);
+  opacity:.45;
+  font-weight:300;
+  margin:0 .35em;
+  vertical-align:baseline;
+  user-select:none;
+}
 .m-trans .hl-text,
 .m-ko .hl-text,
 .m-summary .hl-text { font-weight:700; }
@@ -850,6 +860,12 @@ function parseDrillBlank(str) {
     .replace(/\*([^*\n]+)\*/g,'<span class="m-blank">$1</span>');
 }
 
+// 명사문 구분자 — `css = 'nom'` 행의 `|`를 옅은 회색 분리자로
+function applyNomDivider(html) {
+  return html.replace(/\s*\|\s*/g, '<span class="nom-divider">|</span>');
+}
+const isNomRow = r => (r.css || '').trim().toLowerCase() === 'nom';
+
 function getRowId(r) {
   return r.id_unit || r['id_ptn(no)'] || r.id_ptn || r.id_drill ||
     r.id_rep || r.id_repertory || r.id_kalimat || r.id_expression || r.id_nass || '';
@@ -1185,6 +1201,7 @@ function renderCard(row) {
     sc.innerHTML = parseInline(row.script);
     el.appendChild(sc);
   }
+  if (isNomRow(row)) el.innerHTML = applyNomDivider(el.innerHTML);  // 명사문 `|` → 분리자
   return el;
 }
 
@@ -1223,6 +1240,7 @@ function renderPatternCard(row) {
     sm.innerHTML = renderScriptLines(summary);
     el.appendChild(sm);
   }
+  if (isNomRow(row)) el.innerHTML = applyNomDivider(el.innerHTML);  // 명사문 `|` → 분리자
   return el;
 }
 
@@ -1272,6 +1290,7 @@ function renderGridTable(rows, className = 'm-drill-table', blanks = false, cols
       html += `<span class="dc-ko m-ko">${parseInline(r.korean)}</span>`;
     }
     cell.innerHTML = html;
+    if (isNomRow(r)) cell.innerHTML = applyNomDivider(cell.innerHTML);  // 명사문 셀
     cell.querySelector('.tap-audio')?.addEventListener('click', e => playAudio(r, e.currentTarget));
     grid.appendChild(cell);
   });
@@ -1291,6 +1310,7 @@ function renderPairRow(r, blanks = false) {
       <div class="m-ar-line"><div class="m-row-ar tap-audio">${ar}</div>${flagsHtml}</div>
       <div class="m-row-trans m-trans">${tr}</div>
     </div>`;
+  if (isNomRow(r)) row.innerHTML = applyNomDivider(row.innerHTML);  // 명사문 행
   row.querySelector('.tap-audio')?.addEventListener('click', e => playAudio(r, e.currentTarget));
   return row;
 }

@@ -531,6 +531,51 @@ drillB 등에서 학생이 채워야 할 부분을 빈칸으로 표시. **글자
 
 > **금지** — `color: transparent` + `background: #E7EBF2` 직접 적용 + `padding: 0 3px` 패턴은 데스크탑에서 OK처럼 보여도 iOS에서 깨짐.
 
+### 8.3.7 `css = 'nom'` (명사문 — 주어 ‖ 서술어 구분)
+
+명사문(الجملة الاسمية, nominal sentence) 구조 — 동사 없이 **시작어(주어, مبتدأ)** + **서술어(خبر)** 로 이루어진 문장에서 두 구분을 시각적으로 미세하게 분리.
+
+**데이터 형식**: 시트 `arabic` 컬럼(필요 시 `note`/한국어도)에 **`|`** 문자로 두 구분 사이를 표시.
+
+```
+أَنَا | طَالِب              ← arabic
+anā | ṭālib                 ← note (선택)
+나는 | 학생입니다              ← korean (선택)
+```
+
+`css = 'nom'`이면 렌더 시 `|`가 옅은 회색 세로 분리자로 치환된다 — 강한 시각 단절을 피하면서 두 구분의 경계를 인지할 수 있게.
+
+**렌더 결과**:
+```html
+أَنَا<span class="nom-divider">|</span>طَالِب
+```
+
+```css
+.nom-divider {
+  display: inline-block;
+  color: var(--sub);
+  opacity: 0.4;
+  font-weight: 300;
+  margin: 0 0.35em;
+  vertical-align: baseline;
+  user-select: none;
+}
+```
+
+**적용 산출물**: 모든 산출물 (교재 인쇄·교재앱·학생앱·선생님앱)에 동일 처리. 인쇄 교재에서는 `|`가 잘 보이도록 `opacity: 0.5`로 살짝 진하게 가능.
+
+**구현 패턴**:
+```js
+function applyNomDivider(html) {
+  return html.replace(/\s*\|\s*/g, '<span class="nom-divider">|</span>');
+}
+// 슬라이드 렌더 시
+let arHtml = parseText(d.arabic || '');
+if (cssMode === 'nom') arHtml = applyNomDivider(arHtml);
+```
+
+**baseline과의 충돌 없음**: baseline 데이터의 `|`(토큰 구분자)는 `css = 'baseline'` 분기에서 별도 splitter로 처리되어 `nom-divider`와 만나지 않는다.
+
 ### 8.4 `css = 'five'` (5열 모드 — 드릴·레퍼토리)
 
 좁은 5열 셀 레이아웃. 모바일에서는 4열로 자동 전환.
@@ -645,3 +690,8 @@ body.book-view #book-root { display: flex; flex-direction: column; align-items: 
   - 오디오 신구조: `listening144/{id}.mp3` 폐기 → `audio/{유닛코드}/{id}.{mp3|wav}`, mp3 우선 → wav 폴백
   - 드릴B `*X*` 가리기: 선생님앱(슬라이드 형식)에서 `color: transparent` + `-webkit-text-fill-color: transparent` + 박스 alpha 0.14 (기존 0.08 대비 진하기 강화 — 글자 윤곽이 비치던 문제 해결)
   - `css` 코드 처리: 선생님앱은 `baseline`/`write`만 분기, `five`/`two`/`ab`/`c` 등은 무시 (일반 슬라이드로)
+
+- **2026-05-13**: 새 `css` 값 정의 — `nom` (명사문 — 주어 ‖ 서술어 구분)
+  - 8.3.7 절 신규 — 데이터 형식(`|`로 두 구분), `.nom-divider` CSS, `applyNomDivider` 헬퍼 패턴
+  - 1.4.3에서 먼저 정의, 1.4.4에 동일 적용 (모든 산출물 — 교재 인쇄·교재앱·학생앱·선생님앱)
+  - 선생님앱 추가 fix: 라하 깃발을 ui-tr에서 메인 콘텐츠 음가 밑으로 옮김(멀티 라하 지원), `getRowId`에 `id_rep` 추가(예문 오디오 살림), 나스 한국어/음가 사이즈 키움(`.nass-korean-hint` 0.65~0.9rem → 0.9~1.6rem, `.nass-note` 0.65~0.82rem → 0.85~1.4rem)
