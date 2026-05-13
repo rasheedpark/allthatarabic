@@ -91,6 +91,7 @@ body {
 
 /* ── baseline 모드: CSS Grid 정렬 ── */
 .bl-wrap { position:relative; width:100%; }
+.bl-wrap.no-line .bl-line { display:none; }  /* css='baseline2' — 기준선 미표시 */
 .bl-line {
   position:absolute; left:0; right:0; height:1.5px;
   background:rgba(29,73,255,0.3); pointer-events:none; z-index:0;
@@ -1513,8 +1514,8 @@ function renderSlide() {
   const d = s.data;
   const cssMode = (d.css||'').trim();
 
-  if (cssMode === 'baseline') {
-    renderBaseline(s);
+  if (cssMode === 'baseline' || cssMode === 'baseline2') {
+    renderBaseline(s, { noLine: cssMode === 'baseline2' });
     updateIndex(); return;
   }
 
@@ -1551,7 +1552,8 @@ function renderSlide() {
   updateIndex();
 }
 
-function renderBaseline(s) {
+function renderBaseline(s, opts = {}) {
+  const noLine = !!opts.noLine;  // css='baseline2'면 가로 기준선 미표시
   const d = s.data;
   // 1줄: 단일 글자 / 2줄: 위치별 연결형 (둘 다 `|` 또는 공백으로 토큰 구분)
   const splitTokens = line => {
@@ -1571,11 +1573,14 @@ function renderBaseline(s) {
   arabicArea.style.cssText = `opacity:${arOp};transition:opacity 0.3s;`;
 
   const wrap = document.createElement('div');
-  wrap.className = 'bl-wrap';
+  wrap.className = 'bl-wrap' + (noLine ? ' no-line' : '');
 
-  const line = document.createElement('div');
-  line.className = 'bl-line';
-  wrap.appendChild(line);
+  let line = null;
+  if (!noLine) {
+    line = document.createElement('div');
+    line.className = 'bl-line';
+    wrap.appendChild(line);
+  }
 
   const grid = document.createElement('div');
   grid.className = 'bl-grid';
@@ -1613,7 +1618,7 @@ function renderBaseline(s) {
   wrap.appendChild(grid);
   arabicArea.appendChild(wrap);
 
-  // 오버플로 축소 + baseline 선 위치
+  // 오버플로 축소 + baseline 선 위치 (noLine이면 선 측정 스킵)
   requestAnimationFrame(() => {
     if (!grid.isConnected) return;
     const avail = (arabicArea.clientWidth ?? 0) - 48;
@@ -1623,17 +1628,19 @@ function renderBaseline(s) {
       grid.style.transform = `scale(${sc.toFixed(4)})`;
       grid.style.transformOrigin = 'center top';
     }
-    requestAnimationFrame(() => {
-      if (!grid.isConnected || !firstLetter) return;
-      const probe = document.createElement('span');
-      probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;overflow:hidden;';
-      firstLetter.appendChild(probe);
-      const wrapRect  = wrap.getBoundingClientRect();
-      const probeRect = probe.getBoundingClientRect();
-      probe.remove();
-      if (wrapRect.height > 0)
-        line.style.top = (probeRect.bottom - wrapRect.top) + 'px';
-    });
+    if (line) {
+      requestAnimationFrame(() => {
+        if (!grid.isConnected || !firstLetter) return;
+        const probe = document.createElement('span');
+        probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;overflow:hidden;';
+        firstLetter.appendChild(probe);
+        const wrapRect  = wrap.getBoundingClientRect();
+        const probeRect = probe.getBoundingClientRect();
+        probe.remove();
+        if (wrapRect.height > 0)
+          line.style.top = (probeRect.bottom - wrapRect.top) + 'px';
+      });
+    }
   });
 
   document.getElementById('text-area').innerHTML = '';

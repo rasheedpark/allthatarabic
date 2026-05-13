@@ -677,6 +677,7 @@ https://storage.googleapis.com/all-that-arabic-14/audio/{unit_code}/{id}.mp3
     - 가운데 정렬, 우→좌 흐름 (`direction: rtl`)
     - 글자 아래에 음가 라벨 (plain text, font-weight 400)
     - 글자 baseline 위치에 가로 기준선 — JS probe로 첫 글자의 baseline 측정해서 동적 위치
+  - **baseline2 패턴** (`pattern.css = 'baseline2'`): baseline과 완전 동일한 표 + **가로 기준선만 미표시** (사양 [§8.2.5](product-ata144-design.md))
   - 스크립트 시맨틱 마크업: 단락은 `<p>`, 불릿(`-`로 시작)은 `<ul><li>`로 변환. 인라인 아랍어 토큰은 `.ar-tok` 클래스로 폰트/방향 자동 처리
 
 - **래퍼토리 카드** (흰색 박스, 본문 카드와 가로 폭 동일)

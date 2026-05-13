@@ -465,6 +465,35 @@ A01~A06, G 시리즈 등 알파벳/그룹 글자를 **3행 표**(글자 / 위치
 
 **baseline 가로선 동적 정렬**: 폰트 로드 후(`document.fonts.ready`) 첫 `.bl-letter`에 `vertical-align: baseline` 프로브를 일시 삽입해 baseline y좌표 측정 → `.bl-line.style.top` 동적 설정. 폭 오버플로 시 `transform: scale()` 자동 축소.
 
+### 8.2.5 `css = 'baseline2'` — 기준선 없는 표
+
+`baseline`과 **완전히 동일한 3행 표** (글자 / 위치별 연결형 / 음가 라벨)이되 **가로 기준선(`.bl-line`)만 그리지 않는다**. 기준선이 시각적으로 부담스럽거나 학습 목적상 baseline 정렬을 강조하지 않는 페이지에서 사용 (예: 단순 글자 나열, 모음/하라카 조합 표, 후반 챕터의 단어 그룹 등).
+
+**데이터 형식**: `baseline`과 동일 (`pattern.arabic`에 `|` 또는 공백으로 토큰 분리, `note` 컬럼은 음가).
+
+**구현 옵션 (둘 다 허용)**:
+1. **마커 클래스 방식**: 동일한 `renderBaseline()` 함수 호출 + `wrap`에 `.no-line` 클래스 부여 → CSS로 `.bl-line` 숨김
+   ```css
+   .bl-wrap.no-line .bl-line { display: none; }
+   ```
+2. **조건부 div 생성**: `renderBaseline(s, { noLine: true })`로 `.bl-line` div 자체를 안 만들고 `top` 측정 로직도 스킵 (성능 살짝 유리)
+
+선택은 산출물별 자유 — 시각 결과는 동일. 선생님앱·교재앱은 보통 (1) 마커 방식이 간단.
+
+**렌더 결과** (예: `baseline2` 5칸):
+```html
+<div class="bl-wrap no-line">
+  <!-- .bl-line 없음 -->
+  <div class="bl-grid has-triple" style="--items: 5">
+    <!-- 글자 / 연결형 / 라벨 — baseline과 동일 -->
+  </div>
+</div>
+```
+
+**baseline ↔ baseline2 선택 기준**:
+- `baseline`: 알파벳 입문, baseline 정렬 자체가 학습 포인트일 때 (예: A01~A06 챕터 0)
+- `baseline2`: 글자가 이미 익숙해진 단계, 또는 표가 다른 메인 콘텐츠 옆에 부수적으로 들어가 가로선이 시각 노이즈가 될 때
+
 ### 8.3 `css = 'write'` (쓰기 애니메이션 — 선생님용 전용)
 
 획 단위 와이프 애니메이션으로 글자가 그려지는 효과. Dongol 폰트 사용.
@@ -696,3 +725,8 @@ body.book-view #book-root { display: flex; flex-direction: column; align-items: 
   - 8.3.7 절 신규 — 데이터 형식(`|`로 두 구분), `.nom-divider` CSS, `applyNomDivider` 헬퍼 패턴
   - 1.4.3에서 먼저 정의, 1.4.4에 동일 적용 (모든 산출물 — 교재 인쇄·교재앱·학생앱·선생님앱)
   - 선생님앱 추가 fix: 라하 깃발을 ui-tr에서 메인 콘텐츠 음가 밑으로 옮김(멀티 라하 지원), `getRowId`에 `id_rep` 추가(예문 오디오 살림), 나스 한국어/음가 사이즈 키움(`.nass-korean-hint` 0.65~0.9rem → 0.9~1.6rem, `.nass-note` 0.65~0.82rem → 0.85~1.4rem)
+
+- **2026-05-13 (추가)**: 새 `css` 값 정의 — `baseline2` (기준선 없는 baseline)
+  - 8.2.5 절 신규 — baseline과 동일 구조 (3행 표), 가로선만 숨김. `.bl-wrap.no-line .bl-line { display: none }` 또는 line div 자체 생성 안 함
+  - 1.4.3 / 1.4.4 양쪽에 적용 — 모든 산출물 (교재 인쇄·교재앱·학생앱·선생님앱)
+  - 사용 케이스: 후반 챕터, 모음/하라카 조합 표 등 baseline 정렬 강조가 불필요한 페이지

@@ -550,6 +550,7 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   height:1.5px; background:rgba(29,73,255,.22);
   pointer-events:none;
 }
+.m-baseline.no-line .m-bl-grid::after { display:none; }  /* css='baseline2' — 기준선 미표시 */
 .m-bl-cell {
   flex:0 0 calc(100% / 6);
   display:flex;
@@ -1209,10 +1210,12 @@ function renderCard(row) {
 function renderPatternCard(row) {
   const el = document.createElement('div');
   el.className = 'm-card pattern';
-  const isBaseline = (row.css || '').trim() === 'baseline';
+  const cssVal = (row.css || '').trim().toLowerCase();
+  const isBaseline = cssVal === 'baseline' || cssVal === 'baseline2';
+  const noLine = cssVal === 'baseline2';
 
   if (isBaseline) {
-    el.appendChild(renderBaseline(row));
+    el.appendChild(renderBaseline(row, { noLine }));
   } else if (row.arabic) {
     const ar = document.createElement('div');
     ar.className = 'm-ar tap-audio';
@@ -1389,9 +1392,10 @@ function renderNassPage(wrap, cards) {
   });
 }
 
-function renderBaseline(row) {
+function renderBaseline(row, opts = {}) {
+  const noLine = !!opts.noLine;  // css='baseline2'면 가로 기준선 미표시
   const wrap = document.createElement('div');
-  wrap.className = 'm-baseline';
+  wrap.className = 'm-baseline' + (noLine ? ' no-line' : '');
   const grid = document.createElement('div');
   grid.className = 'm-bl-grid';
   const lines = String(row.arabic || '').split(/\n+/);
