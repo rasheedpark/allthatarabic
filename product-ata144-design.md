@@ -555,9 +555,10 @@ anā | ṭālib                 ← note (선택)
   display: inline-block;
   color: var(--sub);
   opacity: 0.4;
-  font-weight: 300;
-  margin: 0 0.35em;
-  vertical-align: baseline;
+  font-size: 0.55em;     /* 부모 폰트의 55% — 세로 길이 작게 */
+  font-weight: 200;      /* 얇게 (Extra Light) */
+  margin: 0 0.5em;
+  vertical-align: 0.2em; /* 살짝 위로 — 글자 중앙 부근 */
   user-select: none;
 }
 ```
