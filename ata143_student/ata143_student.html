@@ -93,6 +93,7 @@ body {
 
 /* ── baseline 모드: CSS Grid 정렬 ── */
 .bl-wrap { position:relative; width:100%; }
+.bl-wrap.no-line .bl-line { display:none; }  /* css='baseline2' — 기준선 미표시 */
 .bl-line {
   position:absolute; left:0; right:0; height:1.5px;
   background:rgba(29,73,255,0.3); pointer-events:none; z-index:0;
@@ -304,6 +305,18 @@ body {
   line-height: 1.3;
 }
 .highlight-text { color: var(--accent); font-weight: bold; }
+
+/* 명사문(nominal) 구분자 — css = 'nom' 행의 `|` */
+.nom-divider {
+  display: inline-block;
+  color: var(--sub);
+  opacity: 0.4;
+  font-size: 0.55em;
+  font-weight: 200;
+  margin: 0 0.5em;
+  vertical-align: 0.2em;
+  user-select: none;
+}
 
 /* ── 설명 블록 (summary desc) ── */
 .sum-body {
@@ -620,6 +633,12 @@ function parseText(str) {
     .replace(/\*([^*\n]+)\*/g, '<span class="highlight-text">$1</span>');
 }
 
+// 명사문 구분자 — `css = 'nom'` 행의 `|`를 옅은 회색 분리자로
+function applyNomDivider(html) {
+  return html.replace(/\s*\|\s*/g, '<span class="nom-divider">|</span>');
+}
+const isNomRow = r => (r?.css || '').trim().toLowerCase() === 'nom';
+
 // ── buildSlides ────────────────────────────────────────
 async function buildSlides(baseUnit) {
   slides = []; currentPg = baseUnit;
@@ -725,12 +744,18 @@ function renderSlide() {
   if (s.type === 'nass') { renderNass(s); updateIndex(); return; }
 
   const d = s.data;
-  const cssMode = (d.css || '').trim();
+  const cssMode = (d.css || '').trim().toLowerCase();
 
-  if (cssMode === 'baseline') { renderBaseline(s); updateIndex(); return; }
+  if (cssMode === 'baseline' || cssMode === 'baseline2') {
+    renderBaseline(s, { noLine: cssMode === 'baseline2' });
+    updateIndex(); return;
+  }
   if (cssMode === 'write')    { renderWrite(s);    updateIndex(); return; }
   if (cssMode === 'dongol')   { renderDongol(s);   updateIndex(); return; }
-  if (cssMode === 'sentence') { renderSentence(s); updateIndex(); return; }
+  if (cssMode === 'sentence' || cssMode === 'nom') {
+    renderSentence(s);
+    updateIndex(); return;
+  }
   if (cssMode === 'svo')      { renderSvo(s);      updateIndex(); return; }
 
   renderNormal(s);
@@ -738,7 +763,8 @@ function renderSlide() {
 }
 
 // ── renderBaseline ─────────────────────────────────────
-function renderBaseline(s) {
+function renderBaseline(s, opts = {}) {
+  const noLine = !!opts.noLine;  // css='baseline2'면 가로 기준선 미표시
   const d = s.data;
   const tokens = (d.arabic || '').trim().split(/\s+/).filter(t => t && t !== '|');
   const labelSrc = (d.korean || '').trim() || (d.note || '').trim();
@@ -752,11 +778,13 @@ function renderBaseline(s) {
   arabicArea.style.cssText = `opacity:${arOp};transition:opacity 0.3s;`;
 
   const wrap = document.createElement('div');
-  wrap.className = 'bl-wrap';
+  wrap.className = 'bl-wrap' + (noLine ? ' no-line' : '');
 
-  const line = document.createElement('div');
-  line.className = 'bl-line';
-  wrap.appendChild(line);
+  const line = noLine ? null : document.createElement('div');
+  if (line) {
+    line.className = 'bl-line';
+    wrap.appendChild(line);
+  }
 
   const grid = document.createElement('div');
   grid.className = 'bl-grid';
@@ -790,7 +818,7 @@ function renderBaseline(s) {
       grid.style.transformOrigin = 'center top';
     }
     requestAnimationFrame(() => {
-      if (!grid.isConnected || !firstLetter) return;
+      if (!grid.isConnected || !firstLetter || !line) return;
       const probe = document.createElement('span');
       probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;overflow:hidden;';
       firstLetter.appendChild(probe);
@@ -943,14 +971,16 @@ function renderSentence(s) {
   const arOp = arabicVisible ? '1' : '0';
   const unitPrefix = (d.id_datasheet || '').charAt(0).toUpperCase();
   const arClass = unitPrefix === 'A' ? 'sentence-ar sentence-a' : 'sentence-ar';
+  const nom = isNomRow(d);
+  const wrap = h => nom ? applyNomDivider(h) : h;
   document.getElementById('arabic-area').innerHTML =
-    `<div class="${arClass}" style="opacity:${arOp};transition:opacity 0.3s;">${parseText(d.arabic || '')}</div>`;
+    `<div class="${arClass}" style="opacity:${arOp};transition:opacity 0.3s;">${wrap(parseText(d.arabic || ''))}</div>`;
   fitArabicText(document.querySelector('#arabic-area .sentence-ar'));
 
   const op = meaningVisible ? '1' : '0';
   const desc = d.script || d.note || '';
   document.getElementById('text-area').innerHTML =
-    (d.korean ? `<div class="sentence-kr" style="opacity:${op}">${parseText(d.korean)}</div>` : '') +
+    (d.korean ? `<div class="sentence-kr" style="opacity:${op}">${wrap(parseText(d.korean))}</div>` : '') +
     (desc ? `<div class="sum-body" style="opacity:${op}">${renderSumDesc(desc)}</div>` : '');
 }
 
@@ -998,14 +1028,16 @@ function renderNormal(s) {
   const arOp = arabicVisible ? '1' : '0';
   const unitPrefix = (d.id_datasheet || '').charAt(0).toUpperCase();
   const arClass = unitPrefix === 'A' ? 'arabic arabic-a' : 'arabic';
+  const nom = isNomRow(d);
+  const wrap = h => nom ? applyNomDivider(h) : h;
   document.getElementById('arabic-area').innerHTML =
-    `<div class="${arClass}" style="opacity:${arOp};transition:opacity 0.3s;">${parseText(d.arabic || '')}</div>`;
+    `<div class="${arClass}" style="opacity:${arOp};transition:opacity 0.3s;">${wrap(parseText(d.arabic || ''))}</div>`;
   fitArabicText(document.querySelector('#arabic-area .' + arClass.split(' ')[0]));
 
   const op = meaningVisible ? '1' : '0';
   const noteText = d.note || d.transliteration || '';
   document.getElementById('text-area').innerHTML =
-    `<div class="korean" style="opacity:${op}">${parseText(d.korean || '')}</div>` +
+    `<div class="korean" style="opacity:${op}">${wrap(parseText(d.korean || ''))}</div>` +
     (noteText ? `<div class="note" style="opacity:1">${parseText(noteText)}</div>` : '');
 }
 
@@ -1014,10 +1046,12 @@ function renderNass(s) {
   const d = s.data;
   const sual = d.sual || '';
   const showArabic = nassTextVisible || !sual;
+  const nom = isNomRow(d);
+  const wrap = h => nom ? applyNomDivider(h) : h;
 
   const nassTextHtml = `
     <div class="nass-arabic-wrap">
-      <div class="arabic" dir="rtl">${parseText(d.arabic || '')}</div>
+      <div class="arabic" dir="rtl">${wrap(parseText(d.arabic || ''))}</div>
     </div>`;
 
   document.getElementById('arabic-area').innerHTML =
@@ -1025,7 +1059,7 @@ function renderNass(s) {
 
   const op = meaningVisible ? '1' : '0';
   document.getElementById('text-area').innerHTML =
-    (d.korean ? `<div class="nass-korean-hint" style="opacity:${op}">${parseText(d.korean)}</div>` : '') +
+    (d.korean ? `<div class="nass-korean-hint" style="opacity:${op}">${wrap(parseText(d.korean))}</div>` : '') +
     (d.note   ? `<div class="nass-note" style="opacity:${op}">${parseText(d.note)}</div>` : '') +
     (sual     ? `<div class="nass-sual-note">${parseText(sual)}</div>` : '');
 }
