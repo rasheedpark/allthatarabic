@@ -131,9 +131,10 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 }
 
 /* ── 아랍어 ── */
+/* 1.4.3 복습앱은 A01+ 문장이 길어서 1.4.4보다 ~30% 작게 — 슬라이드 1장에 한 문장이 안 잘리고 들어가도록 */
 .arabic-text {
   font-family: var(--font-ar);
-  font-size: clamp(3.5rem, 9cqi, 8.5rem);
+  font-size: clamp(2rem, 6.5cqi, 4rem);
   font-weight: 700;
   line-height: 1.6;
   text-align: center; direction: rtl;
@@ -141,12 +142,12 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 }
 .arabic-text.writing-font {
   font-family: 'Dongol', var(--font-ar);
-  font-size: clamp(2.5rem, 8cqi, 6rem);
+  font-size: clamp(1.6rem, 5.5cqi, 3.2rem);
   font-weight: normal;
 }
 /* 나스 지문: 문단 크기 */
 .arabic-text.nass-passage {
-  font-size: clamp(1rem, 3.5cqi, 1.7rem);
+  font-size: clamp(0.9rem, 3cqi, 1.4rem);
   font-weight: 400; line-height: 2;
 }
 
@@ -255,7 +256,7 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 /* 아랍어 글자 — 아이템 수에 비례 축소, 검은색 계열 */
 .summary-arabic-letter {
   font-family: var(--font-ar);
-  font-size: clamp(1.4rem, calc(62cqi / var(--items, 4)), 4.5rem);
+  font-size: clamp(1rem, calc(44cqi / var(--items, 4)), 3.2rem);
   font-weight: 700;
   color: var(--text);
   line-height: 1;
@@ -263,7 +264,7 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 .summary-arabic-letter.dongol-font {
   font-family: 'Dongol', var(--font-ar);
   font-weight: 400;
-  font-size: clamp(1.6rem, calc(62cqi / var(--items, 3)), 5rem);
+  font-size: clamp(1.15rem, calc(44cqi / var(--items, 3)), 3.5rem);
 }
 .dongol-token {
   display: inline-block;
@@ -321,7 +322,7 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 /* ── sentence 모드: 아랍어 문장 + 한국어 문장 (대표문장 헤더) ── */
 .summary-sentence-ar {
   font-family: var(--font-ar);
-  font-size: clamp(1.7rem, 4.5cqi, 2.6rem);
+  font-size: clamp(1.25rem, 3.2cqi, 1.9rem);
   font-weight: 700;
   text-align: center;
   direction: rtl;
@@ -360,7 +361,7 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 }
 .summary-svo-cell .ar {
   font-family: var(--font-ar);
-  font-size: clamp(1.4rem, 3.8cqi, 2.1rem);
+  font-size: clamp(1rem, 2.7cqi, 1.5rem);
   font-weight: 700;
   color: var(--text);
   line-height: 1.4;
