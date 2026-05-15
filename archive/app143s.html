@@ -808,6 +808,11 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 /* ━━━━ 설정 ━━━━ */
 const SHEET_ID   = '16lEfx8CSJsU5EuDmF-9xlP9E_SGPa6TTcNhEeBg9ycg';
 const AUDIO_BASE = 'https://storage.googleapis.com/all-that-arabic-14';
+const PARAMS     = new URLSearchParams(location.search);
+const AUDIO_EXTS = PARAMS.get('audio') === 'wav'
+  ? ['.wav', '.mp3']
+  : ['.mp3', '.wav'];
+const AUDIO_VERSION = PARAMS.get('av') || PARAMS.get('audioVersion') || '';
 const TAB_DS     = 'datasheet';
 const GID_NASS   = '847423907';
 
@@ -1606,7 +1611,8 @@ function getAudioUrls(s) {
   const id = getRowId(d);
   if (!id) return [];
   const base = `${AUDIO_BASE}/listening/${id}`;
-  return [base + '.mp3', base + '.wav'];
+  const cacheBuster = AUDIO_VERSION ? `?v=${encodeURIComponent(AUDIO_VERSION)}` : '';
+  return AUDIO_EXTS.map(ext => base + ext + cacheBuster);
 }
 
 function toggleAudio() {
