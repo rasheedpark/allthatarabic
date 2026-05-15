@@ -9,15 +9,22 @@
 ## 저장소 구조
 
 ```
-ATA-14/
-├── allthatarabic/                              GitHub Pages 배포 폴더 (별도 git repo)
-│   ├── index.html                              랜딩 (앱 링크)
-│   ├── ata144_teacher/ata144_teacher.html      선생님용 앱
-│   ├── ata144_student/ata144_student.html      학생용 앱
-│   ├── ata144_textbook/ata144_textbook.html    교재용 앱 (실험)
-│   ├── ata144_original/ata144_original.html    교재 인쇄 원본 (B5)
-│   ├── app144.html, app144s.html               옛 URL → 새 URL redirect stub
-│   └── assets/                                 공유 자산 (로고, 폰트, 국기 아이콘)
+ATA-14/                                         GitHub Pages 배포 루트 (저장소 자체)
+├── index.html                                  랜딩 (앱 링크)
+│
+│   # 1.4.4 (현행)
+├── ata144_original/ata144_original.html        교재 (인쇄 B5 원본)
+├── ata144_teacher/ata144_teacher.html          메인앱 (선생님용)
+├── ata144_textbook/ata144_textbook.html        교재용 앱 (학생용 모바일)
+├── ata144_student/ata144_student.html          (legacy 슬라이드형 학생앱 — index 미노출)
+│
+│   # 1.4.3 (legacy, 병행 운영)
+├── ata143_teacher/ata143_teacher.html          메인앱 (선생님용)
+├── archive/app143s.html                        복습앱 (학생용, summary 슬라이드 포함)
+│
+├── app144.html, app144s.html                   옛 URL → 새 URL redirect stub
+├── assets/                                     공유 자산 (로고, 폰트, 국기 아이콘)
+│
 ├── product-ata144.md                           제품 문서 (메인)
 ├── product-ata144-appendix.md                  CSS 부록
 ├── product-ata144-audio-rules.md               오디오 생성 규칙
@@ -27,15 +34,19 @@ ATA-14/
 └── archive/                                    옛 버전 (142, 143)
 ```
 
-### 배포 URL
-- 랜딩: https://rasheedpark.github.io/allthatarabic/
-- 선생님용: https://rasheedpark.github.io/allthatarabic/ata144_teacher/ata144_teacher.html
-- 학생용: https://rasheedpark.github.io/allthatarabic/ata144_student/ata144_student.html
-- 교재용 모바일: https://rasheedpark.github.io/allthatarabic/ata144_textbook/ata144_textbook.html
-- 교재 인쇄 원본: https://rasheedpark.github.io/allthatarabic/ata144_original/ata144_original.html
+### 산출물 5종 (현행 + legacy)
+| # | 산출물 | 로컬 경로 | 배포 URL |
+|---|---|---|---|
+| 1 | 1.4.4 교재 (인쇄) | `ata144_original/ata144_original.html` | https://rasheedpark.github.io/allthatarabic/ata144_original/ata144_original.html |
+| 2 | 1.4.4 메인앱 (선생님용) | `ata144_teacher/ata144_teacher.html` | https://rasheedpark.github.io/allthatarabic/ata144_teacher/ata144_teacher.html |
+| 3 | 1.4.4 교재용 앱 (학생용) | `ata144_textbook/ata144_textbook.html` | https://rasheedpark.github.io/allthatarabic/ata144_textbook/ata144_textbook.html |
+| 4 | 1.4.3 메인앱 (선생님용, legacy) | `ata143_teacher/ata143_teacher.html` | https://rasheedpark.github.io/allthatarabic/ata143_teacher/ata143_teacher.html |
+| 5 | 1.4.3 복습앱 (학생용, legacy) | `archive/app143s.html` | https://rasheedpark.github.io/allthatarabic/archive/app143s.html |
+
+랜딩: https://rasheedpark.github.io/allthatarabic/
 
 ### 에셋 경로 (앱 내부)
-앱이 하위 폴더(`ata144_teacher/`, `ata144_student/`, `ata144_textbook/`, `ata144_original/`)에 있으므로 에셋을 `../assets/...`로 참조.
+앱이 하위 폴더(`ata144_teacher/`, `ata144_textbook/`, `ata144_original/`, `ata143_teacher/`)에 있으므로 에셋을 `../assets/...`로 참조. `archive/app143s.html`도 `../assets/...`.
 - 폰트: `../assets/fonts/Dongol-Regular.otf`
 - 로고: `../assets/ata-logo2.png`
 - 국기: `../assets/icons/icon-egypt.png`, `icon-lebanon.png`, `icon-saudi.png`

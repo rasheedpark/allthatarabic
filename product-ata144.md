@@ -253,14 +253,22 @@ https://storage.googleapis.com/all-that-arabic-14/audio/{U}/{id}.wav
 | 사용자용 앱 URL | https://rasheedpark.github.io/allthatarabic/ata144_student/ata144_student.html |
 | 교재용 앱 URL | https://rasheedpark.github.io/allthatarabic/ata144_textbook/ata144_textbook.html |
 | 교재 인쇄 원본 | https://rasheedpark.github.io/allthatarabic/ata144_original/ata144_original.html |
-| **1.4.3 복습용 앱** (legacy) | https://rasheedpark.github.io/allthatarabic/archive/app143s.html |
+| **1.4.3 메인앱** (선생님용, legacy) | https://rasheedpark.github.io/allthatarabic/ata143_teacher/ata143_teacher.html |
+| **1.4.3 복습앱** (학생용, legacy) | https://rasheedpark.github.io/allthatarabic/archive/app143s.html |
 | 구URL 리다이렉트 | `/app144.html` → teacher, `/app144s.html` → student (redirect stub) |
 | 인증 방식 | Personal Access Token (repo 권한) — macOS 키체인 또는 remote URL에 포함 |
 
-로컬 경로(선생님용): `ATA-14/allthatarabic/ata144_teacher/ata144_teacher.html`  
-로컬 경로(사용자용): `ATA-14/allthatarabic/ata144_student/ata144_student.html`  
-로컬 경로(1.4.3 복습용): `ATA-14/archive/app143s.html`  
-에셋 경로(앱 기준): `../assets/` (하위 폴더에서 참조)
+**로컬 파일 위치** (모두 `ATA-14/` 루트 기준):
+
+| 산출물 | 로컬 경로 |
+|---|---|
+| 1.4.4 교재 (인쇄 B5) | `ata144_original/ata144_original.html` |
+| 1.4.4 메인앱 (선생님용) | `ata144_teacher/ata144_teacher.html` |
+| 1.4.4 교재용 앱 (학생용) | `ata144_textbook/ata144_textbook.html` |
+| 1.4.3 메인앱 (선생님용, legacy) | `ata143_teacher/ata143_teacher.html` |
+| 1.4.3 복습앱 (학생용, legacy) | `archive/app143s.html` |
+
+에셋 경로(앱 기준): `../assets/` (하위 폴더에서 참조).
 
 `git push origin main` 하면 수분 내 GitHub Pages에 자동 반영된다.
 

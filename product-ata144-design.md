@@ -182,10 +182,14 @@ ATA 1.4.4의 모든 산출물(인쇄 교재 + 3개 앱)에 일관되게 적용�
 
 **목적**: 1.4.3 양식 기반 모바일 학생앱 (운영 중). 슬라이드 1장씩 + 스와이프 이동. **장기적으로 교재용 앱(4.)으로 통합 예정**.
 
-> **5.0 1.4.3 복습용 앱 (legacy)** — `archive/app143s.html`  
-> 제목: "올댓아라빅 복습 · v1.43". summary 슬라이드 포함, 패턴별 요약 표시.  
-> 배포: https://rasheedpark.github.io/allthatarabic/archive/app143s.html  
-> 1.4.4 학생앱이 모든 유닛을 따라잡을 때까지 사용자 복습용으로 운영. 1.4.4 완비 시 폐기.  
+> **5.0 1.4.3 legacy 앱 (병행 운영 중)**
+>
+> | 구분 | 파일 | 배포 |
+> |---|---|---|
+> | 메인앱 (선생님용) | `ata143_teacher/ata143_teacher.html` | https://rasheedpark.github.io/allthatarabic/ata143_teacher/ata143_teacher.html |
+> | 복습앱 (학생용) | `archive/app143s.html` (제목 "올댓아라빅 복습 · v1.43", summary 슬라이드 포함) | https://rasheedpark.github.io/allthatarabic/archive/app143s.html |
+>
+> 1.4.4가 모든 유닛을 따라잡을 때까지 병행 운영. 1.4.4 완비 시 폐기.  
 > 신규 css 모드(`nom` §8.3.7, `baseline2` §8.2.5)는 1.4.4와 동일하게 적용되어 있음.
 
 ### 5.1 셸
