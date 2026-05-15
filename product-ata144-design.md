@@ -669,11 +669,13 @@ if (cssMode === 'nom') arHtml = applyNomDivider(arHtml);
 - 불릿 row가 `dir="rtl"`이면 flex 주축이 반전되어 점(•)이 자동으로 오른쪽.
 - 산문/불릿 폰트: `font-family: var(--font-kr), var(--font-ar)` — 한국어=Spoqa, 아랍어=Noto Sans Arabic(글자별 폴백), 크기 ~0.82–1rem 소형.
 
-**방향 판정 = `lineDir()` (한글 유무 기준, 2026-05-15 개정)**:
-- 초기엔 `firstStrongDir`(첫 강한문자)만 썼으나, A04 같은 **혼합 줄**(`- دَرَ*سَ*., dara*sa*. 그가 공부했다 (남)`)에서 줄이 아랍어로 시작한다는 이유로 전체가 RTL이 되어 로마자·한글·문장부호가 재배치 깨짐.
-- 개정: **줄에 한글이 있으면 → LTR**(설명 줄: 아랍어는 인라인 RTL 런으로 자연 배치). **한글 없는 순수 아랍어 줄 → RTL**(A07식 예문). 그 외 첫 강한문자.
-- 인라인 강조(`.hl-bold`/`.hl-box`)의 `unicode-bidi: isolate`는 **제거** — `دَرَ*سَ*`처럼 단어 중간 강조 시 아랍어 글자를 쪼갬. 강조는 bidi 투명으로 두고 방향은 컨테이너 dir로만 제어.
-- `.app.meaning-hidden .summary-always { display:block !important }`가 불릿 flex를 덮어써 점이 본문 위로 튀던 버그 → `.summary-bullet.summary-always { display:flex !important }`로 우선 복원.
+**방향 판정 규칙 (최종, 2026-05-15)**:
+- **산문 `<p>`: 항상 `dir="ltr"`** — 산문은 한국어 설명 텍스트. 방향 판정 안 함.
+- **불릿 `row`: `firstStrongDir(첫 줄)` — 아랍어로 시작하면 RTL**(점 오른쪽), 한국어/라틴 시작이면 LTR. 방향 판정은 **불릿에서만**.
+- 불릿 이어지는 줄(연속): 각 줄 `lineDir`(한글 줄 → LTR로 문장부호 정상) + 불릿 방향에 맞춰 `text-align`.
+- 혼합 단일 줄 불릿(`- دَرَ*سَ*., dara*sa*. 그가 공부했다 (남)`): 아랍어 시작 → 불릿 RTL(점 오른쪽). 내부 줄 div는 `dir=ltr`(한글 포함)이라 "دَرَسَ., darasa. 그가 공부했다 (남)" 순서·문장부호 정상, 우측 정렬.
+- 인라인 강조(`.hl-bold`/`.hl-box`)의 `unicode-bidi: isolate`는 **제거** — `دَرَ*سَ*`처럼 단어 중간 강조 시 아랍어 글자를 쪼갬. 강조는 bidi 투명, 방향은 컨테이너 dir로만 제어.
+- `.app.meaning-hidden .summary-always { display:block !important }`가 불릿 flex를 덮어써 점이 본문 위로 튀던 버그(=빈칸 불릿) → `.summary-bullet.summary-always { display:flex !important }`로 우선 복원.
 
 **다중 줄 불릿 (아랍어 + 한국어 번역 묶음)**:
 - 스크립트에서 `- ` 불릿 다음 줄이 **빈 줄 없이** 이어지면 그 줄은 같은 불릿에 부착된다 (한국어 번역 등). 빈 줄(엔터)이 나오면 불릿 종료 → 이후는 산문.

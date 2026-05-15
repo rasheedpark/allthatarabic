@@ -1119,7 +1119,7 @@ function renderSummaryDesc(desc, container) {
     if (text) {
       const p = document.createElement('p');
       p.className = 'summary-prose summary-always';
-      p.setAttribute('dir', lineDir(text));  // 한글 섞이면 LTR, 순수 아랍어면 RTL
+      p.setAttribute('dir', 'ltr');  // 산문은 항상 LTR (방향 판정은 불릿에서만)
       p.innerHTML = parseText(text);
       container.appendChild(p);
       lastWasProse = true;
@@ -1163,7 +1163,7 @@ function renderSummaryDesc(desc, container) {
       const row = document.createElement('div');
       row.className = 'summary-bullet summary-always';
       // 첫 줄 기준 방향 — 아랍어 시작이면 RTL(점 오른쪽), 이어지는 한국어도 같이 우측 정렬
-      row.setAttribute('dir', lineDir(bulletRaw));
+      row.setAttribute('dir', firstStrongDir(bulletRaw));  // 불릿만: 아랍어로 시작 → RTL
       const dot = document.createElement('span');
       dot.className = 'summary-bullet-dot';
       dot.textContent = '•';
