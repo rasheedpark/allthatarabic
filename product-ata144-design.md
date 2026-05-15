@@ -656,6 +656,21 @@ if (cssMode === 'nom') arHtml = applyNomDivider(arHtml);
 
 **적용 범위**: 현재 1.4.3 복습앱(`archive/app143s.html`) summary 슬라이드 전용. 1.4.4에 확장하려면 해당 앱의 summary 렌더에 동일 분기 추가 필요.
 
+### 8.3.10 RTL 자동 판정 — 산문·불릿·강조 마크업 (summary 스크립트)
+
+**문제 (2026-05-15, 1.4.3 복습앱 A07)**:
+1. RTL 문장 안에 `*…*` 강조가 끝부분에 오면 인접 문장부호(`.`)가 엉뚱한 위치로 재배치 — 인라인 강조 span에 bidi 격리가 없어 RTL 런이 끊김.
+2. summary 스크립트의 불릿/산문이 아랍어로 시작해도 `direction: ltr` 하드코딩이라 LTR로 흐름.
+
+**해결**:
+- `.hl-bold` / `.hl-box`에 `unicode-bidi: isolate` — 강조를 독립 bidi 런으로 격리, 주변 중립문자 재배치 방지.
+- `firstStrongDir(raw)` 헬퍼: 마크업(`* _ <tag>`) 제거 후 **첫 강한 방향 문자**를 검사 (Arabic 블록 → `rtl`, Latin/한글 → `ltr`). 산문 `<p>`·불릿 `<div>`에 결과를 `dir` 속성으로 부여.
+- `dir="auto"`는 **부모 flex 컨테이너에서 비신뢰** — 안쪽 자식이 자체 `dir`을 가지면 부모 auto 계산이 그 서브트리를 건너뛰어 LTR로 떨어진다. 그래서 JS 명시 판정을 쓴다.
+- 불릿 row가 `dir="rtl"`이면 flex 주축이 반전되어 점(•)이 자동으로 오른쪽.
+- 산문/불릿 폰트: `font-family: var(--font-kr), var(--font-ar)` — 한국어=Spoqa, 아랍어=Noto Sans Arabic(글자별 폴백), 크기 ~0.82–1rem 소형.
+
+**적용 범위**: 1.4.3 복습앱 `archive/app143s.html` 의 `renderSummaryDesc`. 다른 앱의 산문/불릿 렌더에도 동일 패턴 권장.
+
 ### 8.4 `css = 'five'` (5열 모드 — 드릴·레퍼토리)
 
 좁은 5열 셀 레이아웃. 모바일에서는 4열로 자동 전환.
