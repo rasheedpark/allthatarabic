@@ -24,7 +24,7 @@
   --accent:    #0d8a7f;
   --accent-bg: #e8f5f4;
   --r-sm: 8px; --r-md: 12px; --r-lg: 18px;
-  --max-w: 1024px;
+  --max-w: 440px;  /* 모바일 폰 폭에 가깝게 — 데스크톱에서도 폰 시뮬레이션 룩 (1.4.4 textbook과 동일) */
   --font-kr: 'Spoqa Han Sans Neo', 'Apple SD Gothic Neo', sans-serif;
   --font-ar: 'Noto Sans Arabic', serif;
 }
@@ -42,13 +42,14 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
   background: var(--surface);
   container-type: inline-size;
 }
-@media (min-width: 640px) {
+/* viewport가 모바일 max-width(440px)보다 크면 데스크톱 카드형 — 폰 시뮬레이션 룩 (1.4.4 textbook과 동일) */
+@media (min-width: 461px) {
   .app {
     margin-top: 28px; margin-bottom: 28px;
     height: calc(100dvh - 56px);
     border-radius: var(--r-lg);
     border: 1px solid var(--border);
-    box-shadow: 0 2px 20px rgba(0,0,0,.07);
+    box-shadow: 0 2px 24px rgba(0,0,0,.08);
     overflow: hidden;
   }
 }
@@ -647,7 +648,7 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
   padding: 28px 24px;
   padding-bottom: max(28px, calc(28px + env(safe-area-inset-bottom, 0px)));
 }
-@media (min-width: 640px) {
+@media (min-width: 461px) {
   .onboarding-overlay { align-items: center; }
   .onboarding-card { border-radius: var(--r-lg); max-width: 400px; margin-bottom: 28px; }
 }
