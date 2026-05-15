@@ -1095,15 +1095,15 @@ function firstStrongDir(raw) {
   return 'ltr';
 }
 
-/* 줄 방향 판정 (산문·불릿 공용):
-   - 한글이 섞여 있으면 = 설명 줄(아랍어 예문이 인라인으로 박힌 경우) → LTR
-     (아랍어 단어는 자체 RTL 런으로 자연 배치, 로마자·문장부호 정상)
-   - 한글 없는 순수 아랍어 줄(A07식 예문) → RTL
-   - 그 외 → 첫 강한문자 기준 */
+/* 줄 방향 판정 (불릿 안쪽 줄):
+   - 로마자(음가)가 섞여 있으면 = 설명/음가 줄 → LTR
+     (예: 'دَرَسَ., darasa. 그가 공부했다' — 좌→우로 자연스럽게)
+   - 로마자 없으면 첫 강한문자 기준 (아랍어 시작 → RTL)
+     (예: 'عِنْدِي — 나에게' — 아랍어 오른쪽 먼저, 짧은 한국어 뜻 왼쪽) */
 function lineDir(raw) {
   const t = (raw || '').replace(/<[^>]+>/g, '').replace(/[*_]/g, '');
-  if (/[가-힣]/.test(t)) return 'ltr';   // 한글 포함 → 설명 줄
-  return firstStrongDir(t);
+  if (/[A-Za-z]/.test(t)) return 'ltr';   // 로마자(음가) 포함 → 설명 줄, LTR
+  return firstStrongDir(t);                // 그 외: 첫 강한문자 (아랍어 시작 → RTL)
 }
 
 /* ━━━━ 서머리 설명 텍스트 파서 ━━━━ */

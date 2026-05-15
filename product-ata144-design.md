@@ -672,8 +672,11 @@ if (cssMode === 'nom') arHtml = applyNomDivider(arHtml);
 **방향 판정 규칙 (최종, 2026-05-15)**:
 - **산문 `<p>`: 항상 `dir="ltr"`** — 산문은 한국어 설명 텍스트. 방향 판정 안 함.
 - **불릿 `row`: `firstStrongDir(첫 줄)` — 아랍어로 시작하면 RTL**(점 오른쪽), 한국어/라틴 시작이면 LTR. 방향 판정은 **불릿에서만**.
-- 불릿 이어지는 줄(연속): 각 줄 `lineDir`(한글 줄 → LTR로 문장부호 정상) + 불릿 방향에 맞춰 `text-align`.
-- 혼합 단일 줄 불릿(`- دَرَ*سَ*., dara*sa*. 그가 공부했다 (남)`): 아랍어 시작 → 불릿 RTL(점 오른쪽). 내부 줄 div는 `dir=ltr`(한글 포함)이라 "دَرَسَ., darasa. 그가 공부했다 (남)" 순서·문장부호 정상, 우측 정렬.
+- 불릿 이어지는/안쪽 줄: `lineDir` — **로마자(음가) 유무**로 판정.
+  - **로마자 있으면 → LTR**: 음가/설명 줄. 예 `دَرَسَ., darasa. 그가 공부했다 (남)` → 좌→우 자연 배치.
+  - **로마자 없으면 → 첫 강한문자**: 아랍어 시작이면 RTL. 예 `عِنْدِي — 나에게` → 아랍어 오른쪽(점 옆) 먼저, 짧은 한국어 뜻 왼쪽.
+  - (이전엔 "한글 유무"로 판정했으나 A09 `عِنْدِي — 나에게`가 한글 때문에 LTR로 깔려 아랍어가 왼쪽으로 가던 문제 → "로마자 유무"가 A04(음가 설명)·A09(아랍어 뜻풀이)를 모두 일관 처리)
+- text-align은 불릿 방향(첫 줄 firstStrongDir)에 맞춤.
 - 인라인 강조(`.hl-bold`/`.hl-box`)의 `unicode-bidi: isolate`는 **제거** — `دَرَ*سَ*`처럼 단어 중간 강조 시 아랍어 글자를 쪼갬. 강조는 bidi 투명, 방향은 컨테이너 dir로만 제어.
 - `.app.meaning-hidden .summary-always { display:block !important }`가 불릿 flex를 덮어써 점이 본문 위로 튀던 버그(=빈칸 불릿) → `.summary-bullet.summary-always { display:flex !important }`로 우선 복원.
 
