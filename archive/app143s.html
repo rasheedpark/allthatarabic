@@ -1096,7 +1096,9 @@ function firstStrongDir(raw) {
 function renderSummaryDesc(desc, container) {
   const lines = desc.split('\n');
   let paraLines = [];
-  let lastWasProse = false;  // 직전에 산문 단락이 추가됐는지 추적
+  let lastWasProse = false;     // 직전에 산문 단락이 추가됐는지 추적
+  let curBulletSpan = null;     // 활성 불릿 텍스트 span (연속 줄 부착 대상)
+  let curBulletLines = null;    // 활성 불릿의 원본 줄 배열
 
   const flushPara = () => {
     const text = paraLines.join('\n').trim();
@@ -1111,10 +1113,31 @@ function renderSummaryDesc(desc, container) {
     paraLines = [];
   };
 
+  // 불릿 연속 줄(아랍어 다음 한국어 번역 등) 종료 —
+  // 각 줄을 자체 방향(dir)으로 렌더하되, 불릿 전체 방향에 맞춰 같은 쪽으로 정렬.
+  // (예: 아랍어 불릿이면 한국어 번역줄도 우측 정렬 + 내부 LTR로 문장부호 정상)
+  const flushBullet = () => {
+    if (curBulletSpan && curBulletLines) {
+      const rowDir = curBulletSpan.parentElement.getAttribute('dir') || 'ltr';
+      curBulletSpan.innerHTML = '';
+      curBulletLines.forEach(ln => {
+        const lineEl = document.createElement('div');
+        lineEl.setAttribute('dir', firstStrongDir(ln));   // 줄 자체 방향 — 문장부호 정상
+        lineEl.style.textAlign = (rowDir === 'rtl') ? 'right' : 'left';  // 불릿 방향에 맞춰 한쪽 정렬
+        lineEl.innerHTML = parseText(ln);
+        curBulletSpan.appendChild(lineEl);
+      });
+    }
+    curBulletSpan = null;
+    curBulletLines = null;
+  };
+
   for (const line of lines) {
     const trimmed = line.trim();
+
     if (trimmed.startsWith('- ')) {
       flushPara();
+      flushBullet();
       // 산문 → 불릿 전환 시 빈 줄 1칸 삽입
       if (lastWasProse) {
         const spacer = document.createElement('div');
@@ -1125,19 +1148,30 @@ function renderSummaryDesc(desc, container) {
       const bulletRaw = trimmed.slice(2);
       const row = document.createElement('div');
       row.className = 'summary-bullet summary-always';
-      row.setAttribute('dir', firstStrongDir(bulletRaw));  // 아랍어 시작 → RTL(점이 오른쪽), 한국어 → LTR
+      // 첫 줄 기준 방향 — 아랍어 시작이면 RTL(점 오른쪽), 이어지는 한국어도 같이 우측 정렬
+      row.setAttribute('dir', firstStrongDir(bulletRaw));
       const dot = document.createElement('span');
       dot.className = 'summary-bullet-dot';
       dot.textContent = '•';
       const text = document.createElement('span');
-      text.innerHTML = parseText(bulletRaw);
       row.appendChild(dot);
       row.appendChild(text);
       container.appendChild(row);
+      curBulletSpan = text;
+      curBulletLines = [bulletRaw];
+      // 실제 렌더는 flushBullet에서 (연속 줄까지 모은 뒤 줄별 dir 적용)
+    } else if (trimmed === '') {
+      // 빈 줄: 불릿 연속 종료 + 산문 단락 구분(엔터)
+      flushBullet();
+      paraLines.push(line);
+    } else if (curBulletSpan) {
+      // 불릿 직후 빈 줄 없이 이어지는 줄 = 같은 불릿에 줄바꿈으로 부착 (한국어 번역 등)
+      curBulletLines.push(trimmed);
     } else {
       paraLines.push(line);
     }
   }
+  flushBullet();
   flushPara();
 }
 
