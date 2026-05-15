@@ -251,14 +251,20 @@ https://storage.googleapis.com/all-that-arabic-14/audio/{U}/{id}.wav
 | 배포 방식 | GitHub Pages (main 브랜치 자동 배포) |
 | 선생님용 앱 URL | https://rasheedpark.github.io/allthatarabic/ata144_teacher/ata144_teacher.html |
 | 사용자용 앱 URL | https://rasheedpark.github.io/allthatarabic/ata144_student/ata144_student.html |
+| 교재용 앱 URL | https://rasheedpark.github.io/allthatarabic/ata144_textbook/ata144_textbook.html |
+| 교재 인쇄 원본 | https://rasheedpark.github.io/allthatarabic/ata144_original/ata144_original.html |
+| **1.4.3 복습용 앱** (legacy) | https://rasheedpark.github.io/allthatarabic/archive/app143s.html |
 | 구URL 리다이렉트 | `/app144.html` → teacher, `/app144s.html` → student (redirect stub) |
 | 인증 방식 | Personal Access Token (repo 권한) — macOS 키체인 또는 remote URL에 포함 |
 
 로컬 경로(선생님용): `ATA-14/allthatarabic/ata144_teacher/ata144_teacher.html`  
 로컬 경로(사용자용): `ATA-14/allthatarabic/ata144_student/ata144_student.html`  
+로컬 경로(1.4.3 복습용): `ATA-14/archive/app143s.html`  
 에셋 경로(앱 기준): `../assets/` (하위 폴더에서 참조)
 
 `git push origin main` 하면 수분 내 GitHub Pages에 자동 반영된다.
+
+> **1.4.3 복습용 앱 (legacy, 운영 중)**: 제목 "올댓아라빅 복습 · v1.43". summary 슬라이드 포함, 패턴별 요약 표시. 1.4.4 학생앱이 아직 유닛을 따라잡지 못한 동안 사용자 복습용으로 계속 운영한다. 1.4.4가 모든 유닛을 커버하면 폐기 예정. 신규 css 모드(`nom`, `baseline2`)도 1.4.4와 동일하게 적용되어 있다.
 
 **2. 콘텐츠 데이터 (Google Sheets)**
 
