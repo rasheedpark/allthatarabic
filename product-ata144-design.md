@@ -618,6 +618,43 @@ if (cssMode === 'nom') arHtml = applyNomDivider(arHtml);
 
 **baseline과의 충돌 없음**: baseline 데이터의 `|`(토큰 구분자)는 `css = 'baseline'` 분기에서 별도 splitter로 처리되어 `nom-divider`와 만나지 않는다.
 
+### 8.3.9 `css = 'list'` (어휘·동사 2열 목록 — summary 슬라이드)
+
+**도입 배경 (2026-05-15)**: 1.4.3 복습앱 A06 같은 동사 변화 요약 슬라이드에서, 줄바꿈으로 구분된 여러 단어쌍(아랍어 + 번역)을 슬라이드 한 장에 정돈된 2열 테이블로 표시할 필요가 생김.
+
+**데이터 형식**:
+- `arabic`: 각 항목을 `\n`으로 구분. 예: `أَدْرُسُ\nأَذْهَبُ\nأَرْجِعُ`
+- `korean` (또는 `note`): 같은 줄 수, 같은 순서로 번역. 예: `I study.\nI go.\nI return.`
+
+**렌더 구조**:
+```html
+<div class="summary-list">          <!-- grid 2열 -->
+  <div class="summary-list-ar">أَدْرُسُ</div>
+  <div class="summary-list-tr">I study.</div>
+  <div class="summary-list-ar">أَذْهَبُ</div>
+  <div class="summary-list-tr">I go.</div>
+  ...
+</div>
+```
+
+```css
+.summary-list {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  column-gap: clamp(20px, 6cqi, 40px);
+  row-gap: clamp(10px, 2.5cqi, 18px);
+  align-items: baseline;
+  max-width: 360px;
+  margin: 0 auto;
+}
+.summary-list-ar { font-family: var(--font-ar); direction: rtl; text-align: right;
+                   font-size: clamp(1.25rem, 3.4cqi, 1.85rem); font-weight: 700; }
+.summary-list-tr { direction: ltr; text-align: left;
+                   font-size: clamp(0.95rem, 2.4cqi, 1.15rem); }
+```
+
+**적용 범위**: 현재 1.4.3 복습앱(`archive/app143s.html`) summary 슬라이드 전용. 1.4.4에 확장하려면 해당 앱의 summary 렌더에 동일 분기 추가 필요.
+
 ### 8.4 `css = 'five'` (5열 모드 — 드릴·레퍼토리)
 
 좁은 5열 셀 레이아웃. 모바일에서는 4열로 자동 전환.

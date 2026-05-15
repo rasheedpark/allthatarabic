@@ -385,6 +385,37 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
   unicode-bidi: isolate;
 }
 
+/* ── list 모드: 아랍어 + 번역 2열 테이블 (A06 동사 목록 등) ── */
+.summary-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: clamp(20px, 6cqi, 40px);
+  row-gap: clamp(10px, 2.5cqi, 18px);
+  align-items: baseline;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  padding: clamp(6px, 1.5cqi, 12px) 0;
+}
+.summary-list-ar {
+  font-family: var(--font-ar);
+  font-size: clamp(1.25rem, 3.4cqi, 1.85rem);
+  font-weight: 700;
+  color: var(--text);
+  direction: rtl;
+  unicode-bidi: isolate;
+  text-align: right;
+  line-height: 1.5;
+}
+.summary-list-tr {
+  font-size: clamp(0.95rem, 2.4cqi, 1.15rem);
+  color: var(--text);
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: left;
+  line-height: 1.5;
+}
+
 /* ── 전치사 테이블 (A03 등 표 형태 슬라이드) ── */
 .summary-prep-grid {
   display: grid;
@@ -1260,6 +1291,28 @@ function renderSummary(area, inner, s) {
       pairRow.style.setProperty('--items', arabicLetters.length);
       header.appendChild(pairRow);
       fitRow(pairRow);
+
+    } else if (cssMode === 'list') {
+      /* ── list 모드: 아랍어 + 번역을 2열 테이블로 나란히 ──
+         arabic·korean(또는 note)을 줄(\n) 단위로 분리, 같은 인덱스끼리 쌍으로 배치.
+         예: arabic = "أَدْرُسُ\nأَذْهَبُ\nأَرْجِعُ"
+             korean = "I study.\nI go.\nI return." */
+      const arLines = d.arabic.split(/\r?\n/).map(t => t.trim()).filter(Boolean);
+      const trSrc   = (d.korean && d.korean.trim()) ? d.korean : (d.note || '');
+      const trLines = trSrc.split(/\r?\n/).map(t => t.trim());
+      const grid = document.createElement('div');
+      grid.className = 'summary-list';
+      arLines.forEach((ar, i) => {
+        const arEl = document.createElement('div');
+        arEl.className = 'summary-list-ar';
+        arEl.innerHTML = parseText(ar);
+        grid.appendChild(arEl);
+        const trEl = document.createElement('div');
+        trEl.className = 'summary-list-tr';
+        trEl.innerHTML = parseText(trLines[i] || '');
+        grid.appendChild(trEl);
+      });
+      header.appendChild(grid);
 
     } else {
       /* ── 기본 모드 / dongol 모드 ── */
