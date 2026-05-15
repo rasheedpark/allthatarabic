@@ -893,10 +893,11 @@ function parseText(str) {
     });
 }
 
-// \uBA85\uC0AC\uBB38 \uAD6C\uBD84\uC790 \u2014 `css = 'nom'` \uD589\uC758 `|`\uB97C \uC605\uC740 \uD68C\uC0C9 \uBD84\uB9AC\uC790\uB85C
+// \uBA85\uC0AC\uBB38 \uAD6C\uBD84\uC790 \u2014 `css = 'nom'` \uD589\uC758 `|`\uB97C \uC605\uC740 \uD68C\uC0C9 \uBD84\uB9AC\uC790\uB85C (1.4.4\uC640 \uB3D9\uC77C)
 function applyNomDivider(html) {
   return html.replace(/\s*\|\s*/g, '<span class="nom-divider">|</span>');
 }
+const isNomRow = r => (r?.css || '').trim().toLowerCase() === 'nom';
 
 function getChoice(d, key) {
   return d['ch_' + key] || d['choice_' + key] || d[key] || '';
@@ -1055,11 +1056,13 @@ function renderNormal(area, s) {
   area.innerHTML = '';
   const d = s.data;
   const isWriting = s.type === 'writing';
+  const nom = isNomRow(d);                              // css='nom' → `|` 분리자 (1.4.4와 동일)
+  const wrapNom = html => nom ? applyNomDivider(html) : html;
 
   // 아랍어
   const arEl = document.createElement('div');
   arEl.className = 'arabic-text' + (isWriting ? ' writing-font' : '');
-  arEl.innerHTML = parseText(d.arabic || '');
+  arEl.innerHTML = wrapNom(parseText(d.arabic || ''));
   area.appendChild(arEl);
   fitArabicText(arEl);
 
@@ -1067,7 +1070,7 @@ function renderNormal(area, s) {
   if (d.korean) {
     const krEl = document.createElement('div');
     krEl.className = 'korean-text';
-    krEl.innerHTML = parseText(d.korean);
+    krEl.innerHTML = wrapNom(parseText(d.korean));
     area.appendChild(krEl);
   }
 
@@ -1075,7 +1078,7 @@ function renderNormal(area, s) {
   if (d.note) {
     const noteEl = document.createElement('div');
     noteEl.className = 'note-text';
-    noteEl.innerHTML = parseText(d.note);
+    noteEl.innerHTML = wrapNom(parseText(d.note));
     area.appendChild(noteEl);
   }
 
@@ -1461,6 +1464,8 @@ function renderNass(area, s) {
   area.innerHTML = '';
   nassPassageVisible = false; // 기본: 지문 숨김
   const d = s.data;
+  const nom = isNomRow(d);                              // css='nom' → `|` 분리자 (1.4.4와 동일)
+  const wrapNom = html => nom ? applyNomDivider(html) : html;
 
   // 지문 보기 버튼 + arabic — 맨 위, arabic 있을 때만
   if (d.arabic) {
@@ -1477,7 +1482,7 @@ function renderNass(area, s) {
     passageDiv.style.display = 'none';
     const arEl = document.createElement('div');
     arEl.className = 'arabic-text nass-passage';
-    arEl.innerHTML = parseText(d.arabic);
+    arEl.innerHTML = wrapNom(parseText(d.arabic));
     passageDiv.appendChild(arEl);
     area.appendChild(passageDiv);
   }
@@ -1486,7 +1491,7 @@ function renderNass(area, s) {
   if (d.korean) {
     const krEl = document.createElement('div');
     krEl.className = 'korean-hint nass-korean-hint';
-    krEl.innerHTML = parseText(d.korean);
+    krEl.innerHTML = wrapNom(parseText(d.korean));
     area.appendChild(krEl);
   }
 
@@ -1494,7 +1499,7 @@ function renderNass(area, s) {
   if (d.note) {
     const noteEl = document.createElement('div');
     noteEl.className = 'note-text korean-hint';
-    noteEl.innerHTML = parseText(d.note);
+    noteEl.innerHTML = wrapNom(parseText(d.note));
     area.appendChild(noteEl);
   }
 
