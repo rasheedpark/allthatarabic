@@ -325,7 +325,7 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 /* ── sentence 모드: 아랍어 문장 + 한국어 문장 (대표문장 헤더) ── */
 .summary-sentence-ar {
   font-family: var(--font-ar);
-  font-size: clamp(1.25rem, 3.2cqi, 1.9rem);
+  font-size: clamp(1.55rem, 4.1cqi, 2.45rem);  /* A01+ 써머리 아랍어 키움 */
   font-weight: 700;
   text-align: center;
   direction: rtl;
@@ -402,7 +402,7 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 }
 .summary-vlist-ar {
   font-family: var(--font-ar);
-  font-size: clamp(1.25rem, 3.4cqi, 1.85rem);
+  font-size: clamp(1.55rem, 4.2cqi, 2.4rem);  /* A01+ 써머리 아랍어 키움 */
   font-weight: 700;
   color: var(--text);
   direction: rtl;
@@ -1095,15 +1095,10 @@ function firstStrongDir(raw) {
   return 'ltr';
 }
 
-/* 줄 방향 판정 (불릿 안쪽 줄):
-   - 로마자(음가)가 섞여 있으면 = 설명/음가 줄 → LTR
-     (예: 'دَرَسَ., darasa. 그가 공부했다' — 좌→우로 자연스럽게)
-   - 로마자 없으면 첫 강한문자 기준 (아랍어 시작 → RTL)
-     (예: 'عِنْدِي — 나에게' — 아랍어 오른쪽 먼저, 짧은 한국어 뜻 왼쪽) */
+/* 줄 방향 판정 = 첫 강한문자만.
+   아랍어로 시작 → RTL, 다른 언어로 시작 → LTR. (음가/한글 등 별도 예외 없음) */
 function lineDir(raw) {
-  const t = (raw || '').replace(/<[^>]+>/g, '').replace(/[*_]/g, '');
-  if (/[A-Za-z]/.test(t)) return 'ltr';   // 로마자(음가) 포함 → 설명 줄, LTR
-  return firstStrongDir(t);                // 그 외: 첫 강한문자 (아랍어 시작 → RTL)
+  return firstStrongDir(raw);
 }
 
 /* ━━━━ 서머리 설명 텍스트 파서 ━━━━ */
