@@ -1032,15 +1032,41 @@ function buildPagesForUnit(unit) {
     });
   });
 
-  // 3. 드릴: DrillA와 DrillB/C를 한 학습 흐름 안에 표시
+  // 3. 드릴: `page` 값이 있으면 page 단위로 화면 분리(같은 page=한 화면),
+  //    없으면(1·2과 등 기존 유닛) 종전처럼 드릴 전체를 한 페이지에.
   const drillRows = rowsByUnit(TABS.drill, unit, t => ['drilla','drillb','drillc','writing'].includes(t));
   if (drillRows.length) {
-    pages.push({
-      sec:'drill', kind:'drill',
-      title:'드릴', subtitle: drillRows.length + '개',
-      rows: drillRows,
-      chapter: String(unitRow.C || unitRow.c || ''),
-    });
+    const pageVal = r => (r.page || '').toString().trim();
+    const hasPaged = drillRows.some(r => pageVal(r) !== '');
+    const chapter = String(unitRow.C || unitRow.c || '');
+    if (hasPaged) {
+      const byPage = new Map();              // page값 → 행배열 (삽입=시트순)
+      drillRows.forEach(r => {
+        const k = pageVal(r) || '￿';    // 빈 page는 맨 뒤로
+        if (!byPage.has(k)) byPage.set(k, []);
+        byPage.get(k).push(r);
+      });
+      const keys = [...byPage.keys()].sort((a, b) => {
+        const na = parseFloat(a), nb = parseFloat(b);
+        if (!isNaN(na) && !isNaN(nb)) return na - nb;
+        return String(a).localeCompare(String(b), undefined, { numeric: true });
+      });
+      keys.forEach((k, i) => {
+        pages.push({
+          sec:'drill', kind:'drill',
+          title:'드릴', subtitle: `${i+1} / ${keys.length}`,
+          rows: byPage.get(k),
+          chapter,
+        });
+      });
+    } else {
+      pages.push({
+        sec:'drill', kind:'drill',
+        title:'드릴', subtitle: drillRows.length + '개',
+        rows: drillRows,
+        chapter,
+      });
+    }
   }
 
   // 4. 지문: nass와 nass+를 섹션으로 나누어 한 페이지에 스택
