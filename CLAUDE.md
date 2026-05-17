@@ -104,8 +104,19 @@ git checkout dev
 단어 슬라이드 (kalimat)
 ```
 
-### status 필터
-- 모든 탭에서 `status = confirmed`인 행만 앱에 노출된다.
+### status 필터 (유닛·콘텐츠 노출 메커니즘)
+
+행의 `status` 값으로 dev/prod 노출을 제어한다. 유닛 목록(units 탭)과 콘텐츠 행 모두 동일 규칙(`ok()` 함수).
+
+| status | dev (localhost/미리보기) | prod (배포 / github.io) |
+|---|---|---|
+| `confirmed` | ✅ 노출 | ✅ 노출 |
+| `draft` | ✅ 노출 (작업 확인용) | ❌ 숨김 |
+| 그 외 (`inbox`, 빈값 등) | ❌ 숨김 | ❌ 숨김 |
+
+- **dev 판정**: `location.hostname`이 `localhost`/`127.0.0.1`/`[::1]` 이거나 `file:` 프로토콜 → `IS_DEV = true`.
+- **의도**: `draft`로 작업 중인 유닛/콘텐츠를 배포 전 dev에서 미리 보고 검수 → `confirmed`로 바꾸면 배포 버전(사용자)에 노출.
+- 적용 코드: `const ok = r => { s=status; if(s==='confirmed') return true; if(s==='draft') return IS_DEV; return false; }` (교재앱 기준; 타 앱도 동일 규칙으로 통일 예정).
 
 ---
 
@@ -115,7 +126,7 @@ git checkout dev
 - **단일 HTML 파일** — 외부 JS/CSS 없음 (구글 폰트·CDN 폰트 제외)
 - JSONP(gviz/tq)로 구글 시트 직접 읽음
 - `_cache` 객체로 탭별 데이터 메모리 캐시
-- `status = confirmed` 필터 적용
+- status 필터: `confirmed`=dev·prod, `draft`=dev만, 그 외 숨김 (위 "status 필터" 표 참고)
 - 오디오: GCS `all-that-arabic-14/listening144/{key}.mp3` (실패 시 `.wav` 폴백)
 
 ### 선생님용 앱 (`ata144_teacher.html`)

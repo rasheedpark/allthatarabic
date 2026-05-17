@@ -831,7 +831,16 @@ function fetchSheet(name) {
 }
 
 /* ───────── 유틸 ───────── */
-const ok   = r => (r.status||'').toLowerCase() === 'confirmed';
+// 실행 환경 — dev(localhost/file)인지 prod인지
+const IS_DEV = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || location.protocol === 'file:';
+// 노출 규칙: confirmed = dev·prod 모두 / draft = dev에서만 / 그 외 = 숨김
+// (유닛·콘텐츠 행 공통 — 유닛을 여는 매커니즘의 기준)
+const ok = r => {
+  const s = (r.status || '').trim().toLowerCase();
+  if (s === 'confirmed') return true;
+  if (s === 'draft')     return IS_DEV;
+  return false;
+};
 const inU  = (r,u) => (r.u||'') === u;
 const norm = t => (t||'').toLowerCase().trim();
 const normType = t => norm(t).replace(/\s+/g,'');
@@ -887,7 +896,7 @@ function fallbackAudioKey(row) {
 
 // dev(localhost)에서만 캐시 우회 — 오디오 수정 즉시 확인용.
 // prod(github.io 등)는 쿼리 없이 GCS 1시간 캐시 그대로 (사용자 빠름).
-const IS_DEV = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || location.protocol === 'file:';
+// (IS_DEV는 위 유틸 섹션에서 정의)
 function audioCacheBust(u) {
   return IS_DEV ? `${u}${u.includes('?') ? '&' : '?'}_dev=${Date.now()}` : u;
 }

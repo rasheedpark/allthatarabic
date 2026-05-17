@@ -226,7 +226,7 @@ https://storage.googleapis.com/all-that-arabic-14/audio/{U}/{id}.wav
 
 데이터시트에 입력된 콘텐츠는 두 개의 앱으로 노출된다. 선생님용 앱과 사용자용 앱은 같은 데이터를 공유하지만 용도와 디자인이 다르다. 선생님용 앱은 오프라인·온라인 수업 현장을 가정하며 TV나 모니터 등 가로로 넓은 화면에 최적화되어 있고, 선생님이 수업 흐름에 맞게 직접 조작하며 진행하는 도구다. 사용자용 앱은 복습을 가정하며 모바일 화면에 최적화되어 있고, 사용자가 혼자 접속해 배운 패턴을 반복 연습하는 용도로 쓴다. 두 앱 모두 슬라이드 방식으로 콘텐츠가 표시되며, 아랍어·한국어를 필요에 따라 가릴 수 있다. 사용자용 앱에는 말하기 기능이 추가될 예정이다.
 
-**알파버전 앱의 데이터 연결 방식**은 다음과 같다. 앱은 단일 HTML 파일로, 별도 서버 없이 브라우저에서 직접 실행된다. 페이지 로드 시 Google Sheets의 Visualization API(`gviz/tq`, JSONP 방식)로 시트를 불러온다. 불러온 데이터는 `status = confirmed`인 행만 추려내고, U열(유닛 코드) 기준으로 묶은 뒤 `buildSlides()` 함수가 패턴 → 레퍼토리 → 드릴 → 나스 순으로 슬라이드 배열을 생성한다. 오디오는 각 행의 `U` 값과 ID 값으로 GCS 경로를 직접 조합한다(`/audio/{U}/{id}.mp3`, 실패 시 `.wav` 폴백).
+**알파버전 앱의 데이터 연결 방식**은 다음과 같다. 앱은 단일 HTML 파일로, 별도 서버 없이 브라우저에서 직접 실행된다. 페이지 로드 시 Google Sheets의 Visualization API(`gviz/tq`, JSONP 방식)로 시트를 불러온다. 불러온 데이터는 status 규칙(`confirmed`=항상, `draft`=dev에서만, 그 외 숨김)으로 추려내고, U열(유닛 코드) 기준으로 묶은 뒤 `buildSlides()` 함수가 패턴 → 레퍼토리 → 드릴 → 나스 순으로 슬라이드 배열을 생성한다. 오디오는 각 행의 `U` 값과 ID 값으로 GCS 경로를 직접 조합한다(`/audio/{U}/{id}.mp3`, 실패 시 `.wav` 폴백).
 
 이 구조는 빠른 제작과 검증을 위한 알파 단계의 방식이다. 이후 마르카즈아라빅이 자체 제작하는 LMS 시스템과 연동하는 방향으로 업데이트할 예정이며, 그 단계에서 실제 제품화가 이루어진다.
 
@@ -298,7 +298,15 @@ https://storage.googleapis.com/all-that-arabic-14/audio/{U}/{id}.wav
 > - **학생용**: `units`, `pattern`, `drill`, `kalimat`, `nass` (5개)
 > - **선생님용**: 위 5개 + 추가로 `repertory`, `expression` 탭도 참조 (해당 탭이 있을 경우)
 
-`status = confirmed`인 행만 앱에 노출된다. pattern탭은 status 무관하게 내비게이터용으로도 로드하며 ptnA 중 confirmed인 것만 사이드바에 표시된다.
+**status 노출 메커니즘 (유닛 여는 기준)**: 행의 `status`로 dev/prod 노출을 나눈다.
+
+| status | dev(미리보기·localhost) | prod(배포·github.io) |
+|---|---|---|
+| `confirmed` | ✅ | ✅ |
+| `draft` | ✅ (배포 전 검수용) | ❌ |
+| 그 외(`inbox`·빈값 등) | ❌ | ❌ |
+
+`draft`로 작업한 유닛/콘텐츠는 배포 전 dev에서 확인 → `confirmed`로 바꾸면 사용자(배포본)에 노출된다. dev 판정은 hostname(`localhost`/`127.0.0.1`/`[::1]`)·`file:` 기준. 유닛 목록(units 탭)·콘텐츠 행 모두 같은 `ok()` 규칙. pattern탭은 status 무관하게 내비게이터용으로도 로드하며 ptnA 중 노출 대상인 것만 사이드바에 표시된다.
 
 Claude가 시트를 직접 읽고 쓰기 위한 별도 인증:
 - 인증 방식: `gcloud auth login --enable-gdrive-access`
