@@ -1857,7 +1857,9 @@ async function renderUnit(u) {
     fetchSheet('nass'),
   ]);
 
-  const ok  = r => (r.status || '').toLowerCase() === 'confirmed';
+  // css='aa' → 앱 전용 데이터: 인쇄 교재에서는 행 자체를 완전히 제외 (앱에는 노출됨)
+  const isPrintExcluded = r => (r.css || '').trim().toLowerCase() === 'aa';
+  const ok  = r => (r.status || '').toLowerCase() === 'confirmed' && !isPrintExcluded(r);
   const inU = r => r.u === u;
 
   const unit = unitRaw.find(r => inU(r) && ok(r));

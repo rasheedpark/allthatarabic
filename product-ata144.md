@@ -406,7 +406,9 @@ Claude가 시트를 직접 읽고 쓰기 위한 별도 인증:
 
 | css 코드 | 적용 대상 | 설명 |
 |---|---|---|
-| | | |
+| `ab` | 인쇄 교재 vs 교재앱 | **앱 전용 설명문**. 인쇄 교재(`ata144_original`)에서는 그 행의 `script`(설명문)만 숨기고 행(아랍어·한국어·음가)은 표시. 교재앱은 script 포함 정상 노출 |
+| `aa` | 인쇄 교재 vs 교재앱 | **앱 전용 행**. 인쇄 교재에서는 그 행 자체가 아예 안 나옴(모든 타입). 교재앱은 정상 노출. `status=confirmed`여도 인쇄 제외(css 우선) |
+| (그 외) | — | `baseline`·`baseline2`·`write`·`nom`·`vlist`·`five` 등 상세 정의는 디자인코드 문서 §8 / `appendix_css(ata144).md` 참고 |
 
 #### 내비게이터 Navigator Logic
 

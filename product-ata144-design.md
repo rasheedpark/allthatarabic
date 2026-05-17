@@ -407,6 +407,8 @@ function getAudioUrls(s) {
 | 아랍어 탭 → 오디오 | — | ✅ | — | ✅ (S키) | — |
 | `nom` / `baseline2` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `vlist` (어휘 2열) | — | — | — | — | ✅ (summary 슬라이드, §8.3.9) |
+| `ab` script 노출 (§8.3.8) | ❌ script 숨김 | ✅ script 노출 | — | — | — |
+| `aa` 행 노출 (§8.3.8) | ❌ 행 제외 | ✅ 행 노출 | — | — | — |
 
 ---
 
@@ -618,6 +620,23 @@ if (cssMode === 'nom') arHtml = applyNomDivider(arHtml);
 ```
 
 **baseline과의 충돌 없음**: baseline 데이터의 `|`(토큰 구분자)는 `css = 'baseline'` 분기에서 별도 splitter로 처리되어 `nom-divider`와 만나지 않는다.
+
+### 8.3.8 `css = 'ab'` / `css = 'aa'` (앱 전용 — 인쇄 교재 노출 제어)
+
+교재(인쇄 B5 `ata144_original`)와 교재앱(`ata144_textbook`)의 노출 범위를 행 단위로 가르는 코드. 둘 다 **교재앱에는 정상 노출**되고, 차이는 **인쇄 교재**에서만 난다.
+
+| css | 인쇄 교재 (`ata144_original`) | 교재앱 (`ata144_textbook`) | 용도 |
+|---|---|---|---|
+| `ab` | 행은 표시되되 **`script`(설명문) 필드만 숨김** | 행·script 모두 정상 노출 | 앱에서만 부연설명을 더 주고 싶을 때 (지면 절약) |
+| `aa` | **행 자체가 아예 안 나옴** (전 타입) | 행 정상 노출 | 앱 전용 보충 데이터 (인쇄본엔 불필요한 추가 예문 등) |
+
+**구현 (인쇄 교재 `ata144_original`)**:
+- `ab`: `isAppOnly(row)` (`css==='ab'`) → 패턴/표현 script 렌더 시 `if (!script || isAppOnly(row)) return ''`. 행의 아랍어·한국어·음가는 그대로, 설명문만 생략.
+- `aa`: `isPrintExcluded(row)` (`css==='aa'`) → 공통 행 필터 `ok = status==='confirmed' && !isPrintExcluded` 에 포함. patterns·repertory·expressions·drill·nass 전 수집 경로가 `ok`를 거치므로 `aa` 행은 어떤 타입이든 인쇄에서 완전 제외.
+
+**교재앱**: 행 노출은 status 규칙(`ok`)만 따르고 css의 `ab`/`aa`는 보지 않는다 → `ab`·`aa` 행과 그 script 모두 정상 표시. 별도 분기 불필요.
+
+> **주의**: `aa`는 `status=confirmed`여도 인쇄에서 빠진다 (css가 status보다 우선). 인쇄에 넣고 싶으면 css를 비우거나 다른 값으로.
 
 ### 8.3.9 `css = 'vlist'` (어휘·동사 2열 목록 — summary 슬라이드)
 
