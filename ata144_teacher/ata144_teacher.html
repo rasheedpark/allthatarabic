@@ -1739,21 +1739,14 @@ function renderNass(s) {
   `;
 }
 
-// ── 의미 토글 — 래퍼토리는 무시 ─────────────────────────
+// ── 의미 토글 — 모든 슬라이드 타입에서 동작 (현재 슬라이드 재렌더) ──
 function toggleMeaning() {
-  if (slides[current]?.type === 'repertory') return;
+  if (!slides.length) return;
   meaningVisible = !meaningVisible;
   document.getElementById('btn-meaning').classList.toggle('active', !meaningVisible);
-  const s = slides[current];
-  if (!s) return;
-  const op = meaningVisible ? '1' : '0';
-  if (s.type === 'nass') {
-    renderNass(s);
-  } else {
-    document.querySelectorAll('#text-area .korean, #text-area .note').forEach(el => {
-      el.style.opacity = op;
-    });
-  }
+  // 각 렌더 경로(general/nass/baseline/write)가 meaningVisible(=op)을 직접 반영하므로
+  // 슬라이드 타입과 무관하게 재렌더만 하면 어디서든 켜고/끌 수 있음.
+  renderSlide();
 }
 
 // ── 본문(아랍어) 토글 ──────────────────────────────────
