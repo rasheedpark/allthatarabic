@@ -1546,7 +1546,7 @@ function renderSlide() {
   }
   document.getElementById('text-area').innerHTML = `
     <div class="korean" style="opacity:${op}">${koHtml}</div>
-    ${noteText ? `<div class="note" style="opacity:1">${noteHtml}</div>` : ''}
+    ${noteText ? `<div class="note" style="opacity:${op}">${noteHtml}</div>` : ''}
     ${lahjaBlockHtml}
   `;
 
@@ -1959,6 +1959,11 @@ document.getElementById('btn-menu').onclick    = toggleSidebar;
 document.getElementById('btn-audio').onclick   = toggleAudio;
 document.getElementById('btn-meaning').onclick = toggleMeaning;
 document.getElementById('btn-arabic').onclick  = toggleArabic;
+// 버튼 클릭 후 포커스 해제 — Space가 버튼 재클릭으로 이중 발동되는 것 방지
+['btn-menu','btn-audio','btn-meaning','btn-arabic','btn-nass'].forEach(id => {
+  const b = document.getElementById(id);
+  if (b) b.addEventListener('click', () => b.blur());
+});
 
 // ── 초기화 ────────────────────────────────────────────
 // 내비게이터 클릭 — 이벤트 위임
