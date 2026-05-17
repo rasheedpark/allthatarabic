@@ -46,7 +46,8 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; }
 }
 
 /* ── 해석 토글 ── */
-.app.meaning-hidden .korean-text { display:none; }   /* 한국어 번역만 숨김 */
+.app.meaning-hidden .korean-text,
+.app.meaning-hidden .note-text { display:none; }   /* 한국어 + 음가(note) 함께 숨김 (전 앱 공통 규칙) */
 .app.meaning-hidden .ptn-summary { display:flex !important; }
 
 /* ── 상단 바 ── */

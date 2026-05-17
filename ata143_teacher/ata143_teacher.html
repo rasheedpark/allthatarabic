@@ -1063,7 +1063,7 @@ function renderNormal(s) {
   const noteText = d.note || d.transliteration || '';
   document.getElementById('text-area').innerHTML =
     `<div class="korean" style="opacity:${op}">${wrap(parseText(d.korean || ''))}</div>` +
-    (noteText ? `<div class="note" style="opacity:1">${parseText(noteText)}</div>` : '');
+    (noteText ? `<div class="note" style="opacity:${op}">${parseText(noteText)}</div>` : '');
 }
 
 // ── renderNass ─────────────────────────────────────────

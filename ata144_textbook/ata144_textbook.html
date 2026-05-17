@@ -57,8 +57,9 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   }
 }
 
-/* 한국어 토글 — 공간은 유지(visibility) */
-.m-app.hide-korean .m-ko { visibility:hidden; }
+/* 한국어 토글 — 공간은 유지(visibility). 음가(.m-trans)도 함께 가림 (전 앱 공통 규칙) */
+.m-app.hide-korean .m-ko,
+.m-app.hide-korean .m-trans { visibility:hidden; }
 
 /* ───────── 상단바 (48px) ───────── */
 .m-head {
