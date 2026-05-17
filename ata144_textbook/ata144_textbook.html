@@ -885,14 +885,24 @@ function fallbackAudioKey(row) {
   return '';
 }
 
+// dev(localhost)에서만 캐시 우회 — 오디오 수정 즉시 확인용.
+// prod(github.io 등)는 쿼리 없이 GCS 1시간 캐시 그대로 (사용자 빠름).
+const IS_DEV = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || location.protocol === 'file:';
+function audioCacheBust(u) {
+  return IS_DEV ? `${u}${u.includes('?') ? '&' : '?'}_dev=${Date.now()}` : u;
+}
+
 function audioUrlsFor(row) {
-  if (row?.url) return [row.url.trim()];
+  if (row?.url) return [audioCacheBust(row.url.trim())];
   const id = getRowId(row) || fallbackAudioKey(row);
   if (!id) return [];
   const unit = row?.u || state.unit;
   const enc = encodeURIComponent(id.normalize('NFD')).replace(/%2C/gi, ',');
   // mp3 우선 시도 (작고 빠름) → 실패 시 wav 폴백 (audio-rules 규칙)
-  return [`${AUDIO_BASE}/${unit}/${enc}.mp3`, `${AUDIO_BASE}/${unit}/${enc}.wav`];
+  return [
+    audioCacheBust(`${AUDIO_BASE}/${unit}/${enc}.mp3`),
+    audioCacheBust(`${AUDIO_BASE}/${unit}/${enc}.wav`),
+  ];
 }
 
 function lahjaFlags(row) {
