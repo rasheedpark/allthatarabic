@@ -1235,20 +1235,36 @@ async function buildSlides(baseUnit) {
       .forEach(r => push(normalizeType(r.type), r));
   });
 
-  // 3. drillA — 패턴별 매칭 먼저, ref_ptn 비어있는 유닛 공통 마지막
-  patternRaw.filter(r => inU(r) && ok(r)).forEach(ptn => {
-    const ref = ptn['id_ptn(no)'] || ptn.id_ptn || '';
-    drillRaw
-      .filter(r => inU(r) && ok(r) && r.ref_ptn === ref && normalizeType(r.type) === 'drilla')
+  // 3+4. 드릴(drillA/B/C) — `page` 값이 있으면 page 순서대로,
+  //      없으면(1·2과 등) 기존 ref_ptn 매칭 로직 유지 (교재앱과 동일 스코핑)
+  const isDrill = r => ['drilla','drillb','drillc'].includes(normalizeType(r.type));
+  const drillAll = drillRaw.filter(r => inU(r) && ok(r) && isDrill(r));
+  const pageVal = r => (r.page || '').toString().trim();
+  if (drillAll.some(r => pageVal(r) !== '')) {
+    drillAll
+      .map((r, i) => ({ r, i }))
+      .sort((a, b) => {
+        const na = parseFloat(pageVal(a.r)), nb = parseFloat(pageVal(b.r));
+        const ka = pageVal(a.r) === '' || isNaN(na) ? Infinity : na;
+        const kb = pageVal(b.r) === '' || isNaN(nb) ? Infinity : nb;
+        return ka !== kb ? ka - kb : a.i - b.i;   // page 오름차순, 같은 page는 시트순
+      })
+      .forEach(({ r }) => push(normalizeType(r.type), r));
+  } else {
+    // drillA — 패턴별 매칭 먼저, ref_ptn 비어있는 유닛 공통 마지막
+    patternRaw.filter(r => inU(r) && ok(r)).forEach(ptn => {
+      const ref = ptn['id_ptn(no)'] || ptn.id_ptn || '';
+      drillRaw
+        .filter(r => inU(r) && ok(r) && r.ref_ptn === ref && normalizeType(r.type) === 'drilla')
+        .forEach(r => push('drilla', r));
+    });
+    drillRaw.filter(r => inU(r) && ok(r) && normalizeType(r.type) === 'drilla' && !r.ref_ptn)
       .forEach(r => push('drilla', r));
-  });
-  drillRaw.filter(r => inU(r) && ok(r) && normalizeType(r.type) === 'drilla' && !r.ref_ptn)
-    .forEach(r => push('drilla', r));
-
-  // 4. drillB/C (연습)
-  drillRaw.filter(r => inU(r) && ok(r) &&
-      (normalizeType(r.type) === 'drillb' || normalizeType(r.type) === 'drillc'))
-    .forEach(r => push(normalizeType(r.type), r));
+    // drillB/C (연습)
+    drillRaw.filter(r => inU(r) && ok(r) &&
+        (normalizeType(r.type) === 'drillb' || normalizeType(r.type) === 'drillc'))
+      .forEach(r => push(normalizeType(r.type), r));
+  }
 
   // 4. exp (표현)
   expressionRaw.filter(r => inU(r) && ok(r) && normalizeType(r.type) === 'exp')
