@@ -444,6 +444,16 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   border-top:1px dashed var(--border-soft);
   direction:ltr;
 }
+/* 6열 모드 (`css = 'six'`) — five와 같지만 6칸. 칸이 좁으니 글자 약간 축소 */
+.m-rep-grid.cols-six,
+.m-drill-grid.cols-six { grid-template-columns:repeat(6, 1fr); gap:14px 3px; }
+@media (max-width:480px) {
+  .m-rep-grid.cols-six,
+  .m-drill-grid.cols-six { grid-template-columns:repeat(6, 1fr); gap:12px 2px; }
+}
+.cols-six .drill-cell .dc-ar    { font-size:13px; }
+.cols-six .drill-cell .dc-trans { font-size:9px; }
+
 .m-rep-table {
   background:var(--surface);
   border-radius:var(--r-md);
@@ -1314,6 +1324,7 @@ function renderScriptLines(text) {
 function renderRepertory(rows) {
   const cssOf = r => (r.css || '').trim().toLowerCase();
   if (rows.some(r => cssOf(r) === 'two')) return renderGridTable(rows, 'm-rep-table', false, 2);
+  if (rows.some(r => cssOf(r) === 'six')) return renderGridTable(rows, 'm-rep-table', false, 6);
   const five = rows.some(r => cssOf(r) === 'five') || rows.every(r => !r.korean);
   if (five) return renderGridTable(rows, 'm-rep-table', false);
   const wrap = document.createElement('div');
@@ -1327,6 +1338,7 @@ function renderGridTable(rows, className = 'm-drill-table', blanks = false, cols
   const grid = document.createElement('div');
   grid.className = className === 'm-rep-table' ? 'm-rep-grid' : 'm-drill-grid';
   if (cols === 2) grid.classList.add('cols-two');
+  else if (cols === 6) grid.classList.add('cols-six');
   rows.forEach(r => {
     const cell = document.createElement('div');
     cell.className = 'drill-cell';
@@ -1379,8 +1391,10 @@ function renderDrillPage(wrap, rows, chapter) {
     groupByRef(groupRows).forEach(group => {
       const cssOf = r => (r.css || '').trim().toLowerCase();
       const useTwo = group.rows.some(r => cssOf(r) === 'two');
+      const useSix = group.rows.some(r => cssOf(r) === 'six');
       const five = group.rows.some(r => cssOf(r) === 'five') || group.rows.every(r => !r.korean);
       if (useTwo) section.appendChild(renderGridTable(group.rows, 'm-drill-table', type !== 'drilla', 2));
+      else if (useSix) section.appendChild(renderGridTable(group.rows, 'm-drill-table', type !== 'drilla', 6));
       else if (five) section.appendChild(renderGridTable(group.rows, 'm-drill-table', type !== 'drilla'));
       else {
         const box = document.createElement('div');
