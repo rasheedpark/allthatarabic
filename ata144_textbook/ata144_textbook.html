@@ -1687,7 +1687,12 @@ document.querySelectorAll('.m-tab').forEach(btn => {
 
     const commit = (delta, snapTo) => {
       stripEl.style.transform = `translateX(${snapTo})`;
+      let done = false;          // transitionend·폴백 타이머 중복 실행 방지
+      let timer = null;
       const cleanup = () => {
+        if (done) return;        // 단 한 번만 — 안 그러면 state.page가 2칸 점프(섹션 건너뜀)
+        done = true;
+        clearTimeout(timer);
         stripEl.removeEventListener('transitionend', cleanup);
         if (delta !== 0) {
           state.page += delta;
@@ -1696,7 +1701,7 @@ document.querySelectorAll('.m-tab').forEach(btn => {
       };
       stripEl.addEventListener('transitionend', cleanup, { once: true });
       // transitionend 폴백 — 일부 브라우저에서 누락될 수 있음
-      setTimeout(cleanup, 320);
+      timer = setTimeout(cleanup, 320);
     };
 
     if (cancelled) {
