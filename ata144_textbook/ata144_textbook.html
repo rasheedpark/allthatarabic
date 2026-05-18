@@ -746,6 +746,7 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
     <button class="m-tab" data-sec="ptn">패턴</button>
     <button class="m-tab" data-sec="drill">드릴</button>
     <button class="m-tab" data-sec="nass">지문</button>
+    <button class="m-tab" data-sec="kalimat">단어</button>
   </nav>
 
   <main class="m-body" id="body"></main>
@@ -795,6 +796,7 @@ const SECTIONS = [
   { key:'ptn',   label:'패턴', long:'pattern' },
   { key:'drill', label:'드릴', long:'drill' },
   { key:'nass',  label:'지문', long:'nass' },
+  { key:'kalimat', label:'단어', long:'kalimat' },
 ];
 
 /* ───────── 상태 ───────── */
@@ -984,6 +986,7 @@ function pageKindLabel(page) {
   if (page.sec === 'ptn') return 'PATTERN';
   if (page.sec === 'drill') return 'DRILL';
   if (page.sec === 'nass') return 'NASS';
+  if (page.sec === 'kalimat') return 'KALIMAT';
   return (page.title || '').toUpperCase();
 }
 
@@ -1089,6 +1092,16 @@ function buildPagesForUnit(unit) {
       sec:'nass', kind:'list',
       title:'지문', subtitle: nassRows.length + '개',
       cards: nassRows.map(r => ({...r, _kind:'nass'})),
+    });
+  }
+
+  // 5. 단어: kalimat 탭의 type=kalimat 항목을 1열 카드로
+  const kalimatRows = rowsByUnit(TABS.kalimat, unit, (t, r) => t === 'kalimat' && (r.arabic || '').trim() !== '');
+  if (kalimatRows.length) {
+    pages.push({
+      sec:'kalimat', kind:'list',
+      title:'단어', subtitle: kalimatRows.length + '개',
+      cards: kalimatRows.map(r => ({...r, _kind:'kalimat'})),
     });
   }
 
