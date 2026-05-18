@@ -729,6 +729,30 @@ script 예:
 
 > **선생님앱은 `five` 무시** — 슬라이드 한 장에 한 행씩 표시하는 형식이라 표·격자 모드는 의미 없음. 한 행씩 일반 슬라이드(아랍어 + 한국어 + 음가)로 떨어진다. `two`, `ab`, `c` 등 다른 css 값도 동일하게 무시 (선생님앱 분기는 `baseline` / `write`만).
 
+### 8.4.5 `css = 'six'` (6열 모드 — 드릴·레퍼토리)
+
+`five`와 완전히 동일한 그리드 표 로직이되 **열만 6개**. 도입: 2026-05-18 (A04 래퍼토리 ptn010·011·012).
+
+**구현 (교재앱 `ata144_textbook`)**:
+- 감지: `renderRepertory` / `renderDrillPage` 에서 `css === 'six'` → `renderGridTable(rows, …, cols=6)`
+- `renderGridTable`: `cols===6` → 그리드에 `.cols-six` 클래스
+- CSS:
+```css
+.m-rep-grid.cols-six, .m-drill-grid.cols-six { grid-template-columns:repeat(6,1fr); gap:14px 3px; }
+@media (max-width:480px){ .m-rep-grid.cols-six, .m-drill-grid.cols-six { grid-template-columns:repeat(6,1fr); gap:12px 2px; } }
+.cols-six .drill-cell .dc-ar    { font-size:15px; }  /* five(16px)에서 1px만 축소 */
+.cols-six .drill-cell .dc-trans { font-size:9px; }
+```
+- **모바일(≤480px)에서도 6열 유지** — `five`의 `:not(.cols-two)` → 4열 자동 전환 규칙에 안 걸리도록 `.cols-six` 전용 media 규칙을 뒤에 둬 우선 적용.
+- 글자: `five`는 16px/10px, `six`는 1px만 줄여 15px/9px. 짧은 단어 기준 6열에 안 넘침. 긴 단어 유닛에서 넘치면 추후 `clamp` 보완.
+
+> 선생님앱은 `five`와 동일하게 `six`도 무시(일반 슬라이드로).
+
+### 8.4.6 교재앱 baseline 글자 크기 (2026-05-18 조정)
+
+`.m-bl-letter` (교재앱 baseline 알파벳 큰 글자) 가 과대해 ~2pt 축소:
+`font-size: clamp(1.7rem, 8vw, 2.5rem)` → `clamp(1.55rem, 7.4vw, 2.3rem)`. (max 40px→36.8px)
+
 ### 8.5 라흐자(방언) 국기
 
 매핑 (PNG 사용 — SVG는 외부 `<image>` 참조 시 `<img>` 태그에서 차단됨):
