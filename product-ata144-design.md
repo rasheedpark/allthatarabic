@@ -751,6 +751,24 @@ script 예:
 
 > 선생님앱은 `five`와 동일하게 `six`도 무시(일반 슬라이드로).
 
+### 8.4.4 `css = 'three'` (3열 모드 — 드릴·레퍼토리)
+
+`five`와 완전히 동일한 그리드 표 로직이되 **열만 3개**. 도입: 2026-05-18 (A02 래퍼토리 ptn006_a-u-i).
+
+**구현 (교재앱 `ata144_textbook`)**:
+- 감지: `renderRepertory` / `renderDrillPage` 에서 `css === 'three'` → `renderGridTable(rows, …, cols=3)`
+- `renderGridTable`: `cols===3` → 그리드에 `.cols-three` 클래스
+- CSS:
+```css
+.m-rep-grid.cols-three, .m-drill-grid.cols-three { grid-template-columns:repeat(3,1fr); gap:14px 6px; }
+@media (max-width:480px){ .m-rep-grid.cols-three, .m-drill-grid.cols-three { grid-template-columns:repeat(3,1fr); gap:12px 4px; } }
+```
+- **글자 크기: five와 동일**(축소 없음) — 3열은 칸이 넓어 16px/10px 그대로 충분.
+- **모바일(≤480px)에서도 3열 유지** — `five`의 `:not(.cols-two)`→4열 규칙에 안 걸리도록 `.cols-three` 전용 media 규칙을 뒤에 둬 우선 적용.
+
+> 선생님앱은 `five`와 동일하게 `three`도 무시(일반 슬라이드로).
+> 열 수 모드 비교: `two`(2·박스형) / `three`(3·글자 five) / `five`(5·기본) / `six`(6·글자 −1px).
+
 ### 8.4.6 교재앱 baseline 글자 크기 (2026-05-18 조정)
 
 `.m-bl-letter` (교재앱 baseline 알파벳 큰 글자) 가 과대해 ~2pt 축소:

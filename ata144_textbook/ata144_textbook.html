@@ -455,6 +455,14 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
 .cols-six .drill-cell .dc-ar    { font-size:15px; }
 .cols-six .drill-cell .dc-trans { font-size:9px; }
 
+/* 3열 모드 (`css = 'three'`) — five와 동일하되 3칸. 칸이 넓어 글자 크기는 five 그대로 */
+.m-rep-grid.cols-three,
+.m-drill-grid.cols-three { grid-template-columns:repeat(3, 1fr); gap:14px 6px; }
+@media (max-width:480px) {
+  .m-rep-grid.cols-three,
+  .m-drill-grid.cols-three { grid-template-columns:repeat(3, 1fr); gap:12px 4px; }
+}
+
 .m-rep-table {
   background:var(--surface);
   border-radius:var(--r-md);
@@ -1340,6 +1348,7 @@ function renderScriptLines(text) {
 function renderRepertory(rows) {
   const cssOf = r => (r.css || '').trim().toLowerCase();
   if (rows.some(r => cssOf(r) === 'two')) return renderGridTable(rows, 'm-rep-table', false, 2);
+  if (rows.some(r => cssOf(r) === 'three')) return renderGridTable(rows, 'm-rep-table', false, 3);
   if (rows.some(r => cssOf(r) === 'six')) return renderGridTable(rows, 'm-rep-table', false, 6);
   const five = rows.some(r => cssOf(r) === 'five') || rows.every(r => !r.korean);
   if (five) return renderGridTable(rows, 'm-rep-table', false);
@@ -1354,6 +1363,7 @@ function renderGridTable(rows, className = 'm-drill-table', blanks = false, cols
   const grid = document.createElement('div');
   grid.className = className === 'm-rep-table' ? 'm-rep-grid' : 'm-drill-grid';
   if (cols === 2) grid.classList.add('cols-two');
+  else if (cols === 3) grid.classList.add('cols-three');
   else if (cols === 6) grid.classList.add('cols-six');
   rows.forEach(r => {
     const cell = document.createElement('div');
@@ -1407,9 +1417,11 @@ function renderDrillPage(wrap, rows, chapter) {
     groupByRef(groupRows).forEach(group => {
       const cssOf = r => (r.css || '').trim().toLowerCase();
       const useTwo = group.rows.some(r => cssOf(r) === 'two');
+      const useThree = group.rows.some(r => cssOf(r) === 'three');
       const useSix = group.rows.some(r => cssOf(r) === 'six');
       const five = group.rows.some(r => cssOf(r) === 'five') || group.rows.every(r => !r.korean);
       if (useTwo) section.appendChild(renderGridTable(group.rows, 'm-drill-table', type !== 'drilla', 2));
+      else if (useThree) section.appendChild(renderGridTable(group.rows, 'm-drill-table', type !== 'drilla', 3));
       else if (useSix) section.appendChild(renderGridTable(group.rows, 'm-drill-table', type !== 'drilla', 6));
       else if (five) section.appendChild(renderGridTable(group.rows, 'm-drill-table', type !== 'drilla'));
       else {
