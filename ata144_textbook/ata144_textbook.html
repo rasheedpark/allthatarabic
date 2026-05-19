@@ -469,6 +469,11 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   box-shadow:var(--shadow);
   padding:16px 10px;
 }
+/* 같은 섹션 내 박스(테이블)끼리 간격 추가 — flex gap(12px) 위에 +14px (안내문↔첫박스 간격은 유지) */
+.m-drill-table + .m-drill-table,
+.m-rep-table + .m-rep-table,
+.m-drill-table + .m-rep-table,
+.m-rep-table + .m-drill-table { margin-top:14px; }
 .m-rep-row,
 .m-drill-row {
   display:grid;
