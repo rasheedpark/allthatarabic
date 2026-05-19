@@ -1713,44 +1713,31 @@ function patternIllustrationUrl(u) {
   return `${ILLUSTRATION_BASE}/${encodeURIComponent(u)}_ptn1.png${_illVer()}`;
 }
 
-// ── 나쓰(지문) 페이지 — type=nass / type=nass+ 두 섹션 ──
-function renderNassPage(unit, nassRows, opts) {
-  const { pageNo, showTrans } = opts;
-  const unitNum = parseInt((unit.u || '').replace(/\D/g, ''), 10) || 1;
+// ── 나쓰(지문) 안내문 (nass·nass+ 공통, 1개) ──
+const NASS_INSTR = '다음을 들으면서 소리로 의미를 이해하고 같이 따라 읽어 보세요';
 
-  const cardsHtml = (items) => items.map(it => {
-    const trans = (showTrans && it.transliteration)
-      ? `<div class="nass-trans">${plain(it.transliteration)}</div>` : '';
-    const korean = it.korean ? parseInline(it.korean) : '';
-    const flag = lahjaFlag(it.lahja);
-    return `<div class="nass-card">
-      <div class="nass-card-cols">
-        <div class="nass-card-ko">
-          <div class="nass-ko-text">${korean}</div>
-          ${flag ? `<div class="nass-card-flag">${flag}</div>` : ''}
-        </div>
-        <div class="nass-card-ar">
-          <div class="nass-arabic">${parseInline(it.arabic || '')}</div>
-          ${trans}
-        </div>
+// 나쓰 카드 1장 HTML
+function _nassCardHtml(it, showTrans) {
+  const trans = (showTrans && it.transliteration)
+    ? `<div class="nass-trans">${plain(it.transliteration)}</div>` : '';
+  const korean = it.korean ? parseInline(it.korean) : '';
+  const flag = lahjaFlag(it.lahja);
+  return `<div class="nass-card">
+    <div class="nass-card-cols">
+      <div class="nass-card-ko">
+        <div class="nass-ko-text">${korean}</div>
+        ${flag ? `<div class="nass-card-flag">${flag}</div>` : ''}
       </div>
-    </div>`;
-  }).join('');
+      <div class="nass-card-ar">
+        <div class="nass-arabic">${parseInline(it.arabic || '')}</div>
+        ${trans}
+      </div>
+    </div>
+  </div>`;
+}
 
-  const sectionHtml = (items, instruction) => {
-    if (!items.length) return '';
-    return `<div class="nass-section">
-      <div class="nass-instruction">${instruction}</div>
-      ${cardsHtml(items)}
-    </div>`;
-  };
-
-  const nassNormal = nassRows.filter(r => (r.type || '').toLowerCase() === 'nass');
-  const nassPlus   = nassRows.filter(r => (r.type || '').toLowerCase() === 'nass+');
-
-  const sectionA = sectionHtml(nassNormal, '다음을 들으면서 소리로 의미를 이해하고 같이 따라 읽어 보세요');
-  const sectionB = sectionHtml(nassPlus,   '다음을 듣고 다음에 나올 말이 무엇인지 유추해 보세요');
-
+// 나쓰 페이지 셸 (page-nass)
+function _nassPageShell(unitNum, pageNo, innerHtml) {
   return `
   <article class="page page-nass">
     <div class="page-head">
@@ -1765,9 +1752,7 @@ function renderNassPage(unit, nassRows, opts) {
         </span>
       </div>
     </div>
-
-    <div class="page-cards">${sectionA}${sectionB}</div>
-
+    <div class="page-cards">${innerHtml}</div>
     <div class="page-foot">
       <div class="left">
         <img class="brand-logo" src="../assets/ata-logo2.png" alt="">
@@ -1777,6 +1762,74 @@ function renderNassPage(unit, nassRows, opts) {
       <div class="pgnum">${String(pageNo).padStart(2, '0')}</div>
     </div>
   </article>`;
+}
+
+// ── 나쓰(지문) 페이지 — nass·nass+ 구분 없이 카드별 B5 자동 분할 ──
+// 카드 1장이 페이지를 넘으면 그 카드부터 다음 페이지로. 드릴 분할 로직과 동일 기하.
+async function renderNassPagesAsync(unit, nassRows, opts) {
+  const { pageNo: startPageNo, showTrans } = opts;
+  const unitNum = parseInt((unit.u || '').replace(/\D/g, ''), 10) || 1;
+
+  // nass·nass+ 시트 순서 그대로 (구분 없음)
+  const cards = nassRows.map(it => _nassCardHtml(it, showTrans));
+  if (!cards.length) return { html: '', pageCount: 0 };
+
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch (_) {}
+  }
+
+  // B5 고정 기하 (드릴과 동일): 가용 ≈ 740px
+  const PAGE_BUDGET = 740;
+  const CARD_GAP = 12;   // .nass-section gap
+
+  // off-screen 측정 (.nass-section 컨텍스트, page-cards 내부 폭)
+  const measureRoot = document.createElement('div');
+  measureRoot.style.cssText = `
+    position: absolute; top: -99999px; left: -99999px;
+    width: calc(182mm - 88px);
+    visibility: hidden;
+  `;
+  measureRoot.innerHTML = '<div class="nass-section" id="__nassMeasure"></div>';
+  document.body.appendChild(measureRoot);
+  const ms = measureRoot.querySelector('#__nassMeasure');
+
+  // 안내문 높이 (첫 페이지에만 차감)
+  ms.innerHTML = `<div class="nass-instruction">${NASS_INSTR}</div>`;
+  const instrH = ms.getBoundingClientRect().height;
+
+  const heights = cards.map(c => { ms.innerHTML = c; return ms.getBoundingClientRect().height; });
+  measureRoot.remove();
+
+  // 빈 패킹 — 첫 페이지는 안내문 높이만큼 budget 차감
+  const pages = [];
+  let cur = [], curH = 0;
+  const budgetFor = () => PAGE_BUDGET - (pages.length === 0 ? instrH : 0);
+
+  cards.forEach((c, i) => {
+    const pre = cur.length ? CARD_GAP : 0;
+    const need = heights[i] + pre;
+    if (cur.length && curH + need > budgetFor()) {
+      pages.push(cur); cur = []; curH = 0;
+      cur.push(i); curH = heights[i];
+    } else {
+      cur.push(i); curH += need;
+    }
+  });
+  if (cur.length) pages.push(cur);
+
+  // 단일 카드가 페이지를 단독 초과하는 극단 케이스 경고
+  pages.forEach((idxs, p) => {
+    if (idxs.length === 1 && heights[idxs[0]] > budgetFor()) {
+      console.warn(`[nass-pagination] 카드 1장이 페이지 가용 높이를 초과합니다: 유닛 ${unit.u}, 페이지 ${startPageNo + p}, ${Math.round(heights[idxs[0]])}px > ${Math.round(PAGE_BUDGET)}px.`);
+    }
+  });
+
+  const pageHtmls = pages.map((idxs, p) => {
+    const inner = idxs.map(i => cards[i]).join('');
+    const instr = p === 0 ? `<div class="nass-instruction">${NASS_INSTR}</div>` : '';
+    return _nassPageShell(unitNum, startPageNo + p, `<div class="nass-section">${instr}${inner}</div>`);
+  });
+  return { html: pageHtmls.join(''), pageCount: pageHtmls.length };
 }
 
 // ── 표현 페이지 1장 (= 한 유닛의 모든 표현 카드) ──
@@ -1924,10 +1977,11 @@ async function renderUnit(u) {
     pageNo += drillResult.pageCount;
   }
 
-  // 나쓰(지문) 페이지
+  // 나쓰(지문) 페이지 — 카드별 B5 자동 분할 (renderNassPagesAsync)
   if (nassRows.length) {
-    html += renderNassPage(unit, nassRows, { pageNo, showTrans });
-    pageNo += 1;
+    const nassResult = await renderNassPagesAsync(unit, nassRows, { pageNo, showTrans });
+    html += nassResult.html;
+    pageNo += nassResult.pageCount;
   }
 
   return html;

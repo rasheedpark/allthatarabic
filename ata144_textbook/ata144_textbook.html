@@ -1469,20 +1469,17 @@ function drillInstruction(type, unit, chapter) {
 }
 
 function renderNassPage(wrap, cards) {
-  ['nass','nass+'].forEach(type => {
-    const rows = cards.filter(r => normType(r.type) === type);
-    if (!rows.length) return;
-    const section = document.createElement('section');
-    section.className = 'm-subsection';
-    const instr = document.createElement('div');
-    instr.className = 'm-instruction';
-    instr.textContent = type === 'nass+'
-      ? '다음을 듣고 다음에 나올 말이 무엇인지 유추해 보세요'
-      : '다음을 들으면서 소리로 의미를 이해하고 같이 따라 읽어 보세요';
-    section.appendChild(instr);
-    rows.forEach(r => section.appendChild(renderCard(r)));
-    wrap.appendChild(section);
-  });
+  // nass·nass+ 구분 없이 시트 순서대로 연속 표시, 안내문 1개 공통
+  const rows = cards.filter(r => ['nass','nass+'].includes(normType(r.type)));
+  if (!rows.length) return;
+  const section = document.createElement('section');
+  section.className = 'm-subsection';
+  const instr = document.createElement('div');
+  instr.className = 'm-instruction';
+  instr.textContent = '다음을 들으면서 소리로 의미를 이해하고 같이 따라 읽어 보세요';
+  section.appendChild(instr);
+  rows.forEach(r => section.appendChild(renderCard(r)));
+  wrap.appendChild(section);
 }
 
 function renderBaseline(row, opts = {}) {
