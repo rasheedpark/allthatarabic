@@ -293,7 +293,7 @@ https://storage.googleapis.com/all-that-arabic-14/audio/{U}/{id}.wav
 | `units` | ✅ 유닛 슬라이드 | unit | C, U, arabic, korean, note, type, status, id_unit |
 | `pattern` | ✅ 내비게이터/패턴 슬라이드 | ptnA, ptnB, ptn | C, U, arabic, korean, note, type, status, id_ptn, id_ptn(no) |
 | `drill` | ✅ 메인 슬라이드 | ptn, repertory, mithāl, drillA, drillB, summary, writing | C, U, arabic, korean, note, type, status, id_drill, ref_ptn, lahja, script, css, url |
-| `kalimat` | ✅ 표현/단어 슬라이드 | exp, kalimat | C, U, arabic, korean, note, type, status, id_kalimat |
+| `kalimat` | ✅ 표현/단어 슬라이드 | exp, kalimat, kalimat+ | C, U, arabic, korean, note, type, status, id_kalimat |
 | `nass` | ✅ 나스 슬라이드 | nass | C, U, arabic, korean, note, type, status, id_nass, ptn_key |
 
 > **앱별 탭 사용**
