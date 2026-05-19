@@ -26,6 +26,7 @@ ATA-14/                                         GitHub Pages 배포 루트 (저�
 ├── assets/                                     공유 자산 (로고, 폰트, 국기 아이콘)
 │
 ├── product-ata144.md                           제품 문서 (메인)
+├── product-ata144-content-rules.md             예문작성 규칙 (패턴·드릴·표현·지문·단어)
 ├── product-ata144-appendix.md                  CSS 부록
 ├── product-ata144-audio-rules.md               오디오 생성 규칙
 ├── product-ata144-image-rules.md               이미지 생성 규칙
