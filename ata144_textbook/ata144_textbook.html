@@ -297,6 +297,7 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
 .m-pair-right {
   min-width:0;
   text-align:right;
+  display:flex; flex-direction:column; gap:5px;  /* 아랍어 ↔ 음가 간격 */
 }
 .m-pair-right .m-ar,
 .m-pair-right .m-trans {
@@ -519,7 +520,7 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   font-weight:400;
 }
 .m-row-trans {
-  margin-top:2px;
+  margin-top:5px;  /* 아랍어 ↔ 음가 간격 (2→5px) */
   font-size:9.5px;
   line-height:1.4;
   color:var(--sub);
@@ -534,7 +535,7 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   text-align:left;
 }
 .drill-cell {
-  display:flex; flex-direction:column; align-items:center; gap:4px;
+  display:flex; flex-direction:column; align-items:center; gap:6px;  /* 4→6px */
   padding:6px 2px;
 }
 .m-blank {
