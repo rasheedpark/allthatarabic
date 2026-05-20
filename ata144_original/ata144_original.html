@@ -852,6 +852,8 @@ body {
 .exp-trans .hl-text,
 .nass-trans .hl-text,
 .pattern-trans .hl-text { font-weight: 700; }
+/* Arabic 강조는 어디서든 weight 변경 금지 (Safari/CoreText 셰이핑 보존) */
+.hl-text.hl-ar { font-weight: inherit !important; }
 
 /* ── 푸터 (로고 + 회사명 + 저작권 + 페이지번호) ── */
 .page-foot {
@@ -1117,7 +1119,11 @@ function parseInline(s) {
   return s
     .replace(/<br\s*\/?>/gi, '<br>')
     .replace(/_([^_\n]+)_/g, '<span class="hl-box-inline">$1</span>')
-    .replace(/\*([^*\n]+)\*/g, '<span class="hl-text">$1</span>')
+    // *…* 안에 Arabic이 있으면 hl-ar 클래스 추가 → weight 상속(셰이핑 보존)
+    .replace(/\*([^*\n]+)\*/g, (_, m) => {
+      const hasAr = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/.test(m);
+      return `<span class="hl-text${hasAr ? ' hl-ar' : ''}">${m}</span>`;
+    })
     .replace(/\r\n|\r|\n/g, '<br>');
 }
 // 첫 강한 방향 문자로 LTR/RTL 판정 — 마크업(`*_<tag>`) 제거 후 검사.
@@ -1148,7 +1154,10 @@ function plain(s) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/_([^_\n]+)_/g, '$1')
-    .replace(/\*([^*\n]+)\*/g, '<span class="hl-text">$1</span>');
+    .replace(/\*([^*\n]+)\*/g, (_, m) => {
+      const hasAr = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/.test(m);
+      return `<span class="hl-text${hasAr ? ' hl-ar' : ''}">${m}</span>`;
+    });
 }
 const plainTrans = plain;
 function wrapArabicTokens(html) {

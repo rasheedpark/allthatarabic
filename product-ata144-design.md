@@ -723,6 +723,24 @@ script 예:
 - **1.4.4 인쇄 교재 `ata144_original.html`** — `renderScript`의 `<li>`에 `dir` 부여. `.pattern-script li[dir="rtl"]` / `.exp-script li[dir="rtl"]`이 점·정렬을 우측으로.
 - **1.4.4 선생님앱 `ata144_teacher.html`** (book view) — `renderScriptBlock`의 `.book-script-item`에 `dir` 부여. flex 컨테이너라 `dir="rtl"`만으로 점(`::before`)·텍스트가 자동으로 우측 정렬.
 
+### 8.3.11 Arabic 글리프 `*…*` 강조 — weight 변경 금지 (Safari 셰이핑 보존)
+
+**문제 (반복)**: `الْقَ*مَر*`처럼 단어 내부 일부를 `*…*` 강조하면, 그 span에 `font-weight: 700` 같은 weight 변경이 걸린 경우 Safari/CoreText가 **weight 경계에서 텍스트 런을 분리**한다. 그러면 `لْقَ` ↔ `مَر` 사이 شaping이 끊겨 قَ는 final form, م은 initial form으로 렌더링되어 글자 연결이 깨진다. (단순 색 변경은 안전, weight·font-family·display 변경은 위험.)
+
+**해결**:
+- 파서(`parseInline` / `parseText` / `plain`)에서 `*…*` 매칭 시 내부에 Arabic 블록 글리프가 있는지 검사 → 있으면 추가 클래스 `hl-ar`(또는 `hl-bold.hl-ar`) 부여.
+- CSS: `.hl-text.hl-ar { font-weight: inherit !important; }` — 어떤 부모 컨텍스트에서든 weight 상속(부모와 동일 weight 유지). 색은 그대로.
+- Latin/한글만 들어간 강조는 `hl-ar` 없이 → 일반 규칙에 따라 컨텍스트별 bold(`.m-summary .hl-text { font-weight: 700 }` 등) 적용.
+
+**적용 범위**:
+- 1.4.3 복습앱 `archive/app143s.html` — `parseText`에서 hasArabic 분기 + `.hl-bold.hl-ar { font-weight: inherit }` (최초 도입).
+- **1.4.4 세 앱 모두**: 교재앱 `parseInline`/`parseTrans`, 인쇄 원본 `parseInline`/`plain`, 선생님앱 `parseText` — 동일 분기 + `.hl-text.hl-ar` / `.highlight-text.hl-ar` 오버라이드.
+
+**예시 데이터**:
+```
+- a*l-qa*mar الْقَ*مَر*    ← Latin "l-qa"는 bold 적용, Arabic "مَر"는 색만(weight 상속).
+```
+
 ### 8.4 `css = 'five'` (5열 모드 — 드릴·레퍼토리)
 
 좁은 5열 셀 레이아웃. 모바일에서는 4열로 자동 전환.

@@ -191,6 +191,10 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
 .m-trans .hl-text,
 .m-ko .hl-text,
 .m-summary .hl-text { font-weight:700; }
+/* Arabic 글리프가 포함된 강조는 weight 변경 금지 — Safari/CoreText의
+   weight 경계에서 텍스트 런이 쪼개져 셰이핑(글자 연결)이 끊긴다.
+   색만 적용하고 굵기는 부모로 상속 (예: الْقَ*مَر*) */
+.hl-text.hl-ar { font-weight: inherit !important; }
 .hl-box-inline {
   border:1.5px solid var(--accent);
   border-radius:6px;
@@ -887,7 +891,12 @@ function parseInline(str) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/\n/g,'<br>')
     .replace(/_([^_\n]+)_/g,'<span class="hl-box-inline">$1</span>')
-    .replace(/\*([^*\n]+)\*/g,'<span class="hl-text">$1</span>');
+    // *…* 안에 Arabic이 있으면 hl-ar 클래스 추가 → font-weight: inherit로
+    //   Safari/CoreText의 weight 경계 셰이핑 끊김 방지 (예: الْقَ*مَر*)
+    .replace(/\*([^*\n]+)\*/g, (_, m) => {
+      const hasAr = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/.test(m);
+      return `<span class="hl-text${hasAr ? ' hl-ar' : ''}">${m}</span>`;
+    });
 }
 
 // 첫 강한 방향 문자로 LTR/RTL 판정 — 마크업(`*_<tag>`) 제거 후 검사.
@@ -911,7 +920,10 @@ function parseTrans(str) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/\n/g,'<br>')
     .replace(/_([^_\n]+)_/g,'$1')
-    .replace(/\*([^*\n]+)\*/g,'<span class="hl-text">$1</span>');
+    .replace(/\*([^*\n]+)\*/g, (_, m) => {
+      const hasAr = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/.test(m);
+      return `<span class="hl-text${hasAr ? ' hl-ar' : ''}">${m}</span>`;
+    });
 }
 
 function parseDrillBlank(str) {
