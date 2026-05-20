@@ -717,7 +717,11 @@ script 예:
             ← 빈 줄: 다음은 산문/새 불릿
 ```
 
-**적용 범위**: 1.4.3 복습앱 `archive/app143s.html` 의 `renderSummaryDesc`. 다른 앱의 산문/불릿 렌더에도 동일 패턴 권장.
+**적용 범위**:
+- 1.4.3 복습앱 `archive/app143s.html` 의 `renderSummaryDesc` (최초 도입).
+- **1.4.4 교재앱 `ata144_textbook.html`** — `renderScriptLines` 에서 `- ` 불릿에 `firstStrongDir`로 `dir` 부여. `.m-card.pattern .m-summary .bullet[dir="rtl"]`이 padding/점 위치를 우측으로 뒤집음.
+- **1.4.4 인쇄 교재 `ata144_original.html`** — `renderScript`의 `<li>`에 `dir` 부여. `.pattern-script li[dir="rtl"]` / `.exp-script li[dir="rtl"]`이 점·정렬을 우측으로.
+- **1.4.4 선생님앱 `ata144_teacher.html`** (book view) — `renderScriptBlock`의 `.book-script-item`에 `dir` 부여. flex 컨테이너라 `dir="rtl"`만으로 점(`::before`)·텍스트가 자동으로 우측 정렬.
 
 ### 8.4 `css = 'five'` (5열 모드 — 드릴·레퍼토리)
 

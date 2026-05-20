@@ -1193,6 +1193,21 @@ function parseText(str) {
     .replace(/\*([^*\n]+)\*/g, '<span class="highlight-text">$1</span>');
 }
 
+// 첫 강한 방향 문자로 LTR/RTL 판정 — 마크업(`*_<tag>`) 제거 후 검사.
+// 아랍어 시작 → 'rtl', 라틴/한글 시작 → 'ltr'. (불릿/산문 줄 단위)
+function firstStrongDir(raw) {
+  const t = String(raw || '').replace(/<[^>]+>/g, '').replace(/[*_]/g, '');
+  for (const ch of t) {
+    const c = ch.codePointAt(0);
+    if ((c >= 0x0600 && c <= 0x06FF) || (c >= 0x0750 && c <= 0x077F) ||
+        (c >= 0x08A0 && c <= 0x08FF) || (c >= 0xFB50 && c <= 0xFDFF) ||
+        (c >= 0xFE70 && c <= 0xFEFF)) return 'rtl';
+    if ((c >= 0x41 && c <= 0x5A) || (c >= 0x61 && c <= 0x7A) ||
+        (c >= 0xAC00 && c <= 0xD7A3) || (c >= 0x3130 && c <= 0x318F)) return 'ltr';
+  }
+  return 'ltr';
+}
+
 // ── parseDrillBlank — 드릴B 전용: *X* → 같은 배경색 박스로 가리기 ──
 function parseDrillBlank(str) {
   if (!str) return '';
@@ -1308,7 +1323,9 @@ function renderScriptBlock(text) {
     .filter(Boolean)
     .map(line => {
       if (line.startsWith('- ')) {
-        return `<div class="book-script-item">${parseText(line.slice(2).trim())}</div>`;
+        const raw = line.slice(2).trim();
+        // 아랍어로 시작하는 불릿 → RTL (점·본문 우측으로 자동 정렬)
+        return `<div class="book-script-item" dir="${firstStrongDir(raw)}">${parseText(raw)}</div>`;
       }
       return `<p>${parseText(line)}</p>`;
     })

@@ -300,6 +300,15 @@ body {
   color: var(--accent);
   font-weight: 700;
 }
+/* 아랍어로 시작하는 불릿 → RTL: 점 우측, 본문 우측 정렬 (pattern·exp 공통) */
+.pattern-script li[dir="rtl"],
+.exp-script li[dir="rtl"] {
+  padding-left: 0; padding-right: 16px; text-align: right;
+}
+.pattern-script li[dir="rtl"]::before,
+.exp-script li[dir="rtl"]::before {
+  left: auto; right: 0;
+}
 .pattern-script .ar-tok {
   font-family: var(--font-ar);
   /* 색·굵기는 주변 한국어 본문(.pattern-script: var(--sub), 400)과 동일하게 inherit
@@ -1111,6 +1120,20 @@ function parseInline(s) {
     .replace(/\*([^*\n]+)\*/g, '<span class="hl-text">$1</span>')
     .replace(/\r\n|\r|\n/g, '<br>');
 }
+// 첫 강한 방향 문자로 LTR/RTL 판정 — 마크업(`*_<tag>`) 제거 후 검사.
+// 아랍어 시작 → 'rtl', 라틴/한글 시작 → 'ltr'. (불릿/산문 줄 단위)
+function firstStrongDir(raw) {
+  const t = String(raw || '').replace(/<[^>]+>/g, '').replace(/[*_]/g, '');
+  for (const ch of t) {
+    const c = ch.codePointAt(0);
+    if ((c >= 0x0600 && c <= 0x06FF) || (c >= 0x0750 && c <= 0x077F) ||
+        (c >= 0x08A0 && c <= 0x08FF) || (c >= 0xFB50 && c <= 0xFDFF) ||
+        (c >= 0xFE70 && c <= 0xFEFF)) return 'rtl';
+    if ((c >= 0x41 && c <= 0x5A) || (c >= 0x61 && c <= 0x7A) ||
+        (c >= 0xAC00 && c <= 0xD7A3) || (c >= 0x3130 && c <= 0x318F)) return 'ltr';
+  }
+  return 'ltr';
+}
 // css = 'ab' → 앱 전용. 인쇄 교재에서는 해당 행의 script(설명) 필드를 숨김.
 function isAppOnly(row) {
   return (row?.css || '').trim().toLowerCase() === 'ab';
@@ -1151,7 +1174,8 @@ function renderScript(text) {
   };
   const flushBullets = () => {
     if (bullets.length) {
-      main += `<ul>${bullets.map(l => `<li>${wrapArabicTokens(parseInline(l))}</li>`).join('')}</ul>`;
+      // 줄 시작 언어로 dir 부여 — 아랍어 시작이면 RTL(점이 오른쪽), 그 외 LTR
+      main += `<ul>${bullets.map(l => `<li dir="${firstStrongDir(l)}">${wrapArabicTokens(parseInline(l))}</li>`).join('')}</ul>`;
       bullets = [];
     }
   };
