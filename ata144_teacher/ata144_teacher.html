@@ -1088,6 +1088,16 @@ const TAB_EXPRESSION = 'expression';
 const TAB_KALIMAT = 'kalimat';
 const TAB_NASS    = 'nass';
 
+// dev/prod 판정 — localhost/127.0.0.1/file: 은 dev (draft 노출), 그 외 prod (confirmed만)
+const IS_DEV = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || location.protocol === 'file:';
+// status 필터: confirmed=항상, draft=dev에서만, 그 외=숨김
+const okStatus = r => {
+  const s = ((r && r.status) || '').trim().toLowerCase();
+  if (s === 'confirmed') return true;
+  if (s === 'draft')     return IS_DEV;
+  return false;
+};
+
 const TYPE_EN = { unit:'UNIT', ptn:'PATTERN', repertory:'REPERTORY', drilla:'DRILL A', drillb:'DRILL B', drillc:'DRILL C', writing:'WRITING', exp:'EXPRESSION', kalimat:'KALIMAT', nass:'NASS' };
 const TYPE_KO = { unit:'유닛',  ptn:'패턴',   repertory:'예문',     drilla:'드릴A',   drillb:'드릴B',   drillc:'드릴C',   writing:'쓰기',    exp:'표현',        kalimat:'단어',      nass:'지문' };
 const LAHJA_FLAG = {
@@ -1219,7 +1229,7 @@ async function buildSlides(baseUnit) {
     fetchSheetData(TAB_EXPRESSION),
   ]);
 
-  const ok  = r => (r.status || '').toLowerCase() === 'confirmed';
+  const ok  = okStatus;
   const inU = r => (r.u || '') === baseUnit;
   const push = (type, r) => slides.push({ type, data: r, pg: baseUnit });
 
@@ -1429,7 +1439,7 @@ async function renderUnitBook(baseUnit) {
     fetchSheetData(TAB_REPERTORY),
   ]);
 
-  const ok = r => (r.status || '').toLowerCase() === 'confirmed';
+  const ok = okStatus;
   const unit = unitRaw.find(r => r.u === baseUnit && ok(r)) || unitRaw.find(r => r.u === baseUnit) || {};
   const chapter = unit.c || '';
   const marks = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح'];
@@ -1858,7 +1868,7 @@ function buildIndex() {
 
   const unitRaw = _cache[TAB_UNIT] || [];
   unitRaw
-    .filter(r => (r.status || '').toLowerCase() === 'confirmed')
+    .filter(okStatus)
     .forEach(r => {
       const u  = r.u || '';
       const ar = (r.arabic  || '').substring(0, 28);
@@ -1998,7 +2008,7 @@ async function init() {
     // 첫 시작 유닛: unit탭 기준
     const unitRaw = _cache[TAB_UNIT] || [];
     const baseUnits = unitRaw
-      .filter(r => (r.status || '').toLowerCase() === 'confirmed')
+      .filter(okStatus)
       .map(r => r.u || '')
       .filter(Boolean);
 

@@ -1036,6 +1036,16 @@ body {
 <script>
 const SHEET_ID = '1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8';
 
+// dev/prod 판정 — localhost/127.0.0.1/file: 은 dev (draft 노출), 그 외 prod (confirmed만)
+const IS_DEV = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || location.protocol === 'file:';
+// status 필터: confirmed=항상, draft=dev에서만, 그 외=숨김
+const okStatus = r => {
+  const s = ((r && r.status) || '').trim().toLowerCase();
+  if (s === 'confirmed') return true;
+  if (s === 'draft')     return IS_DEV;
+  return false;
+};
+
 // ── 시트 로더 ──────────────────────────────────────
 const _cache = {};
 function _parseGvizTable(resp, name) {
@@ -1912,7 +1922,7 @@ async function renderUnit(u) {
 
   // css='aa' → 앱 전용 데이터: 인쇄 교재에서는 행 자체를 완전히 제외 (앱에는 노출됨)
   const isPrintExcluded = r => (r.css || '').trim().toLowerCase() === 'aa';
-  const ok  = r => (r.status || '').toLowerCase() === 'confirmed' && !isPrintExcluded(r);
+  const ok  = r => okStatus(r) && !isPrintExcluded(r);
   const inU = r => r.u === u;
 
   const unit = unitRaw.find(r => inU(r) && ok(r));
@@ -2029,7 +2039,7 @@ async function init() {
   try {
     const unitRaw = await fetchSheet('unit');
     const units = unitRaw
-      .filter(r => (r.status || '').toLowerCase() === 'confirmed')
+      .filter(okStatus)
       .map(r => r.u || '').filter(Boolean);
 
     const cont = document.getElementById('unit-buttons');
