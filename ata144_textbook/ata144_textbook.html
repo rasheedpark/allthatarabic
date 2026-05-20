@@ -402,6 +402,34 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
 .m-card.exp { gap:7px; }
 .m-card.exp .m-ar { font-size:var(--ar-card-size); }
 
+/* ───────── 래퍼토리 카드 ─────────
+   바깥 .m-card.repertory는 투명 컨테이너 (중첩 카드 방지) — 안쪽
+   .m-rep-row(페어 모드) 또는 .m-rep-table(그리드 모드)이 실제 카드 역할.
+   레퍼토리 = 패턴 예문이라는 시각 마커로 우측 끝에 액센트 세로 바 추가. */
+.m-card.repertory {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  border-radius: 0;
+  gap: 8px;
+}
+.m-card.repertory .m-rep-row,
+.m-card.repertory .m-rep-table {
+  position: relative;
+  padding-right: 18px;  /* 세로 바 자리 확보 */
+}
+.m-card.repertory .m-rep-row::after,
+.m-card.repertory .m-rep-table::after {
+  content: '';
+  position: absolute;
+  top: 10px; bottom: 10px;
+  right: 6px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0.85;
+}
+
 /* ───────── 드릴 표 ───────── */
 .m-drill-table {
   background:var(--surface);
