@@ -160,7 +160,7 @@ ATA 1.4.4의 모든 산출물(인쇄 교재 + 3개 앱)에 일관되게 적용�
 ### 4.4 카드 타입별
 
 **표현(exp)**: 좌(한국어) - 우(아랍어 + 음가) 페어. `.m-pair` 사용. 베이스라인 정렬.
-**래퍼토리(repertory)**: 표현/드릴과 동일 양식 — 좌(한국어) - 우(아랍어 + 음가) 페어 행(`.m-rep-row`) 또는 그리드 표(`.m-rep-table`, `css=two/three/five/six`). **카드 우측 끝에 액센트 색 세로 바**(`::after`, `width:3px`)로 "패턴 예문" 시각 마커. 바깥 `.m-card.repertory`는 투명 컨테이너 (안쪽 행/표가 실제 카드 역할 → 중첩 카드 방지).
+**래퍼토리(repertory)**: **표현(exp)과 완전히 같은 카드 양식** — 디폴트(페어) 모드에서는 각 행을 `renderCard({_kind:'repertory'})`로 개별 `.m-card.repertory` 카드로 그림 (`.m-card.exp`와 동일한 gap/shadow/radius/패딩). 여러 카드는 `.m-rep-wrap`(flex column, gap 8px) 컨테이너 안에 쌓임. 그리드 모드(`css=two/three/five/six` 또는 한국어 전무)는 종전대로 `.m-rep-table` 한 표를 `.m-card.repertory`가 감쌈.
 **패턴(ptn)**: 큰 아랍어 헤드라인 + 한국어 + 음가 + 설명(`.m-summary`).
 **드릴(drillA/B)**: 5열 그리드(좁은 화면 4열). 셀 아랍어 `font-size: 15px; font-weight: 500`. 데이터에 `css=five`가 명시된 경우 한 단계 더 작게 (`13px`) — `.css-five` 클래스가 자동 부여됨.
 **나스(nass)**: 멀티라인 아랍어 + 한국어. `line-height: 1.75` (지문은 줄간격 약간 좁힘). **`nass`·`nass+` 구분 없이 시트 순서대로 연속**, 안내문 1개 공통(`다음을 들으면서 소리로 의미를 이해하고 같이 따라 읽어 보세요`). 교재앱은 한 화면 스크롤, **인쇄 교재는 카드별 B5 자동 분할**(`renderNassPagesAsync` — 카드 1장이 페이지 초과 시 그 카드부터 다음 페이지, 안내문은 첫 페이지만, PAGE_BUDGET 740·카드간 12px). `page` 컬럼 분리는 nass 미적용. (신규 `practice` 타입은 양식 미정 — `product-ata144.md` 이슈란 참조)

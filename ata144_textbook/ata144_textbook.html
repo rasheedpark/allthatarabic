@@ -398,36 +398,17 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   line-height:1.55;
 }
 
-/* ───────── 표현 카드 (작게, 인쇄 카드 느낌) ───────── */
-.m-card.exp { gap:7px; }
-.m-card.exp .m-ar { font-size:var(--ar-card-size); }
-
-/* ───────── 래퍼토리 카드 ─────────
-   바깥 .m-card.repertory는 투명 컨테이너 (중첩 카드 방지) — 안쪽
-   .m-rep-row(페어 모드) 또는 .m-rep-table(그리드 모드)이 실제 카드 역할.
-   레퍼토리 = 패턴 예문이라는 시각 마커로 우측 끝에 액센트 세로 바 추가. */
-.m-card.repertory {
-  background: transparent;
-  box-shadow: none;
-  padding: 0;
-  border-radius: 0;
-  gap: 8px;
-}
-.m-card.repertory .m-rep-row,
-.m-card.repertory .m-rep-table {
-  position: relative;
-  padding-right: 18px;  /* 세로 바 자리 확보 */
-}
-.m-card.repertory .m-rep-row::after,
-.m-card.repertory .m-rep-table::after {
-  content: '';
-  position: absolute;
-  top: 10px; bottom: 10px;
-  right: 6px;
-  width: 3px;
-  border-radius: 2px;
-  background: var(--accent);
-  opacity: 0.85;
+/* ───────── 표현·래퍼토리 카드 (작게, 인쇄 카드 느낌) ─────────
+   래퍼토리(페어 모드)는 표현(exp)과 완전히 같은 양식. 그리드 모드(css=two/
+   three/five/six 또는 한국어 전무)는 종전대로 .m-rep-table을 .m-card.repertory
+   안에 묶음. */
+.m-card.exp,
+.m-card.repertory { gap:7px; }
+.m-card.exp .m-ar,
+.m-card.repertory .m-ar { font-size:var(--ar-card-size); }
+/* 페어 모드 레퍼토리 — 개별 카드들을 묶는 투명 컨테이너 */
+.m-rep-wrap {
+  display:flex; flex-direction:column; gap:8px;
 }
 
 /* ───────── 드릴 표 ───────── */
@@ -1402,10 +1383,21 @@ function renderPatternCard(row) {
 }
 
 function renderRepertoryCard(rows) {
-  const el = document.createElement('div');
-  el.className = 'm-card repertory';
-  el.appendChild(renderRepertory(rows));
-  return el;
+  const cssOf = r => (r.css || '').trim().toLowerCase();
+  const isGrid = rows.some(r => ['two','three','five','six'].includes(cssOf(r)))
+              || rows.every(r => !r.korean);   // 한국어 전무 → 자동 five 그리드
+  if (isGrid) {
+    // 그리드 모드 — 종전대로 한 표를 .m-card.repertory가 감쌈
+    const el = document.createElement('div');
+    el.className = 'm-card repertory';
+    el.appendChild(renderRepertory(rows));
+    return el;
+  }
+  // 디폴트 페어 모드 — 각 행을 개별 .m-card.repertory(=표현 카드와 같은 양식)로
+  const wrap = document.createElement('div');
+  wrap.className = 'm-rep-wrap';
+  rows.forEach(r => wrap.appendChild(renderCard({ ...r, _kind: 'repertory' })));
+  return wrap;
 }
 
 function renderScriptLines(text) {
