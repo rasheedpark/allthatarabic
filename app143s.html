@@ -421,13 +421,15 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 
 /* ── 전치사 테이블 (A03 등 표 형태 슬라이드) ── */
 .summary-prep-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 16px;
   margin: 14px 0;
-  padding: 10px 6px;
+  padding: 10px 12px;
   background: var(--accent-bg);
   border-radius: var(--r-md);
+  text-align: center;
 }
 .summary-prep {
   display: flex;
@@ -1234,7 +1236,9 @@ function renderSummary(area, inner, s) {
   header.className = 'summary-header';
 
   if (d.arabic) {
-    const cssMode = (d.css || '').trim();
+    // A 시리즈 유닛은 문장형 — css 미설정 시 sentence 모드 자동 적용
+    const rawCss = (d.css || '').trim();
+    const cssMode = rawCss || (/^[Aa]/.test(s.unit || '') ? 'sentence' : '');
     const arabicLetters = d.arabic.trim().split(/\s+/);
     // | < > 는 구분자 토큰 — 글자 카운트 제외, 시각적으로만 표시
     const isSep = ch => ch === '|' || ch === '<' || ch === '>';
