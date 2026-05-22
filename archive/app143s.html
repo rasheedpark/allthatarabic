@@ -886,6 +886,36 @@ function getRowId(r) { return r.id || r.id_datasheet || r.id_nass || ''; }
 function getRowU(r)  { return r.u || getRowId(r).split('-')[0] || ''; }
 function getBaseUnit(u) { return (u || '').replace(/[a-z]+$/, ''); }
 
+// U열이 비어있을 때 행 순서 기반으로 유닛 자동 추론
+// (시트 formula 오류로 u열이 공백이 됐을 때 fallback)
+const DS_UNIT_SEQ = [
+  'P01','P02','P03','P04','P05','P06','P07','P08','P09','P10',
+  'A01','A02','A03','A04','A05','A06','A07','A08','A09','A10',
+  'A11','A12','A13'
+];
+function annotateUnits(rows) {
+  let seqIdx = -1, curUnit = '', prevType = '';
+  return rows.map(r => {
+    if (r.u) { prevType = normalizeType(r.type); return r; }
+    // id_datasheet / id_nass에서 유닛 추출 (예: 'A13-sum01' → 'A13')
+    const fromId = getRowId(r).split('-')[0];
+    if (fromId && fromId !== '#REF!' && /^[A-Za-z]\d+$/i.test(fromId)) {
+      curUnit = getBaseUnit(fromId.toUpperCase());
+      prevType = normalizeType(r.type);
+      return { ...r, u: curUnit };
+    }
+    const t = normalizeType(r.type);
+    // non-summary → summary 전환 시에만 다음 유닛으로 진행
+    // (같은 유닛 내 summary 여러 개 있어도 중복 카운트 방지)
+    if (t === 'summary' && prevType !== 'summary') {
+      seqIdx++;
+      curUnit = DS_UNIT_SEQ[seqIdx] || '';
+    }
+    prevType = t;
+    return curUnit ? { ...r, u: curUnit } : r;
+  });
+}
+
 function parseText(str) {
   if (!str) return '';
   return str
@@ -917,10 +947,11 @@ async function buildSlides(baseUnit) {
   sp.set('unit', baseUnit);
   history.replaceState(null, '', '?' + sp.toString());
 
-  const [dsRaw, nassRaw] = await Promise.all([
+  const [_dsRaw, nassRaw] = await Promise.all([
     fetchSheet(TAB_DS),
     fetchSheet(GID_NASS, true),
   ]);
+  const dsRaw = annotateUnits(_dsRaw);
 
   const escaped = baseUnit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const subReg  = new RegExp('^' + escaped + '[a-z]?$', 'i');
@@ -1724,7 +1755,7 @@ function hideOnboarding() {
 async function init() {
   try {
     const MAX_UNIT_NUM = 10;  // P10까지 + A 시리즈 전체 허용
-    const dsRaw = await fetchSheet(TAB_DS);
+    const dsRaw = annotateUnits(await fetchSheet(TAB_DS));
     const baseUnits = [...new Set(
       dsRaw.filter(r => {
         if (normalizeType(r.type) !== 'summary') return false;
