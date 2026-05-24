@@ -168,6 +168,12 @@ ATA 1.4.4의 모든 산출물(인쇄 교재 + 3개 앱)에 일관되게 적용�
 
 **드릴/래퍼토리 박스 간격 (2026-05-18)**: 한 섹션에 패턴별(ref_ptn) 표가 여러 개 쌓일 때, 박스끼리 간격을 `.m-subsection` flex `gap:12px` 위에 인접 박스 `margin-top:14px` 추가 → 박스↔박스 ≈26px (안내문↔첫 박스는 12px 유지). 패턴 표 시각 분리 강화.
 
+**섹션 순서 — 유닛별 동적 (2026-05-20)**: `isPatternFirst(unit)` (=유닛 번호 ≥7)에 따라 페이지 시퀀스와 탭 시각 순서가 전환됨.
+- 1~6과: `exp → ptn → drill → nass → kalimat` (알파벳 학습기, 표현 우선)
+- 7과+: `ptn → drill → exp → nass → kalimat` (문법 학습기, 패턴 우선)
+- 페이지 빌더(`buildPagesForUnit`): 섹션별 페이지를 `bySec`에 누적 → `sectionOrderFor(unit).flatMap(...)` 으로 순서 조립.
+- 탭(`<nav class="m-tabs">`): DOM 순서는 고정. `renderTabs`에서 `data-order="ptn-first|exp-first"` 부여 → CSS `.m-tabs[data-order="ptn-first"] .m-tab[data-sec="..."] { order: N }`로 시각 재배치.
+
 ### 4.5 인터랙션
 
 - 아랍어 탭 → 오디오 재생 (`.tap-audio`, 재생 중 `.playing` 액센트 색)

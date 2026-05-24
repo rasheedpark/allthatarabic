@@ -116,6 +116,12 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   border-bottom:1px solid var(--border);
   background:var(--surface);
 }
+/* 7과부터 패턴 우선 배열: 패턴 → 드릴 → 표현 → 지문 → 단어 */
+.m-tabs[data-order="ptn-first"] .m-tab[data-sec="ptn"]     { order: 1; }
+.m-tabs[data-order="ptn-first"] .m-tab[data-sec="drill"]   { order: 2; }
+.m-tabs[data-order="ptn-first"] .m-tab[data-sec="exp"]     { order: 3; }
+.m-tabs[data-order="ptn-first"] .m-tab[data-sec="nass"]    { order: 4; }
+.m-tabs[data-order="ptn-first"] .m-tab[data-sec="kalimat"] { order: 5; }
 .m-tab {
   flex:1; display:flex; align-items:center; justify-content:center;
   font-size:13px; font-weight:600; color:var(--sub);
@@ -849,7 +855,7 @@ const LAHJA_FLAG = {
   GLF: '../assets/icons/icon-saudi.png',
 };
 
-// 섹션 순서 (mob-experiment 와이어 그대로: 표현 → 패턴 → 드릴 → 지문)
+// 섹션 메타 (라벨 lookup 용도) — 실제 순서는 isPatternFirst(unit)에 따라 동적 결정
 const SECTIONS = [
   { key:'exp',   label:'표현', long:'expression' },
   { key:'ptn',   label:'패턴', long:'pattern' },
@@ -857,6 +863,18 @@ const SECTIONS = [
   { key:'nass',  label:'지문', long:'nass' },
   { key:'kalimat', label:'단어', long:'kalimat' },
 ];
+
+// 유닛 번호 파싱 (A07 → 7)
+const unitNum = u => {
+  const m = String(u || '').match(/(\d+)/);
+  return m ? parseInt(m[1], 10) : 0;
+};
+// 7과부터 패턴 먼저 시작: 패턴 → 드릴 → 표현 → 지문 → 단어
+// 1~6과는 종전 순서: 표현 → 패턴 → 드릴 → 지문 → 단어 (알파벳 학습 시기)
+const isPatternFirst = u => unitNum(u) >= 7;
+const sectionOrderFor = u => isPatternFirst(u)
+  ? ['ptn', 'drill', 'exp', 'nass', 'kalimat']
+  : ['exp', 'ptn', 'drill', 'nass', 'kalimat'];
 
 /* ───────── 상태 ───────── */
 const state = {
@@ -1097,16 +1115,16 @@ function imageIdFor(unit, kind) {
 /* 페이지 = 교재 한 페이지. 한 페이지 안의 모든 카드/표는 그대로 스택해 스크롤. */
 
 function buildPagesForUnit(unit) {
-  const pages = [];
   const unitRow = getUnitRow(unit);
+  const bySec = { exp: [], ptn: [], drill: [], nass: [], kalimat: [] };
 
-  // 1. 표현: 교재의 EXPRESSION 페이지를 모바일 1열 카드로 재해석
+  // 표현 (exp 탭 + kalimat 탭의 exp 타입)
   const expRows = [
     ...rowsByUnit(TABS.exp, unit, t => t === 'exp'),
     ...rowsByUnit(TABS.kalimat, unit, t => t === 'exp'),
   ];
   if (expRows.length) {
-    pages.push({
+    bySec.exp.push({
       sec:'exp', kind:'list',
       title:'표현', subtitle: expRows.length + '개',
       hero:imageIdFor(unit, 'exp', expRows),
@@ -1114,26 +1132,22 @@ function buildPagesForUnit(unit) {
     });
   }
 
-  // 2. 패턴: 한 패턴 = 한 모바일 페이지, 내부에 레퍼토리까지 포함
+  // 패턴 (한 패턴 = 한 페이지, 내부에 레퍼토리 포함)
   const ptnRows = rowsByUnit(TABS.pattern, unit, t => t === 'ptn').sort(sortByPtn);
   ptnRows.forEach((r, i) => {
     const ref = ptnRef(r);
     const reps = rowsByUnit(TABS.repertory, unit, t => t === 'repertory' || t === 'repertorie')
       .filter(rep => sameRef(rep.ref_ptn, ref));
-    pages.push({
+    bySec.ptn.push({
       sec:'ptn', kind:'pattern',
       title:'패턴', subtitle: `${i+1} / ${ptnRows.length}`,
       // 패턴별 이미지: id_ptn(no) 일치하는 파일이 GCS img/ 에 있으면 패턴 박스 위에 표시.
-      //   예: id_ptn(no)='ptn019_ana-dina-wa-anta' → ptn019_ana-dina-wa-anta.{png|webp|jpg|jpeg}
-      //   없으면 renderHero가 onerror로 자동 제거.
       hero: ref || (i === 0 ? imageIdFor(unit, 'ptn') : ''),
       row: r, reps,
     });
   });
 
-  // 3. 드릴: `page` 값이 있으면 page 단위로 화면 분리(같은 page=한 화면),
-  //    없으면(1·2과 등 기존 유닛) 종전처럼 드릴 전체를 한 페이지에.
-  // 아랍어가 비어있는 완전 공백 행(시트 잔재)은 제외 — page 빈값으로 묶여 유령 페이지 생기던 문제 방지
+  // 드릴 — page 값 있으면 화면 분리, 없으면 한 페이지
   const drillRows = rowsByUnit(TABS.drill, unit,
     (t, r) => ['drilla','drillb','drillc','writing'].includes(t) && (r.arabic || '').trim() !== '');
   if (drillRows.length) {
@@ -1141,9 +1155,9 @@ function buildPagesForUnit(unit) {
     const hasPaged = drillRows.some(r => pageVal(r) !== '');
     const chapter = String(unitRow.C || unitRow.c || '');
     if (hasPaged) {
-      const byPage = new Map();              // page값 → 행배열 (삽입=시트순)
+      const byPage = new Map();
       drillRows.forEach(r => {
-        const k = pageVal(r) || '￿';    // 빈 page는 맨 뒤로
+        const k = pageVal(r) || '￿';
         if (!byPage.has(k)) byPage.set(k, []);
         byPage.get(k).push(r);
       });
@@ -1153,7 +1167,7 @@ function buildPagesForUnit(unit) {
         return String(a).localeCompare(String(b), undefined, { numeric: true });
       });
       keys.forEach((k, i) => {
-        pages.push({
+        bySec.drill.push({
           sec:'drill', kind:'drill',
           title:'드릴', subtitle: `${i+1} / ${keys.length}`,
           rows: byPage.get(k),
@@ -1161,7 +1175,7 @@ function buildPagesForUnit(unit) {
         });
       });
     } else {
-      pages.push({
+      bySec.drill.push({
         sec:'drill', kind:'drill',
         title:'드릴', subtitle: drillRows.length + '개',
         rows: drillRows,
@@ -1170,21 +1184,21 @@ function buildPagesForUnit(unit) {
     }
   }
 
-  // 4. 지문: nass와 nass+를 섹션으로 나누어 한 페이지에 스택
+  // 지문 (nass + nass+ 통합)
   const nassRows = rowsByUnit(TABS.nass, unit, t => t === 'nass' || t === 'nass+');
   if (nassRows.length) {
-    pages.push({
+    bySec.nass.push({
       sec:'nass', kind:'list',
       title:'지문', subtitle: nassRows.length + '개',
       cards: nassRows.map(r => ({...r, _kind:'nass'})),
     });
   }
 
-  // 5. 단어: 일반 kalimat → 그 다음 kalimat+ (최하단, 아주 옅은 회색 음영으로 구분)
+  // 단어 (kalimat → kalimat+)
   const kReg  = rowsByUnit(TABS.kalimat, unit, (t, r) => t === 'kalimat'  && (r.arabic || '').trim() !== '');
   const kPlus = rowsByUnit(TABS.kalimat, unit, (t, r) => t === 'kalimat+' && (r.arabic || '').trim() !== '');
   if (kReg.length || kPlus.length) {
-    pages.push({
+    bySec.kalimat.push({
       sec:'kalimat', kind:'list',
       title:'단어', subtitle: (kReg.length + kPlus.length) + '개',
       cards: [
@@ -1194,7 +1208,9 @@ function buildPagesForUnit(unit) {
     });
   }
 
-  return pages;
+  // 섹션 순서: 7과부터는 ptn → drill → exp → nass → kalimat (패턴 우선)
+  //           1~6과는 종전대로 exp → ptn → drill → nass → kalimat (알파벳 학습기)
+  return sectionOrderFor(unit).flatMap(key => bySec[key]);
 }
 
 function curSection() { return state.pages[state.page]?.sec || 'exp'; }
@@ -1226,6 +1242,9 @@ function renderHead() {
 
 function renderTabs() {
   const cur = curSection();
+  // 유닛 번호에 따라 탭 시각 순서 전환 (CSS flex order로 처리)
+  const tabsNav = document.getElementById('tabs');
+  if (tabsNav) tabsNav.dataset.order = isPatternFirst(state.unit) ? 'ptn-first' : 'exp-first';
   document.querySelectorAll('.m-tab').forEach(btn => {
     const sec = btn.dataset.sec;
     const has = state.pages.some(p => p.sec === sec);
