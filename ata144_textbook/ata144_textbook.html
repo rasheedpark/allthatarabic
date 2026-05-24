@@ -399,6 +399,29 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   line-height:1.55;
 }
 
+/* ───────── 패턴 + 히어로 이미지 (임시) ─────────
+   pattern에 GCS 이미지가 있으면(id_ptn(no) 일치), 카드 상단에 이미지를 띄우고
+   아랍어/한국어/음가 데이터는 숨김. 스크립트만 적정 간격을 두고 노출.
+   이미지 실패 시 JS의 onFail에서 .pattern-with-hero 클래스 제거 → 일반 카드로 복원. */
+.m-card.pattern.pattern-with-hero {
+  padding-top: 0;            /* 이미지가 카드 상단 가장자리에 붙도록 위쪽 패딩 제거 */
+  overflow: hidden;          /* 이미지가 카드 radius를 넘지 않게 */
+}
+.m-card.pattern.pattern-with-hero .m-hero-wrap {
+  margin: 0 -16px;           /* 카드 좌우 패딩(16px) 상쇄해 가로폭 가득 채움 */
+  width: calc(100% + 32px);
+}
+.m-card.pattern.pattern-with-hero .m-hero { width:100%; height:auto; display:block; }
+/* 데이터 숨김 — 이미지가 패턴 정보를 대체 */
+.m-card.pattern.pattern-with-hero .m-ar,
+.m-card.pattern.pattern-with-hero .m-ko,
+.m-card.pattern.pattern-with-hero .m-trans { display: none; }
+/* 이미지 ↔ 스크립트 간격 */
+.m-card.pattern.pattern-with-hero .m-summary {
+  margin-top: 18px;
+  padding: 0 4px 4px;
+}
+
 /* ───────── 표현·래퍼토리 카드 (작게, 인쇄 카드 느낌) ─────────
    래퍼토리(페어 모드)는 표현(exp)과 완전히 같은 양식. 그리드 모드(css=two/
    three/five/six 또는 한국어 전무)는 종전대로 .m-rep-table을 .m-card.repertory
@@ -1100,7 +1123,10 @@ function buildPagesForUnit(unit) {
     pages.push({
       sec:'ptn', kind:'pattern',
       title:'패턴', subtitle: `${i+1} / ${ptnRows.length}`,
-      hero:i === 0 ? imageIdFor(unit, 'ptn', [r]) : '',
+      // 패턴별 이미지: id_ptn(no) 일치하는 파일이 GCS img/ 에 있으면 패턴 박스 위에 표시.
+      //   예: id_ptn(no)='ptn019_ana-dina-wa-anta' → ptn019_ana-dina-wa-anta.{png|webp|jpg|jpeg}
+      //   없으면 renderHero가 onerror로 자동 제거.
+      hero: ref || (i === 0 ? imageIdFor(unit, 'ptn') : ''),
       row: r, reps,
     });
   });
@@ -1209,13 +1235,16 @@ function renderTabs() {
 }
 
 function buildPageContent(wrap, page) {
+  if (page.kind === 'pattern') {
+    // 패턴 카드: hero는 카드 내부 상단으로 보냄 (이미지 있으면 데이터 숨김, 없으면 일반 카드)
+    wrap.appendChild(renderPatternCard(page.row, page.hero));
+    if ((page.reps || []).length) wrap.appendChild(renderRepertoryCard(page.reps || []));
+    return;
+  }
   if (page.hero) wrap.appendChild(renderHero(page.hero));
   if (page.kind === 'list') {
     if (page.sec === 'nass') renderNassPage(wrap, page.cards);
     else page.cards.forEach(c => wrap.appendChild(renderCard(c)));
-  } else if (page.kind === 'pattern') {
-    wrap.appendChild(renderPatternCard(page.row));
-    if ((page.reps || []).length) wrap.appendChild(renderRepertoryCard(page.reps || []));
   } else if (page.kind === 'drill') {
     renderDrillPage(wrap, page.rows || [], page.chapter);
   }
@@ -1255,7 +1284,7 @@ function renderBody() {
   strip.style.transform = 'translateX(-33.333%)';
 }
 
-function renderHero(id) {
+function renderHero(id, opts = {}) {
   const wrap = document.createElement('div');
   wrap.className = 'm-hero-wrap';
   const img = document.createElement('img');
@@ -1269,8 +1298,9 @@ function renderHero(id) {
   img.onerror = () => {
     idx += 1;
     if (idx < exts.length) setSrc();
-    else wrap.remove();
+    else { wrap.remove(); opts.onFail?.(); }
   };
+  img.onload = () => { opts.onLoad?.(); };
   setSrc();
   wrap.appendChild(img);
   return wrap;
@@ -1342,9 +1372,18 @@ function renderCard(row) {
   return el;
 }
 
-function renderPatternCard(row) {
+function renderPatternCard(row, hero) {
   const el = document.createElement('div');
   el.className = 'm-card pattern';
+  // hero가 있으면 일단 'pattern-with-hero' 클래스를 붙여 데이터(아랍어/한국어/음가) 숨김.
+  // 이미지가 모든 확장자 시도 실패하면 onFail에서 클래스 제거 → 일반 패턴 카드로 복원.
+  if (hero) {
+    el.classList.add('pattern-with-hero');
+    const heroWrap = renderHero(hero, {
+      onFail: () => el.classList.remove('pattern-with-hero'),
+    });
+    el.appendChild(heroWrap);   // 최상단에 위치하도록 가장 먼저 append
+  }
   const cssVal = (row.css || '').trim().toLowerCase();
   const isBaseline = cssVal === 'baseline' || cssVal === 'baseline2';
   const noLine = cssVal === 'baseline2';

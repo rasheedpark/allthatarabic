@@ -876,6 +876,28 @@ body.book-view #book-root { display: flex; flex-direction: column; align-items: 
 
 ---
 
+## 이슈 / 임시 원칙
+
+### 패턴 hero 이미지 — 데이터 대체 표시 (임시, 2026-05-20, 교재앱)
+
+> **상태**: 임시 원칙. 시범 운용 후 본문 규칙으로 승격 예정. 자세한 제품 의도는 `product-ata144.md` 최하단 이슈 참조.
+
+**구현 위치**: `ata144_textbook.html`
+- `buildPagesForUnit`: 패턴 페이지의 `hero = ref || imageIdFor(unit,'ptn')` — `id_ptn(no)` 그대로 hero ID.
+- `buildPageContent`: 패턴 카드일 때 hero를 카드 밖에 두지 않고 `renderPatternCard(row, hero)`로 카드 내부 전달.
+- `renderPatternCard(row, hero)`: hero 있으면 `.pattern-with-hero` 클래스 선부여 → `renderHero(hero, {onFail})` 결과를 카드에 `appendChild`. 4개 확장자 모두 실패 시 onFail에서 클래스 제거(일반 카드로 복원).
+- `renderHero(id, opts={onLoad, onFail})`: 콜백 옵션 신규 추가.
+
+**CSS**: `.m-card.pattern.pattern-with-hero`
+- `padding-top: 0; overflow: hidden;` — 이미지가 카드 radius 안에 깔끔히 들어감
+- `.m-hero-wrap { margin: 0 -16px; width: calc(100% + 32px); }` — 카드 좌우 패딩(16px) 상쇄해 가로폭 가득
+- `.m-ar, .m-ko, .m-trans { display: none; }` — 데이터 숨김
+- `.m-summary { margin-top: 18px; padding: 0 4px 4px; }` — 이미지↔스크립트 간격
+
+**비고**: 이미지가 패턴 정보를 시각적으로 대체하므로 텍스트 데이터는 의도적으로 숨김. 모든 패턴이 hero를 가질 필요는 없음(없으면 일반 카드 양식 유지). 향후 일반화 시: 이미지 비율 가이드, 패턴 카드 외 영역에도 hero 영향 확장 여부 결정 필요.
+
+---
+
 ## 변경 이력
 
 - **2026-05-10**: 초기 통합 — `product-ata144-design(mobile).md` 폐기 후 본 문서로 통합. 8개 섹션 구조로 재편 (기본값 / 타이포 / 4개 산출물 / 비교 / 커스텀 CSS).
