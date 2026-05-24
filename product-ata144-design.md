@@ -168,6 +168,13 @@ ATA 1.4.4의 모든 산출물(인쇄 교재 + 3개 앱)에 일관되게 적용�
 
 **드릴/래퍼토리 박스 간격 (2026-05-18)**: 한 섹션에 패턴별(ref_ptn) 표가 여러 개 쌓일 때, 박스끼리 간격을 `.m-subsection` flex `gap:12px` 위에 인접 박스 `margin-top:14px` 추가 → 박스↔박스 ≈26px (안내문↔첫 박스는 12px 유지). 패턴 표 시각 분리 강화.
 
+**섹션 순서 — 유닛별 동적 (임시, 2026-05-20)**: `isPatternFirst(unit)` (=유닛 번호 ≥7)에 따라 페이지 시퀀스와 탭 시각 순서가 전환됨. (자세한 제품 의도와 임시규칙 상태는 `product-ata144.md` 최하단 이슈 참조)
+- 1~6과: `exp → ptn → drill → nass → kalimat` (알파벳 학습기, 표현 우선)
+- 7과+: `ptn → drill → exp → nass → kalimat` (문법 학습기, 패턴 우선)
+- 페이지 빌더(`buildPagesForUnit`): 섹션별 페이지를 `bySec`에 누적 → `sectionOrderFor(unit).flatMap(...)` 으로 순서 조립.
+- 탭(`<nav class="m-tabs">`): DOM 순서는 고정. `renderTabs`에서 `data-order="ptn-first|exp-first"` 부여 → CSS `.m-tabs[data-order="ptn-first"] .m-tab[data-sec="..."] { order: N }`로 시각 재배치.
+- 선생님앱(`ata144_teacher.html`)은 별도 분기 없이 항상 `unit → ptn → drill → exp → nass → kalimat` 순서로 `buildSlides`에서 push (1.4.4 전 유닛 패턴 우선).
+
 ### 4.5 인터랙션
 
 - 아랍어 탭 → 오디오 재생 (`.tap-audio`, 재생 중 `.playing` 액센트 색)
@@ -873,6 +880,28 @@ body.book-view #book-root { display: flex; flex-direction: column; align-items: 
   box-shadow: 0 22px 70px rgba(18,32,90,0.16);
 }
 ```
+
+---
+
+## 이슈 / 임시 원칙
+
+### 패턴 hero 이미지 — 데이터 대체 표시 (임시, 2026-05-20, 교재앱)
+
+> **상태**: 임시 원칙. 시범 운용 후 본문 규칙으로 승격 예정. 자세한 제품 의도는 `product-ata144.md` 최하단 이슈 참조.
+
+**구현 위치**: `ata144_textbook.html`
+- `buildPagesForUnit`: 패턴 페이지의 `hero = ref || imageIdFor(unit,'ptn')` — `id_ptn(no)` 그대로 hero ID.
+- `buildPageContent`: 패턴 카드일 때 hero를 카드 밖에 두지 않고 `renderPatternCard(row, hero)`로 카드 내부 전달.
+- `renderPatternCard(row, hero)`: hero 있으면 `.pattern-with-hero` 클래스 선부여 → `renderHero(hero, {onFail})` 결과를 카드에 `appendChild`. 4개 확장자 모두 실패 시 onFail에서 클래스 제거(일반 카드로 복원).
+- `renderHero(id, opts={onLoad, onFail})`: 콜백 옵션 신규 추가.
+
+**CSS**: `.m-card.pattern.pattern-with-hero`
+- `padding-top: 0; overflow: hidden;` — 이미지가 카드 radius 안에 깔끔히 들어감
+- `.m-hero-wrap { margin: 0 -16px; width: calc(100% + 32px); }` — 카드 좌우 패딩(16px) 상쇄해 가로폭 가득
+- `.m-ar, .m-ko, .m-trans { display: none; }` — 데이터 숨김
+- `.m-summary { margin-top: 18px; padding: 0 4px 4px; }` — 이미지↔스크립트 간격
+
+**비고**: 이미지가 패턴 정보를 시각적으로 대체하므로 텍스트 데이터는 의도적으로 숨김. 모든 패턴이 hero를 가질 필요는 없음(없으면 일반 카드 양식 유지). 향후 일반화 시: 이미지 비율 가이드, 패턴 카드 외 영역에도 hero 영향 확장 여부 결정 필요.
 
 ---
 
