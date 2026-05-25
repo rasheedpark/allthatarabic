@@ -1164,10 +1164,11 @@ function renderNormal(s) {
 }
 
 // ── renderRepertoryGrid ────────────────────────────────
-// | 구분 래퍼토리: baseline 스타일 다열 그리드로 표시
+// | 구분 래퍼토리: 다열 그리드 — 아랍어 / 한국어 / 음가 모두 같은 그리드 안에
 function renderRepertoryGrid(s) {
   const d = s.data;
   const arOp = arabicVisible ? '1' : '0';
+  const koOp = meaningVisible ? '1' : '0';
 
   const split = src => (src || '').split('|').map(t => t.trim()).filter(Boolean);
   const arTokens = split(d.arabic);
@@ -1177,31 +1178,46 @@ function renderRepertoryGrid(s) {
 
   const arabicArea = document.getElementById('arabic-area');
   arabicArea.innerHTML = '';
-  arabicArea.style.cssText = `opacity:${arOp};transition:opacity 0.3s;`;
+  arabicArea.style.cssText = '';
 
   const grid = document.createElement('div');
   grid.className = 'rep-grid';
   grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
-  // 행 1: 아랍어
+  // 행 1: 아랍어 (의미 토글 무관 — 항상 표시)
   arTokens.forEach(t => {
     const cell = document.createElement('div');
     cell.className = 'rep-grid-ar';
+    cell.style.opacity = arOp;
+    cell.style.transition = 'opacity 0.3s';
     cell.innerHTML = parseText(t);
     grid.appendChild(cell);
   });
 
-  // 행 2: 음가(note) — 항상 표시
-  if (noTokens.length) {
-    noTokens.forEach((t, i) => {
+  // 행 2: 한국어 (의미 토글 적용)
+  if (koTokens.length) {
+    koTokens.forEach(t => {
       const cell = document.createElement('div');
-      cell.className = 'rep-grid-note';
-      cell.textContent = t || (noTokens[i] ?? '');
+      cell.className = 'rep-grid-ko rep-grid-meaning';
+      cell.style.opacity = koOp;
+      cell.style.transition = 'opacity 0.3s';
+      cell.innerHTML = parseText(t);
       grid.appendChild(cell);
     });
   }
 
+  // 행 3: 음가(note) — 항상 표시
+  if (noTokens.length) {
+    noTokens.forEach(t => {
+      const cell = document.createElement('div');
+      cell.className = 'rep-grid-note';
+      grid.appendChild(cell);
+      cell.textContent = t;
+    });
+  }
+
   arabicArea.appendChild(grid);
+  document.getElementById('text-area').innerHTML = '';
 
   // 오버플로 시 scale 축소
   requestAnimationFrame(() => {
@@ -1214,26 +1230,6 @@ function renderRepertoryGrid(s) {
       grid.style.transformOrigin = 'center top';
     }
   });
-
-  const op = meaningVisible ? '1' : '0';
-  // 한국어는 text-area에
-  if (koTokens.length) {
-    const koGrid = document.createElement('div');
-    koGrid.className = 'rep-grid';
-    koGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-    koGrid.style.opacity = op;
-    koGrid.style.transition = 'opacity 0.3s';
-    koTokens.forEach(t => {
-      const cell = document.createElement('div');
-      cell.className = 'rep-grid-ko';
-      cell.innerHTML = parseText(t);
-      koGrid.appendChild(cell);
-    });
-    document.getElementById('text-area').innerHTML = '';
-    document.getElementById('text-area').appendChild(koGrid);
-  } else {
-    document.getElementById('text-area').innerHTML = '';
-  }
 }
 
 // ── renderNass ─────────────────────────────────────────
@@ -1425,6 +1421,10 @@ function toggleMeaning() {
     });
     // text-area의 sum-body (sentence/svo 설명)
     document.querySelectorAll('#text-area .sum-body').forEach(el => {
+      el.style.opacity = op;
+    });
+    // 래퍼토리 그리드 한국어 셀 (arabic-area 안에 있음)
+    document.querySelectorAll('#arabic-area .rep-grid-meaning').forEach(el => {
       el.style.opacity = op;
     });
   }
