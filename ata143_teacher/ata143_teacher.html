@@ -1200,16 +1200,45 @@ function buildIndex() {
   list.innerHTML = '';
 
   const dsRaw = _cache[TAB_DS] || [];
+  const nassRaw = _cache['gid:' + GID_NASS] || [];
   const seen = new Set();
   const units = [];
+
+  // 1) 데이터시트에서 유닛 탐지 (id_datasheet 있는 행만 신뢰)
   dsRaw.forEach(r => {
     if (normalizeType(r.type) !== 'summary') return;
     const s = (r.status || '').toLowerCase();
     if (s !== '' && s !== 'confirmed') return;
     const u = getBaseUnit(getRowU(r));
-    if (!u || seen.has(u)) return;
+    if (!u || u === '#REF!' || seen.has(u)) return;
     seen.add(u);
     units.push({ u, arabic: r.arabic || '', korean: r.korean || '' });
+  });
+
+  // 2) 나스 탭에서 유닛 탐지 — 데이터시트에 없는 유닛 보완
+  nassRaw.forEach(r => {
+    if (normalizeType(r.type) !== 'nass') return;
+    const s = (r.status || '').toLowerCase();
+    if (s !== '' && s !== 'confirmed') return;
+    const nassId = (r.id_nass || '');
+    const u = nassId.split('-')[0].toUpperCase();
+    if (!u || seen.has(u)) return;
+    seen.add(u);
+    units.push({ u, arabic: r.arabic?.split('\n')[0] || '', korean: r.korean?.split('\n')[0] || '' });
+  });
+
+  // 3) 순서 정렬: P01-P10, A01-A14
+  const ORDER = [
+    'P01','P02','P03','P04','P05','P06','P07','P08','P09','P10',
+    'A01','A02','A03','A04','A05','A06','A07','A08','A09','A10',
+    'A11','A12','A13','A14'
+  ];
+  units.sort((a, b) => {
+    const ai = ORDER.indexOf(a.u), bi = ORDER.indexOf(b.u);
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
+    return a.u.localeCompare(b.u);
   });
 
   units.forEach(({ u, arabic, korean }) => {
@@ -1402,22 +1431,31 @@ async function init() {
       fetchSheet(GID_NASS, true),
     ]);
 
-    _cache[TAB_DS] = annotateUnits(_cache[TAB_DS] || []);
-    const dsRaw = _cache[TAB_DS];
-    // 유닛 목록: 서머리 행 기준
+    const dsRaw = _cache[TAB_DS] || [];
+    // 유닛 목록: datasheet + nass 탭 기준
     const seen = new Set();
     const baseUnits = [];
+    const nassRaw = _cache['gid:' + GID_NASS] || [];
     dsRaw.forEach(r => {
       if (normalizeType(r.type) !== 'summary') return;
       const s = (r.status || '').toLowerCase();
       if (s !== '' && s !== 'confirmed') return;
       const u = getBaseUnit(getRowU(r));
+      if (u && u !== '#REF!' && !seen.has(u)) { seen.add(u); baseUnits.push(u); }
+    });
+    nassRaw.forEach(r => {
+      if (normalizeType(r.type) !== 'nass') return;
+      const s = (r.status || '').toLowerCase();
+      if (s !== '' && s !== 'confirmed') return;
+      const u = (r.id_nass || '').split('-')[0].toUpperCase();
       if (u && !seen.has(u)) { seen.add(u); baseUnits.push(u); }
     });
+    const ORDER = ['P01','P02','P03','P04','P05','P06','P07','P08','P09','P10','A01','A02','A03','A04','A05','A06','A07','A08','A09','A10','A11','A12','A13','A14'];
+    baseUnits.sort((a,b) => { const ai=ORDER.indexOf(a), bi=ORDER.indexOf(b); return (ai===-1?999:ai)-(bi===-1?999:bi); });
 
     const params = new URLSearchParams(location.search);
     const savedPg = params.get('unit');
-    const startPg = (savedPg && baseUnits.includes(savedPg)) ? savedPg : (baseUnits[0] || 'P01');
+    const startPg = (savedPg && baseUnits.includes(savedPg)) ? savedPg : (baseUnits[0] || 'A01');
 
     await buildSlides(startPg);
   } catch(e) {
