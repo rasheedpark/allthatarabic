@@ -669,6 +669,8 @@ function fetchSheet(nameOrGid, isGid = false) {
       try {
         if (!resp?.table) throw new Error('No data: ' + key);
         const headers = resp.table.cols.map(c => (c.label || c.id || '').toLowerCase().trim());
+        // DEBUG: B열(u) raw cell 값 확인
+        if (!isGid) { const r0 = resp.table.rows[0]?.c; console.log('[DEBUG] headers[0..3]:', headers.slice(0,4), '| row0.c[0..3]:', JSON.stringify(r0?.slice(0,4))); }
         const rows = (resp.table.rows || []).map(row => {
           const obj = {};
           headers.forEach((h, i) => {
