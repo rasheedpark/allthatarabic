@@ -594,17 +594,19 @@ function normalizeType(t) {
   return s;
 }
 // ── i열 기반 유닛 맵 (초기화 후 사용) ────────────────
-let _pIMap = {}; // i값 → P01~P10
-let _aIMap = {}; // i값 → A01~A14
+// i값 등장 순서 → P01~P10, A01~A14 순서로 매핑
+let _iUnitMap = {};
 function buildUnitMaps(dsRaw) {
-  const P_UNITS = ['P01','P02','P03','P04','P05','P06','P07','P08','P09','P10'];
-  const A_UNITS = ['A01','A02','A03','A04','A05','A06','A07','A08','A09','A10','A11','A12','A13','A14'];
-  let pIdx = 0, aIdx = 0;
-  _pIMap = {}; _aIMap = {};
+  const ALL_UNITS = [
+    'P01','P02','P03','P04','P05','P06','P07','P08','P09','P10',
+    'A01','A02','A03','A04','A05','A06','A07','A08','A09','A10',
+    'A11','A12','A13','A14'
+  ];
+  _iUnitMap = {};
+  let idx = 0;
   dsRaw.forEach(r => {
-    if (!r.i) return;
-    if (r.c === '0' && !_pIMap[r.i]) _pIMap[r.i] = P_UNITS[pIdx++] || '';
-    else if (r.c === '1' && !_aIMap[r.i]) _aIMap[r.i] = A_UNITS[aIdx++] || '';
+    if (!r.i || _iUnitMap.hasOwnProperty(r.i)) return;
+    _iUnitMap[r.i] = ALL_UNITS[idx++] || '';
   });
 }
 
@@ -613,11 +615,8 @@ function getRowU(r) {
   if (r?.u) return r.u;
   const id = r?.id_datasheet || r?.id_nass || r?.id || '';
   if (id && id !== '#REF!') return id.split('-')[0] || '';
-  // i열로 유닛 추론 (P/A시리즈)
-  if (r?.i) {
-    if (r.c === '0') return _pIMap[r.i] || '';
-    if (r.c === '1') return _aIMap[r.i] || '';
-  }
+  // i열로 유닛 추론 (등장 순서 기반)
+  if (r?.i && _iUnitMap.hasOwnProperty(r.i)) return _iUnitMap[r.i] || '';
   return '';
 }
 function getRowId(r) { return r?.id_datasheet || r?.id_nass || r?.id || ''; }
