@@ -593,11 +593,32 @@ function normalizeType(t) {
   if (s === 'repertorie' || s === 'repertory')  return 'repertorie';
   return s;
 }
-// u열이 비어있는 경우 id_datasheet 또는 id_nass에서 유닛 추출
+// ── i열 기반 유닛 맵 (초기화 후 사용) ────────────────
+let _pIMap = {}; // i값 → P01~P10
+let _aIMap = {}; // i값 → A01~A14
+function buildUnitMaps(dsRaw) {
+  const P_UNITS = ['P01','P02','P03','P04','P05','P06','P07','P08','P09','P10'];
+  const A_UNITS = ['A01','A02','A03','A04','A05','A06','A07','A08','A09','A10','A11','A12','A13','A14'];
+  let pIdx = 0, aIdx = 0;
+  _pIMap = {}; _aIMap = {};
+  dsRaw.forEach(r => {
+    if (!r.i) return;
+    if (r.c === '0' && !_pIMap[r.i]) _pIMap[r.i] = P_UNITS[pIdx++] || '';
+    else if (r.c === '1' && !_aIMap[r.i]) _aIMap[r.i] = A_UNITS[aIdx++] || '';
+  });
+}
+
+// u열이 비어있는 경우 id_datasheet / id_nass / i열에서 유닛 추출
 function getRowU(r) {
   if (r?.u) return r.u;
   const id = r?.id_datasheet || r?.id_nass || r?.id || '';
-  return id.split('-')[0] || '';
+  if (id && id !== '#REF!') return id.split('-')[0] || '';
+  // i열로 유닛 추론 (P/A시리즈)
+  if (r?.i) {
+    if (r.c === '0') return _pIMap[r.i] || '';
+    if (r.c === '1') return _aIMap[r.i] || '';
+  }
+  return '';
 }
 function getRowId(r) { return r?.id_datasheet || r?.id_nass || r?.id || ''; }
 function getBaseUnit(u) { return (u || '').replace(/[a-z]+$/, ''); }
@@ -1434,6 +1455,7 @@ async function init() {
     ]);
 
     const dsRaw = _cache[TAB_DS] || [];
+    buildUnitMaps(dsRaw); // i열 기반 유닛 맵 초기화
     // 유닛 목록: datasheet + nass 탭 기준
     const seen = new Set();
     const baseUnits = [];
