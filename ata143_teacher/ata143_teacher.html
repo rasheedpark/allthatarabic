@@ -547,7 +547,7 @@ const AUDIO_EXTS = ['.mp3', '.wav'];
 const TAB_DS     = 'datasheet';
 const GID_NASS   = '847423907';
 
-const TYPE_EN = { summary:'SUMMARY', drill:'DRILL', exp:'EXPRESSION', nass:'NASS', repertorie:'REPERTOIRE', repertory:'REPERTOIRE' };
+const TYPE_EN = { summary:'SUMMARY', pattern:'PATTERN', drill:'DRILL', exp:'EXPRESSION', nass:'NASS', repertorie:'REPERTOIRE', repertory:'REPERTOIRE' };
 
 // 라하 깃발 매핑 — 1.4.4와 동일
 const LAHJA_FLAG = {
@@ -585,7 +585,7 @@ let currentPg       = null;
 function normalizeType(t) {
   const s = (t || '').toLowerCase().trim();
   if (s === 'summary')                          return 'summary';
-  if (s === 'pattern(a)' || s === 'pattern(p)') return 'summary'; // summary 없는 유닛 대체
+  if (s === 'pattern(a)' || s === 'pattern(p)' || s === 'pattern') return 'pattern';
   if (s === 'drill')                            return 'drill';
   if (s === 'exp' || s === 'expression')        return 'exp';
   if (s === 'nass')                             return 'nass';
@@ -764,9 +764,10 @@ function renderSlide() {
   const tl = document.getElementById('ui-tl');
   const curPgU = s.pg || '';
   const dsRaw = _cache[TAB_DS] || [];
-  const unitRow = dsRaw.find(r =>
-    normalizeType(r.type) === 'summary' && getBaseUnit(getRowU(r)) === curPgU
-  );
+  const unitRow = dsRaw.find(r => {
+    const nt = normalizeType(r.type);
+    return (nt === 'summary' || nt === 'pattern') && getBaseUnit(getRowU(r)) === curPgU;
+  });
   const tlArabic = (unitRow?.arabic || '').substring(0, 30);
   const tlKorean = (unitRow?.korean || '').substring(0, 28);
   tl.innerHTML =
@@ -1140,9 +1141,11 @@ function renderSumDesc(desc) {
 
 // ── 섹션 탭 ────────────────────────────────────────────
 const SEC_FIXED = [
-  { key:'drill', ko:'드릴',  en:'Drill'      },
-  { key:'exp',   ko:'표현',  en:'Expression' },
-  { key:'nass',  ko:'나스',  en:'Nass'       },
+  { key:'pattern',    ko:'패턴',    en:'Pattern'    },
+  { key:'repertorie', ko:'래퍼토리', en:'Repertoire' },
+  { key:'drill',      ko:'드릴',    en:'Drill'      },
+  { key:'exp',        ko:'표현',    en:'Expression' },
+  { key:'nass',       ko:'나스',    en:'Nass'       },
 ];
 
 function buildSectionTabs() {
@@ -1202,9 +1205,10 @@ function buildIndex() {
   const seen = new Set();
   const units = [];
 
-  // 1) 데이터시트에서 유닛 탐지 (id_datasheet 있는 행만 신뢰)
+  // 1) 데이터시트에서 유닛 탐지 (summary 또는 pattern 타입 기준)
   dsRaw.forEach(r => {
-    if (normalizeType(r.type) !== 'summary') return;
+    const nt = normalizeType(r.type);
+    if (nt !== 'summary' && nt !== 'pattern') return;
     const s = (r.status || '').toLowerCase();
     if (s !== '' && s !== 'confirmed') return;
     const u = getBaseUnit(getRowU(r));
@@ -1435,7 +1439,8 @@ async function init() {
     const baseUnits = [];
     const nassRaw = _cache['gid:' + GID_NASS] || [];
     dsRaw.forEach(r => {
-      if (normalizeType(r.type) !== 'summary') return;
+      const nt = normalizeType(r.type);
+      if (nt !== 'summary' && nt !== 'pattern') return;
       const s = (r.status || '').toLowerCase();
       if (s !== '' && s !== 'confirmed') return;
       const u = getBaseUnit(getRowU(r));
