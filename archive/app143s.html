@@ -848,7 +848,8 @@ function fetchSheet(nameOrGid, isGid = false) {
       if (script.parentNode) script.parentNode.removeChild(script);
       try {
         if (!resp?.table) throw new Error('데이터 없음');
-        const headers = resp.table.cols.map(c => (c.label || c.id || '').toLowerCase().trim());
+        // c.id는 컬럼 레터(A,B,C...)라 label 없는 컬럼에 쓰면 헤더명 충돌 발생 → label만 사용
+        const headers = resp.table.cols.map(c => (c.label || '').toLowerCase().trim());
         const rows = (resp.table.rows || []).map(row => {
           const obj = {};
           headers.forEach((h, i) => {
