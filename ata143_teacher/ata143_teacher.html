@@ -668,9 +668,8 @@ function fetchSheet(nameOrGid, isGid = false) {
       if (script.parentNode) script.parentNode.removeChild(script);
       try {
         if (!resp?.table) throw new Error('No data: ' + key);
-        const headers = resp.table.cols.map(c => (c.label || c.id || '').toLowerCase().trim());
-        // DEBUG: B열(u) raw cell 값 확인
-        if (!isGid) { const r0 = resp.table.rows[0]?.c; console.log('[DEBUG] headers[0..3]:', headers.slice(0,4), '| row0.c[0..3]:', JSON.stringify(r0?.slice(0,4))); }
+        // c.id는 컬럼 레터(A,B,C...)라 label 없는 컬럼에 쓰면 헤더명 충돌 발생 → label만 사용
+        const headers = resp.table.cols.map(c => (c.label || '').toLowerCase().trim());
         const rows = (resp.table.rows || []).map(row => {
           const obj = {};
           headers.forEach((h, i) => {
