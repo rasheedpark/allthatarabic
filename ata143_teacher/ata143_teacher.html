@@ -688,7 +688,8 @@ function fetchSheet(nameOrGid, isGid = false) {
     };
     const script = document.createElement('script');
     const param = isGid ? `gid=${nameOrGid}` : `sheet=${encodeURIComponent(nameOrGid)}`;
-    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}&${param}&headers=1`;
+    const rangeParam = isGid ? '' : '&range=A:AD'; // B열(u) 값을 제대로 읽기 위해 range 명시
+    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}&${param}&headers=1${rangeParam}`;
     script.onerror = () => { clearTimeout(timer); delete window[cb]; reject(new Error('Load fail: ' + key)); };
     document.head.appendChild(script);
   });
