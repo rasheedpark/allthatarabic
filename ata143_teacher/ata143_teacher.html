@@ -133,6 +133,46 @@ body {
 .arabic.arabic-sentence {
   font-size: clamp(2rem, 7cqi, 8rem);
 }
+/* A 유닛 드릴: 문장 길이 무관 일정 크기 — fitArabicText 호출 안 함 */
+.arabic.arabic-a.arabic-drill {
+  font-size: clamp(1.8rem, 5.5cqi, 4.5rem);
+  word-break: keep-all;
+  white-space: normal;
+  line-height: 1.7;
+}
+
+/* 래퍼토리 그리드 (| 구분 다중 항목) */
+.rep-grid {
+  display: grid;
+  direction: rtl;
+  column-gap: clamp(8px, 3vw, 32px);
+  row-gap: clamp(6px, 1.5vw, 18px);
+  width: 100%;
+  justify-items: center;
+}
+.rep-grid-ar {
+  font-family: 'Noto Sans Arabic', serif;
+  font-size: clamp(1.8rem, 5cqi, 4rem);
+  font-weight: 700;
+  direction: rtl;
+  text-align: center;
+  line-height: 1.5;
+  color: var(--text);
+}
+.rep-grid-ko {
+  font-size: clamp(0.9rem, 2.2vw, 2rem);
+  text-align: center;
+  color: var(--text);
+  line-height: 1.4;
+  direction: ltr;
+}
+.rep-grid-note {
+  font-size: clamp(0.7rem, 1.6vw, 1.4rem);
+  text-align: center;
+  color: var(--sub);
+  line-height: 1.3;
+  direction: ltr;
+}
 
 /* ── 한국어/노트 ── */
 .korean {
@@ -829,6 +869,8 @@ function renderSlide() {
     renderSentence(s);
   } else if (cssMode === 'svo') {
     renderSvo(s);
+  } else if (s.type === 'repertorie' && (s.data.arabic || '').includes('|')) {
+    renderRepertoryGrid(s);
   } else {
     renderNormal(s);
   }
@@ -1101,19 +1143,97 @@ function renderSvo(s) {
 function renderNormal(s) {
   const d = s.data;
   const arOp = arabicVisible ? '1' : '0';
-  const unitPrefix = (d.id_datasheet || '').charAt(0).toUpperCase();
-  const arClass = unitPrefix === 'A' ? 'arabic arabic-a' : 'arabic';
+  const unitU = getRowU(d);
+  const unitPrefix = (unitU || d.id_datasheet || '').charAt(0).toUpperCase();
+  const isDrill = s.type === 'drill';
+  // A유닛 드릴: arabic-drill 클래스로 일정 크기 유지 (fitArabicText 생략)
+  const arClass = unitPrefix === 'A'
+    ? (isDrill ? 'arabic arabic-a arabic-drill' : 'arabic arabic-a')
+    : 'arabic';
   const nom = isNomRow(d);
   const wrap = h => nom ? applyNomDivider(h) : h;
   document.getElementById('arabic-area').innerHTML =
     `<div class="${arClass}" style="opacity:${arOp};transition:opacity 0.3s;">${wrap(parseText(d.arabic || ''))}</div>`;
-  fitArabicText(document.querySelector('#arabic-area .' + arClass.split(' ')[0]));
+  if (!isDrill) fitArabicText(document.querySelector('#arabic-area .' + arClass.split(' ')[0]));
 
   const op = meaningVisible ? '1' : '0';
   const noteText = d.note || d.transliteration || '';
   document.getElementById('text-area').innerHTML =
     `<div class="korean" style="opacity:${op}">${wrap(parseText(d.korean || ''))}</div>` +
     (noteText ? `<div class="note" style="opacity:${op}">${parseText(noteText)}</div>` : '');
+}
+
+// ── renderRepertoryGrid ────────────────────────────────
+// | 구분 래퍼토리: baseline 스타일 다열 그리드로 표시
+function renderRepertoryGrid(s) {
+  const d = s.data;
+  const arOp = arabicVisible ? '1' : '0';
+
+  const split = src => (src || '').split('|').map(t => t.trim()).filter(Boolean);
+  const arTokens = split(d.arabic);
+  const koTokens = split(d.korean);
+  const noTokens = split(d.note);
+  const cols = arTokens.length || 1;
+
+  const arabicArea = document.getElementById('arabic-area');
+  arabicArea.innerHTML = '';
+  arabicArea.style.cssText = `opacity:${arOp};transition:opacity 0.3s;`;
+
+  const grid = document.createElement('div');
+  grid.className = 'rep-grid';
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+  // 행 1: 아랍어
+  arTokens.forEach(t => {
+    const cell = document.createElement('div');
+    cell.className = 'rep-grid-ar';
+    cell.innerHTML = parseText(t);
+    grid.appendChild(cell);
+  });
+
+  // 행 2: 음가(note) — 항상 표시
+  if (noTokens.length) {
+    noTokens.forEach((t, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'rep-grid-note';
+      cell.textContent = t || (noTokens[i] ?? '');
+      grid.appendChild(cell);
+    });
+  }
+
+  arabicArea.appendChild(grid);
+
+  // 오버플로 시 scale 축소
+  requestAnimationFrame(() => {
+    if (!grid.isConnected) return;
+    const avail = (arabicArea.clientWidth ?? 0) - 48;
+    const actual = grid.scrollWidth;
+    if (actual > avail && avail > 0) {
+      const sc = Math.max(0.6, avail / actual);
+      grid.style.transform = `scale(${sc.toFixed(4)})`;
+      grid.style.transformOrigin = 'center top';
+    }
+  });
+
+  const op = meaningVisible ? '1' : '0';
+  // 한국어는 text-area에
+  if (koTokens.length) {
+    const koGrid = document.createElement('div');
+    koGrid.className = 'rep-grid';
+    koGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    koGrid.style.opacity = op;
+    koGrid.style.transition = 'opacity 0.3s';
+    koTokens.forEach(t => {
+      const cell = document.createElement('div');
+      cell.className = 'rep-grid-ko';
+      cell.innerHTML = parseText(t);
+      koGrid.appendChild(cell);
+    });
+    document.getElementById('text-area').innerHTML = '';
+    document.getElementById('text-area').appendChild(koGrid);
+  } else {
+    document.getElementById('text-area').innerHTML = '';
+  }
 }
 
 // ── renderNass ─────────────────────────────────────────
