@@ -707,18 +707,16 @@ async function buildSlides(baseUnit) {
   const escaped = baseUnit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const subReg  = new RegExp('^' + escaped + '[a-z]?$', 'i');
 
+  // 써머리 제외 — 패턴·래퍼토리·드릴만 시트 순서 그대로
   const dsRows = dsRaw.filter(r => {
     const t = normalizeType(r.type);
-    if (!['summary','drill','exp','repertorie'].includes(t)) return false;
+    if (!['pattern','repertorie','drill','exp'].includes(t)) return false;
     if (!subReg.test(getRowU(r))) return false;
     const s = (r.status || '').toLowerCase();
     return s === '' || s === 'confirmed';
   });
 
-  // 서머리 먼저, 나머지는 시트 순서 유지
-  const sumRows   = dsRows.filter(r => normalizeType(r.type) === 'summary');
-  const otherRows = dsRows.filter(r => normalizeType(r.type) !== 'summary');
-  [...sumRows, ...otherRows].forEach(r =>
+  dsRows.forEach(r =>
     slides.push({ type: normalizeType(r.type), data: r, pg: baseUnit })
   );
 
