@@ -602,6 +602,34 @@ function getRowU(r) {
 function getRowId(r) { return r?.id_datasheet || r?.id_nass || r?.id || ''; }
 function getBaseUnit(u) { return (u || '').replace(/[a-z]+$/, ''); }
 
+// JSONP로 u열/id_datasheet가 비어있을 때 순서 기반으로 유닛 할당
+const DS_UNIT_SEQ = [
+  'P01','P02','P03','P04','P05','P06','P07','P08','P09','P10',
+  'A01','A02','A03','A04','A05','A06','A07','A08','A09','A10',
+  'A11','A12','A13','A14'
+];
+function annotateUnits(rows) {
+  let seqIdx = -1, curUnit = '', prevType = '';
+  return rows.map(r => {
+    if (r.u) { prevType = normalizeType(r.type); return r; }
+    // id_datasheet에서 유닛 추출 가능하면 사용
+    const fromId = getRowU(r);
+    if (fromId && fromId !== '#REF!') {
+      curUnit = getBaseUnit(fromId);
+      prevType = normalizeType(r.type);
+      return { ...r, u: curUnit };
+    }
+    const t = normalizeType(r.type);
+    // non-summary → summary 전환 시에만 다음 유닛으로
+    if (t === 'summary' && prevType !== 'summary') {
+      seqIdx++;
+      curUnit = DS_UNIT_SEQ[seqIdx] || '';
+    }
+    prevType = t;
+    return curUnit ? { ...r, u: curUnit } : r;
+  });
+}
+
 function isAudioSlide(s) {
   return ['drill','exp','nass'].includes(s.type) && !!(s.data?.url || getRowId(s.data));
 }
@@ -1374,7 +1402,8 @@ async function init() {
       fetchSheet(GID_NASS, true),
     ]);
 
-    const dsRaw = _cache[TAB_DS] || [];
+    _cache[TAB_DS] = annotateUnits(_cache[TAB_DS] || []);
+    const dsRaw = _cache[TAB_DS];
     // 유닛 목록: 서머리 행 기준
     const seen = new Set();
     const baseUnits = [];
