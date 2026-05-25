@@ -674,10 +674,11 @@ function fetchSheet(nameOrGid, isGid = false) {
           headers.forEach((h, i) => {
             if (!h) return;
             const cell = row.c?.[i];
+            // v가 null일 때 f(formatted)를 fallback으로 사용 — JSONP에서 문자열이 v:null/f:"P01"로 올 수 있음
             const val = (cell && cell.v != null)
               ? (cell.f != null && (typeof cell.v === 'number' || String(cell.v).startsWith('Date('))
                   ? cell.f : cell.v)
-              : null;
+              : (cell?.f != null ? cell.f : null);
             obj[h] = val != null ? String(val).trim() : '';
           });
           return obj;
