@@ -1761,9 +1761,12 @@ async function init() {
   try {
     const MAX_UNIT_NUM = 10;  // P10까지 + A 시리즈 전체 허용
     const dsRaw = annotateUnits(await fetchSheet(TAB_DS));
+    // 사이드바 유닛 칩: summary가 있으면 summary 기준, 없으면 drill/exp 기준으로 폴백
+    // (A12처럼 summary 행이 없고 drill만 있는 유닛도 표시되도록)
+    const validSidebarTypes = new Set(['summary', 'drill', 'exp']);
     const baseUnits = [...new Set(
       dsRaw.filter(r => {
-        if (normalizeType(r.type) !== 'summary') return false;
+        if (!validSidebarTypes.has(normalizeType(r.type))) return false;
         const s = (r.status || '').toLowerCase();
         return s === '' || s === 'confirmed';
       })
