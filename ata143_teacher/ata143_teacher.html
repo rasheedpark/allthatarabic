@@ -173,6 +173,16 @@ body {
   line-height: 1.3;
   direction: ltr;
 }
+/* 멀티행 래퍼토리: 아랍어 행이 2개 이상일 때 폰트 축소 */
+.rep-grid--multirow .rep-grid-ar {
+  font-size: clamp(1.4rem, 3.8cqi, 3rem);
+}
+.rep-grid--multirow .rep-grid-ko {
+  font-size: clamp(0.8rem, 1.8vw, 1.6rem);
+}
+.rep-grid--multirow .rep-grid-note {
+  font-size: clamp(0.6rem, 1.2vw, 1.1rem);
+}
 
 /* ── 한국어/노트 ── */
 .korean {
@@ -1165,38 +1175,46 @@ function renderNormal(s) {
 
 // ── renderRepertoryGrid ────────────────────────────────
 // | 구분 래퍼토리: 다열 그리드 — 아랍어 / 한국어 / 음가 모두 같은 그리드 안에
+// 아랍어에 \n이 있으면 멀티행(줄바꿈 → CSS 그리드 행, | → 열)
 function renderRepertoryGrid(s) {
   const d = s.data;
   const arOp = arabicVisible ? '1' : '0';
   const koOp = meaningVisible ? '1' : '0';
 
-  const split = src => (src || '').split('|').map(t => t.trim()).filter(Boolean);
-  const arTokens = split(d.arabic);
-  const koTokens = split(d.korean);
-  const noTokens = split(d.note);
-  const cols = arTokens.length || 1;
+  // \n → 행, | → 열로 파싱
+  const splitLines = src => (src || '').split('\n')
+    .map(line => line.split('|').map(t => t.trim()).filter(Boolean))
+    .filter(cells => cells.length > 0);
+
+  const arRows = splitLines(d.arabic);
+  const koRows = splitLines(d.korean);
+  const noRows = splitLines(d.note);
+  const cols = Math.max(...arRows.map(r => r.length), ...koRows.map(r => r.length), 1);
+  const isMultiRow = arRows.length > 1;
 
   const arabicArea = document.getElementById('arabic-area');
   arabicArea.innerHTML = '';
   arabicArea.style.cssText = '';
 
   const grid = document.createElement('div');
-  grid.className = 'rep-grid';
+  grid.className = 'rep-grid' + (isMultiRow ? ' rep-grid--multirow' : '');
   grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
-  // 행 1: 아랍어 (의미 토글 무관 — 항상 표시)
-  arTokens.forEach(t => {
-    const cell = document.createElement('div');
-    cell.className = 'rep-grid-ar';
-    cell.style.opacity = arOp;
-    cell.style.transition = 'opacity 0.3s';
-    cell.innerHTML = parseText(t);
-    grid.appendChild(cell);
+  // 아랍어 행(들) — \n 있으면 복수 행 렌더
+  arRows.forEach(row => {
+    row.forEach(t => {
+      const cell = document.createElement('div');
+      cell.className = 'rep-grid-ar';
+      cell.style.opacity = arOp;
+      cell.style.transition = 'opacity 0.3s';
+      cell.innerHTML = parseText(t);
+      grid.appendChild(cell);
+    });
   });
 
-  // 행 2: 한국어 (의미 토글 적용)
-  if (koTokens.length) {
-    koTokens.forEach(t => {
+  // 한국어 행(들) — 의미 토글 적용
+  koRows.forEach(row => {
+    row.forEach(t => {
       const cell = document.createElement('div');
       cell.className = 'rep-grid-ko rep-grid-meaning';
       cell.style.opacity = koOp;
@@ -1204,17 +1222,17 @@ function renderRepertoryGrid(s) {
       cell.innerHTML = parseText(t);
       grid.appendChild(cell);
     });
-  }
+  });
 
-  // 행 3: 음가(note) — 항상 표시
-  if (noTokens.length) {
-    noTokens.forEach(t => {
+  // 음가(note) 행(들) — 항상 표시
+  noRows.forEach(row => {
+    row.forEach(t => {
       const cell = document.createElement('div');
       cell.className = 'rep-grid-note';
-      grid.appendChild(cell);
       cell.textContent = t;
+      grid.appendChild(cell);
     });
-  }
+  });
 
   arabicArea.appendChild(grid);
   document.getElementById('text-area').innerHTML = '';
