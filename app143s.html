@@ -465,6 +465,7 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 .rep-grid--multirow .rep-grid-ar { font-size: clamp(0.95rem, calc(12cqi / var(--cols, 4)), 1.85rem); }
 .rep-grid--multirow .rep-grid-ko { font-size: clamp(0.68rem, calc(6cqi / var(--cols, 4)), 1rem); }
 .rep-grid--multirow .rep-grid-note { font-size: clamp(0.54rem, calc(4.4cqi / var(--cols, 4)), 0.8rem); }
+.rep-grid-spacer { min-width: 0; min-height: 1px; }
 .app.meaning-hidden .rep-grid-meaning { opacity: 0; }
 
 /* ── 전치사 테이블 (A03 등 표 형태 슬라이드) ── */
@@ -1493,30 +1494,41 @@ function renderSummary(area, inner, s) {
         ...noRows.map(r => r.length),
         1
       );
-      const isMultiRow = arRows.length > 1;
+      const displayCols = cols > 4 ? 3 : cols;
+      const isMultiRow = arRows.length > 1 || displayCols < cols;
       const grid = document.createElement('div');
       grid.className = 'rep-grid' + (isMultiRow ? ' rep-grid--multirow' : '');
-      grid.style.setProperty('--cols', cols);
-      grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+      grid.style.setProperty('--cols', displayCols);
+      grid.style.gridTemplateColumns = `repeat(${displayCols}, minmax(0, 1fr))`;
 
-      arRows.forEach(row => row.forEach(t => {
-        const cell = document.createElement('div');
-        cell.className = 'rep-grid-ar';
-        cell.innerHTML = parseText(t);
-        grid.appendChild(cell);
-      }));
-      koRows.forEach(row => row.forEach(t => {
-        const cell = document.createElement('div');
-        cell.className = 'rep-grid-ko rep-grid-meaning';
-        cell.innerHTML = parseText(t);
-        grid.appendChild(cell);
-      }));
-      noRows.forEach(row => row.forEach(t => {
-        const cell = document.createElement('div');
-        cell.className = 'rep-grid-note';
-        cell.textContent = t;
-        grid.appendChild(cell);
-      }));
+      const appendCells = (row, start, className, setter) => {
+        const slice = row.slice(start, start + displayCols);
+        for (let i = 0; i < displayCols; i++) {
+          const t = slice[i];
+          if (t) {
+            const cell = document.createElement('div');
+            cell.className = className;
+            setter(cell, t);
+            grid.appendChild(cell);
+          } else {
+            const spacer = document.createElement('div');
+            spacer.className = 'rep-grid-spacer';
+            grid.appendChild(spacer);
+          }
+        }
+      };
+      const maxRows = Math.max(arRows.length, koRows.length, noRows.length, 1);
+      for (let rowIdx = 0; rowIdx < maxRows; rowIdx++) {
+        const arRow = arRows[rowIdx] || [];
+        const koRow = koRows[rowIdx] || [];
+        const noRow = noRows[rowIdx] || [];
+        const rowCols = Math.max(arRow.length, koRow.length, noRow.length, cols);
+        for (let start = 0; start < rowCols; start += displayCols) {
+          appendCells(arRow, start, 'rep-grid-ar', (cell, t) => { cell.innerHTML = parseText(t); });
+          appendCells(koRow, start, 'rep-grid-ko rep-grid-meaning', (cell, t) => { cell.innerHTML = parseText(t); });
+          appendCells(noRow, start, 'rep-grid-note', (cell, t) => { cell.textContent = t; });
+        }
+      }
       header.appendChild(grid);
 
       requestAnimationFrame(() => {
