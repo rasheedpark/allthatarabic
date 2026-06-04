@@ -423,37 +423,48 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 .rep-grid {
   display: grid;
   direction: rtl;
-  column-gap: clamp(10px, 4cqi, 32px);
-  row-gap: clamp(6px, 1.8cqi, 18px);
+  column-gap: clamp(6px, 2.2cqi, 18px);
+  row-gap: clamp(5px, 1.4cqi, 14px);
   width: 100%;
+  min-width: 0;
   justify-items: center;
+  align-items: start;
 }
 .rep-grid-ar {
   font-family: var(--font-ar);
-  font-size: clamp(1.8rem, 6cqi, 3.6rem);
+  font-size: clamp(1rem, calc(14cqi / var(--cols, 4)), 2.15rem);
   font-weight: 700;
   direction: rtl;
   text-align: center;
-  line-height: 1.5;
+  line-height: 1.35;
   color: var(--text);
+  width: 100%;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 .rep-grid-ko {
-  font-size: clamp(0.95rem, 2.6cqi, 1.8rem);
+  font-size: clamp(0.72rem, calc(7cqi / var(--cols, 4)), 1.15rem);
   text-align: center;
   color: var(--text);
-  line-height: 1.4;
-  direction: ltr;
-}
-.rep-grid-note {
-  font-size: clamp(0.75rem, 1.8cqi, 1.2rem);
-  text-align: center;
-  color: var(--text-sub);
   line-height: 1.3;
   direction: ltr;
+  width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
-.rep-grid--multirow .rep-grid-ar { font-size: clamp(1.4rem, 4cqi, 2.8rem); }
-.rep-grid--multirow .rep-grid-ko { font-size: clamp(0.8rem, 2cqi, 1.5rem); }
-.rep-grid--multirow .rep-grid-note { font-size: clamp(0.6rem, 1.4cqi, 1rem); }
+.rep-grid-note {
+  font-size: clamp(0.58rem, calc(5cqi / var(--cols, 4)), 0.9rem);
+  text-align: center;
+  color: var(--text-sub);
+  line-height: 1.25;
+  direction: ltr;
+  width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.rep-grid--multirow .rep-grid-ar { font-size: clamp(0.95rem, calc(12cqi / var(--cols, 4)), 1.85rem); }
+.rep-grid--multirow .rep-grid-ko { font-size: clamp(0.68rem, calc(6cqi / var(--cols, 4)), 1rem); }
+.rep-grid--multirow .rep-grid-note { font-size: clamp(0.54rem, calc(4.4cqi / var(--cols, 4)), 0.8rem); }
 .app.meaning-hidden .rep-grid-meaning { opacity: 0; }
 
 /* ── 전치사 테이블 (A03 등 표 형태 슬라이드) ── */
@@ -1274,9 +1285,11 @@ function renderSummary(area, inner, s) {
 
   if (d.arabic) {
     // A 시리즈 유닛은 문장형 — css 미설정 시 sentence 모드 자동 적용
-    const rawCss = (d.css || '').trim();
+    const rawCss = (d.css || '').trim().toLowerCase();
     const hasGridData = d.arabic.includes('|') || (d.korean || '').includes('|') || (d.note || '').includes('|');
-    const cssMode = rawCss || (hasGridData ? 'rep' : (/^[Aa]/.test(s.unit || '') ? 'sentence' : ''));
+    const cssMode = rawCss === 'c'
+      ? (hasGridData ? 'rep' : 'sentence')
+      : (rawCss || (hasGridData ? 'rep' : (/^[Aa]/.test(s.unit || '') ? 'sentence' : '')));
     const arabicLetters = d.arabic.trim().split(/\s+/);
     // | < > 는 구분자 토큰 — 글자 카운트 제외, 시각적으로만 표시
     const isSep = ch => ch === '|' || ch === '<' || ch === '>';
@@ -1483,7 +1496,8 @@ function renderSummary(area, inner, s) {
       const isMultiRow = arRows.length > 1;
       const grid = document.createElement('div');
       grid.className = 'rep-grid' + (isMultiRow ? ' rep-grid--multirow' : '');
-      grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      grid.style.setProperty('--cols', cols);
+      grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
 
       arRows.forEach(row => row.forEach(t => {
         const cell = document.createElement('div');
