@@ -404,6 +404,52 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   color:var(--text);
   line-height:1.55;
 }
+.m-card.pattern .m-summary .script-table,
+.m-script .script-table {
+  width:100%;
+  table-layout:fixed;
+  margin:10px 0 16px;
+  border-collapse:separate;
+  border-spacing:0;
+  overflow:hidden;
+  border:1px solid var(--border-soft);
+  border-radius:8px;
+  direction:ltr;
+}
+.m-card.pattern .m-summary .script-table td,
+.m-card.pattern .m-summary .script-table th,
+.m-script .script-table td,
+.m-script .script-table th {
+  padding:8px 9px;
+  border-right:1px solid var(--border-soft);
+  border-bottom:1px solid var(--border-soft);
+  background:var(--surface);
+  color:var(--text);
+  font-size:11px;
+  line-height:1.45;
+  text-align:center;
+  vertical-align:middle;
+}
+.m-card.pattern .m-summary .script-table tr:last-child td,
+.m-card.pattern .m-summary .script-table tr:last-child th,
+.m-script .script-table tr:last-child td,
+.m-script .script-table tr:last-child th { border-bottom:0; }
+.m-card.pattern .m-summary .script-table td:last-child,
+.m-card.pattern .m-summary .script-table th:last-child,
+.m-script .script-table td:last-child,
+.m-script .script-table th:last-child { border-right:0; }
+.m-card.pattern .m-summary .script-table th,
+.m-script .script-table th {
+  background:var(--soft);
+  font-weight:700;
+}
+.m-card.pattern .m-summary .script-table [dir="rtl"],
+.m-script .script-table [dir="rtl"] {
+  font-family:var(--font-ar);
+  font-size:15px;
+  font-weight:500;
+  text-align:center;
+}
 
 /* ───────── 패턴 + 히어로 이미지 (임시) ─────────
    pattern에 GCS 이미지가 있으면(id_ptn(no) 일치), 카드 상단에 이미지를 띄우고
@@ -837,6 +883,7 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
 const SHEET_ID    = '1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8';
 const AUDIO_BASE  = 'https://storage.googleapis.com/all-that-arabic-14/audio';
 const IMG_BASE    = 'https://storage.googleapis.com/all-that-arabic-14/img';
+const IMG_VERSION = '20260607a';
 
 const TABS = {
   units:   'units',
@@ -1124,10 +1171,12 @@ function buildPagesForUnit(unit) {
     ...rowsByUnit(TABS.kalimat, unit, t => t === 'exp'),
   ];
   if (expRows.length) {
+    // Img 플래그가 있는 행이 하나라도 있으면 hero 표시 (GCS 404 cascade 회피)
+    const expHasImg = expRows.some(r => (r.img || '').trim() !== '');
     bySec.exp.push({
       sec:'exp', kind:'list',
       title:'표현', subtitle: expRows.length + '개',
-      hero:imageIdFor(unit, 'exp', expRows),
+      hero: expHasImg ? imageIdFor(unit, 'exp') : '',
       cards: expRows.map(r => ({...r, _kind:'exp'})),
     });
   }
@@ -1138,11 +1187,12 @@ function buildPagesForUnit(unit) {
     const ref = ptnRef(r);
     const reps = rowsByUnit(TABS.repertory, unit, t => t === 'repertory' || t === 'repertorie')
       .filter(rep => sameRef(rep.ref_ptn, ref));
+    // 패턴별 이미지: Img 플래그가 있을 때만 GCS img/{id_ptn(no)}.png 시도 (404 cascade 회피)
+    const hasImg = (r.img || '').trim() !== '';
     bySec.ptn.push({
       sec:'ptn', kind:'pattern',
       title:'패턴', subtitle: `${i+1} / ${ptnRows.length}`,
-      // 패턴별 이미지: id_ptn(no) 일치하는 파일이 GCS img/ 에 있으면 패턴 박스 위에 표시.
-      hero: ref || (i === 0 ? imageIdFor(unit, 'ptn') : ''),
+      hero: hasImg ? ref : '',
       row: r, reps,
     });
   });
@@ -1304,23 +1354,16 @@ function renderBody() {
 }
 
 function renderHero(id, opts = {}) {
+  // 시트의 Img 플래그가 있을 때만 호출됨 — png 단일 시도(확장자 fallback 제거).
+  // 모든 이미지는 png로 저장한다는 컨벤션.
   const wrap = document.createElement('div');
   wrap.className = 'm-hero-wrap';
   const img = document.createElement('img');
   img.className = 'm-hero';
   img.alt = '';
-  const exts = ['png','webp','jpg','jpeg'];
-  let idx = 0;
-  const setSrc = () => {
-    img.src = `${IMG_BASE}/${encodeURIComponent(id)}.${exts[idx]}?v=${Date.now()}`;
-  };
-  img.onerror = () => {
-    idx += 1;
-    if (idx < exts.length) setSrc();
-    else { wrap.remove(); opts.onFail?.(); }
-  };
+  img.onerror = () => { wrap.remove(); opts.onFail?.(); };
   img.onload = () => { opts.onLoad?.(); };
-  setSrc();
+  img.src = `${IMG_BASE}/${encodeURIComponent(id)}.png?v=${IMG_VERSION}`;
   wrap.appendChild(img);
   return wrap;
 }
@@ -1384,7 +1427,7 @@ function renderCard(row) {
   if (row.script) {
     const sc = document.createElement('div');
     sc.className = 'm-script';
-    sc.innerHTML = parseInline(row.script);
+    sc.innerHTML = renderScriptLines(row.script);
     el.appendChild(sc);
   }
   if (isNomRow(row)) el.innerHTML = applyNomDivider(el.innerHTML);  // 명사문 `|` → 분리자
@@ -1394,11 +1437,11 @@ function renderCard(row) {
 function renderPatternCard(row, hero) {
   const el = document.createElement('div');
   el.className = 'm-card pattern';
-  // hero가 있으면 일단 'pattern-with-hero' 클래스를 붙여 데이터(아랍어/한국어/음가) 숨김.
-  // 이미지가 모든 확장자 시도 실패하면 onFail에서 클래스 제거 → 일반 패턴 카드로 복원.
+  // 이미지가 실제로 로드된 경우에만 hero 모드로 전환한다.
+  // 없는 이미지를 찾는 동안 패턴 본문이 늦게 나타나는 문제를 막기 위함.
   if (hero) {
-    el.classList.add('pattern-with-hero');
     const heroWrap = renderHero(hero, {
+      onLoad: () => el.classList.add('pattern-with-hero'),
       onFail: () => el.classList.remove('pattern-with-hero'),
     });
     el.appendChild(heroWrap);   // 최상단에 위치하도록 가장 먼저 append
@@ -1460,6 +1503,23 @@ function renderRepertoryCard(rows) {
 }
 
 function renderScriptLines(text) {
+  const src = String(text || '');
+  const parts = [];
+  let last = 0;
+  src.replace(/<table\b[^>]*>[\s\S]*?<\/table>/gi, (match, offset) => {
+    if (offset > last) parts.push({ type:'text', value:src.slice(last, offset) });
+    parts.push({ type:'table', value:match });
+    last = offset + match.length;
+    return match;
+  });
+  if (last < src.length) parts.push({ type:'text', value:src.slice(last) });
+
+  return parts.map(part => (
+    part.type === 'table' ? renderScriptTable(part.value) : renderScriptText(part.value)
+  )).filter(Boolean).join('');
+}
+
+function renderScriptText(text) {
   return String(text || '').split('\n').map(line => {
     const t = line.trim();
     if (!t) return '';
@@ -1471,6 +1531,32 @@ function renderScriptLines(text) {
     if (t.startsWith('>')) return `<span class="quote">${parseInline(t.replace(/^>\s*/, ''))}</span>`;
     return `<span class="para">${parseInline(line)}</span>`;
   }).filter(Boolean).join('');
+}
+
+function renderScriptTable(html) {
+  const rows = [];
+  String(html || '').replace(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi, (_, rowHtml) => {
+    const cells = [];
+    rowHtml.replace(/<(t[dh])\b[^>]*>([\s\S]*?)<\/t[dh]>/gi, (match, tag, cellHtml) => {
+      const text = cellHtml
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<[^>]+>/g, '')
+        .trim();
+      cells.push({ tag: tag.toLowerCase() === 'th' ? 'th' : 'td', text });
+      return match;
+    });
+    if (cells.length) rows.push(cells);
+    return rowHtml;
+  });
+  if (!rows.length) return `<span class="para">${parseInline(html)}</span>`;
+
+  const body = rows.map(cells => (
+    '<tr>' + cells.map(cell => {
+      const dir = firstStrongDir(cell.text);
+      return `<${cell.tag} dir="${dir}">${parseInline(cell.text)}</${cell.tag}>`;
+    }).join('') + '</tr>'
+  )).join('');
+  return `<table class="script-table">${body}</table>`;
 }
 
 function renderRepertory(rows) {
@@ -1592,15 +1678,11 @@ function drillInstruction(type, unit, chapter) {
 }
 
 function renderNassPage(wrap, cards) {
-  // nass·nass+ 구분 없이 시트 순서대로 연속 표시, 안내문 1개 공통
+  // nass·nass+ 구분 없이 시트 순서대로 연속 표시
   const rows = cards.filter(r => ['nass','nass+'].includes(normType(r.type)));
   if (!rows.length) return;
   const section = document.createElement('section');
   section.className = 'm-subsection';
-  const instr = document.createElement('div');
-  instr.className = 'm-instruction';
-  instr.textContent = '다음을 들으면서 소리로 의미를 이해하고 같이 따라 읽어 보세요';
-  section.appendChild(instr);
   rows.forEach(r => section.appendChild(renderCard(r)));
   wrap.appendChild(section);
 }
