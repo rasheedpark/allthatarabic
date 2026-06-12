@@ -301,6 +301,45 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
   text-align: start;       /* dir 따라 좌/우 자동 */
   white-space: pre-line;
 }
+/* script 안의 인라인 테이블 — <table>...</table> 직접 작성 시 렌더 */
+.script-table {
+  width:100%;
+  table-layout:fixed;
+  margin:14px 0 16px;
+  border-collapse:separate;
+  border-spacing:0;
+  overflow:hidden;
+  border:1px solid #cbd5dc;
+  border-radius:8px;
+  direction:ltr;
+  font-size: clamp(.74rem, 1.7cqi, .85rem);
+  background: #fff;
+}
+.script-table td, .script-table th {
+  padding:9px 8px;
+  border-right:1px solid #d8dde2;
+  border-bottom:1px solid #d8dde2;
+  color:var(--text);
+  line-height:1.55;
+  text-align:center;
+  vertical-align:middle;
+  word-break: keep-all;
+}
+.script-table tr:last-child td,
+.script-table tr:last-child th { border-bottom:0; }
+.script-table td:last-child,
+.script-table th:last-child { border-right:0; }
+.script-table th {
+  background: #eef3f5;
+  color: var(--text);
+  font-weight:700;
+  font-size: clamp(.72rem, 1.55cqi, .82rem);
+}
+.script-table td[dir="rtl"],
+.script-table th[dir="rtl"] {
+  font-family: var(--font-ar);
+  font-weight:500;
+}
 /* 산문→불릿 전환 빈 줄 */
 .summary-spacer { height: 10px; flex-shrink: 0; }
 /* 불릿 항목 — dir="auto"면 RTL 시 점이 자동으로 오른쪽 */
@@ -341,6 +380,16 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
   line-height: 1.4;
   direction: ltr;
   unicode-bidi: isolate;
+}
+.summary-sentence-note {
+  font-size: clamp(0.78rem, 1.7cqi, 0.9rem);
+  color: var(--text-sub);
+  text-align: center;
+  line-height: 1.4;
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-style: italic;
+  opacity: 0.85;
 }
 
 /* ── svo 모드: 아랍어 단어별 라벨(S/V/O 등) + 번역 ── */
@@ -1177,7 +1226,71 @@ function lineDir(raw) {
 }
 
 /* ━━━━ 서머리 설명 텍스트 파서 ━━━━ */
+/* script 안의 <table>...</table>를 별도 노드로 추출 — 나머지는 텍스트로 줄 분리 처리 */
+function extractScriptTables(desc) {
+  const parts = [];
+  let last = 0;
+  String(desc).replace(/<table\b[^>]*>[\s\S]*?<\/table>/gi, (match, offset) => {
+    if (offset > last) parts.push({ type:'text', value: desc.slice(last, offset) });
+    parts.push({ type:'table', value: match });
+    last = offset + match.length;
+    return match;
+  });
+  if (last < desc.length) parts.push({ type:'text', value: desc.slice(last) });
+  return parts;
+}
+
+/* <table>...</table> 문자열을 .script-table 노드로 변환 */
+function buildScriptTable(html) {
+  const rows = [];
+  String(html).replace(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi, (_, rowHtml) => {
+    const cells = [];
+    rowHtml.replace(/<(t[dh])\b[^>]*>([\s\S]*?)<\/t[dh]>/gi, (m, tag, cellHtml) => {
+      const text = cellHtml
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<[^>]+>/g, '')
+        .trim();
+      cells.push({ tag: tag.toLowerCase() === 'th' ? 'th' : 'td', text });
+      return m;
+    });
+    if (cells.length) rows.push(cells);
+    return rowHtml;
+  });
+  if (!rows.length) return null;
+  const table = document.createElement('table');
+  table.className = 'script-table';
+  rows.forEach(cells => {
+    const tr = document.createElement('tr');
+    cells.forEach(c => {
+      const el = document.createElement(c.tag);
+      el.setAttribute('dir', firstStrongDir(c.text));
+      el.innerHTML = parseText(c.text);
+      tr.appendChild(el);
+    });
+    table.appendChild(tr);
+  });
+  return table;
+}
+
 function renderSummaryDesc(desc, container) {
+  // script 안의 <table>...</table>은 미리 떼어서 직접 렌더 — 나머지는 기존 텍스트 파싱
+  const segs = extractScriptTables(desc);
+  if (segs.some(p => p.type === 'table')) {
+    segs.forEach(seg => {
+      if (seg.type === 'table') {
+        const t = buildScriptTable(seg.value);
+        if (t) container.appendChild(t);
+      } else {
+        // 텍스트 세그먼트는 원본 함수 본체로 재귀 — 별도 컨테이너에 모은 뒤 합치기
+        renderSummaryDescText(seg.value, container);
+      }
+    });
+    return;
+  }
+  renderSummaryDescText(desc, container);
+}
+
+function renderSummaryDescText(desc, container) {
   const lines = desc.split('\n');
   let paraLines = [];
   let lastWasProse = false;     // 직전에 산문 단락이 추가됐는지 추적
@@ -1295,6 +1408,13 @@ function renderSummary(area, inner, s) {
         krEl.className = 'summary-sentence-kr';
         krEl.innerHTML = wrap(parseText(d.korean));
         header.appendChild(krEl);
+      }
+
+      if (d.note) {
+        const noteEl = document.createElement('div');
+        noteEl.className = 'summary-sentence-note';
+        noteEl.innerHTML = wrap(parseText(d.note));
+        header.appendChild(noteEl);
       }
 
     } else if (cssMode === 'svo') {

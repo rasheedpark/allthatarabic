@@ -89,6 +89,19 @@ pattern, repertory, writing, drill, exp 행
 
 이 순서를 지키지 않으면 나스에 미확정 어휘가 섞여드는 오류가 발생한다.
 
+### 구글시트 입력 형식
+
+지문(nass)은 여러 발화로 구성되어도 구글시트에서는 **한 행**에 입력한다. 지문 전체가 `arabic` 한 셀, 한국어 전체가 `korean` 한 셀, 음가 전체가 `note` 한 셀에 들어간다.
+
+구글시트에 붙여넣기 위한 출력은 항상 `arabic<TAB>korean<TAB>note` 형식의 TSV로 제공한다. 지문처럼 셀 내부 줄바꿈이 필요한 값은 각 셀 전체를 큰따옴표로 감싼다. 지문 내부의 줄바꿈은 따옴표 안의 실제 줄바꿈으로 유지하고, 발화마다 행을 나누지 않는다.
+
+```tsv
+"شُوفِي، شُوفِي، هَذِيك هِيَ. الْمُؤَثِّرَة الْمَشْهُورَة.
+آه، عَنْ جِدّ؟ وَالله جَمِيلَة."	"봐봐, 저 사람이 그 사람이야. 그 유명한 여자 인플루언서.
+아, 진짜? 맹세코 예쁘네."	"shūfī, shūfī, hadhīk hiya. al-muʾaththira al-mashhūra.
+āh, ʕan jidd? wallāh jamīla."
+```
+
 ### 씬 조건
 
 1. **실제 씬 (핵심)**: 실제 아랍인들이 나눌 법한 대화여야 한다. 교재용 인공 예문 금지.
@@ -96,6 +109,50 @@ pattern, repertory, writing, drill, exp 행
 3. **새 콘텐츠 중심**: 이번 유닛의 신규 kalimat·expression이 씬의 중심이 되어야 한다.
 4. **이전 콘텐츠 재활용 가능**: 이전 유닛 내용은 `status=confirmed`인 kalimat·expression 범위 안에서만 포함할 수 있다.
 5. **카테고리**: 나스의 성격에 따라 유형 분류. 유형은 추후 확장.
+
+### 지문 자연성 판정 규칙
+
+지문은 패턴을 보여주기 위해 억지로 만든 문장이 아니라, 실제 대화에서 일부를 가져온 것처럼 보여야 한다. 문법적으로 맞아도 대화 상황이 희미하거나 한국어 번역식으로 들리면 사용하지 않는다.
+
+**좋은 지문**
+
+- 가게, 카페, 사무실, 수업, 집처럼 장면이 바로 보인다.
+- 첫 발화와 두 번째 발화가 서로 실제로 반응한다. 두 번째 발화는 허락, 거절, 설명, 대안, 농담, 확인 중 하나로 기능해야 한다.
+- 오늘 배운 패턴이 최소 1개 들어가되, 패턴 자체가 목적이 아니라 상황 속에서 자연스럽게 쓰인다.
+- 오늘 확정한 표현 또는 이전에 확정한 표현이 최소 1개 들어간다.
+- 짧아도 맥락이 완결된다. 예: 허락 요청 → 허락/거절, 제안 → 수락/거절, 주문 → 응대.
+- 같은 장면을 방언 비교용으로 3개 만들 때는 각 방언의 실제 대응 표현을 쓴다. 예: 걸프 `بَعَد`, 샴 `كَمَان`, 이집트 `بَرْضُه`.
+
+**나쁜 지문**
+
+- 단지 패턴을 보여주기 위해 만든 교재식 문장. 예: “지금 신문 꼭 읽어야 해요?”처럼 실제 필요가 잘 보이지 않는 문장.
+- 앞뒤 반응이 어색한 문장. 예: 이유 없이 “조금 있다가 돌아오세요”라고 답하는 흐름.
+- 한국어 표현을 직역한 문장. 예: “창문을 열고 싶어요”보다 “창문 열어도 돼요?” 또는 “창문 좀 열게요”가 자연스럽다.
+- 이미 같은 유닛에서 쓴 장면을 거의 반복하는 문장. 예: “여기 앉아도 돼요?”를 이미 썼다면 같은 구조의 반복 후보는 제외한다.
+- 특정 단어가 과도하게 반복되는 지문. 예: `مَلَفّ` 같은 단어가 여러 지문에 반복되면 다른 장면으로 바꾼다.
+- 새 단어를 아무 이유 없이 늘리는 지문. 이미 `hold` 또는 이전 유닛에 있는 단어인지 먼저 확인하고, 중복 kalimat를 만들지 않는다.
+
+**A17에서 확정된 판단 예시**
+
+- `أَقْدَر أَجْلِس هِنَا؟ / إِي، عَلَى رَاحْتَك...`는 좋다. 허락 요청과 응답이 자연스럽다.
+- `لَازِم أَرُوح الْيَوْم؟ / لَا، مَا فِي دَاعِي. عَادِي بُكْرَة.`는 좋다. 의무 여부와 대안이 분명하다.
+- `إِذَا مُمْكِن، أَقْدَر أَفْتَح الشُّبَّاك؟ / طَبْعًا...`는 좋다. 공손한 요청과 자연스러운 허락이다.
+- `خَلِّنِي أَدْفَع الْحِسَاب. / لَا، مَا فِي دَاعِي. أَنَا أَدْفَع.`는 좋다. 제안과 거절이 실제 상황처럼 맞물린다.
+- “신문을 지금 꼭 읽어야 해요?”는 별로다. 신문을 꼭 읽어야 하는 실제 장면이 약하다.
+- “네 마음대로요. 저는 갈 수 있어요.”는 별로다. 대답이 뻣뻣하다. `أَنَا مَا عِنْدِي مَانِع`처럼 반대 없다는 응답이 더 자연스럽다.
+
+### 후보 작성 및 검수 절차
+
+지문 후보를 만들 때는 기본적으로 **한 번에 하나씩** 제안한다. 사용자가 “여러 개”라고 요청한 경우에만 여러 후보를 낸다. 각 후보는 아래 순서로 처리한다.
+
+```
+1. 후보 1개 제안
+2. 자연성 판정: 좋은 점 / 어색한 점을 짧게 설명
+3. 사용자가 수정하거나 확정
+4. 확정된 표현·어휘를 먼저 등록
+5. 그 다음 나스를 한 행 TSV 규칙에 맞춰 입력
+6. 다음 후보로 이동
+```
 
 | 유형 | 설명 |
 |---|---|
@@ -426,6 +483,78 @@ pattern, repertory, writing, drill, exp 행
 | 사이드바 | `transform 0.3s ease` |
 | 진행 바 | `width 0.3s` |
 | 버튼 hover/active | `all 0.15s` |
+
+---
+
+### 써머리 슬라이드 (sentence 모드) — A시리즈 추가 컴포넌트
+
+A시리즈(A01~) 유닛의 `type = summary` 행은 `css` 컬럼이 비어 있으면 자동으로 sentence 모드로 렌더된다. 헤더에 아랍어 → 한국어(해석) → 음가(note) 순으로 모두 가운데 정렬해 표시한 뒤, 그 아래에 `script` 컬럼의 본문이 단락·불릿·인라인 테이블로 렌더된다.
+
+**헤더 클래스 (가운데 정렬)**
+
+| 클래스 | 셀 | 스타일 |
+|---|---|---|
+| `.summary-sentence-ar` | arabic | RTL, Noto Sans Arabic, `clamp(1.55rem, 4.1cqi, 2.45rem)`, 굵게 |
+| `.summary-sentence-kr` | korean (해석) | LTR, `clamp(0.85rem, 2cqi, 1rem)`, sub 컬러 |
+| `.summary-sentence-note` | note (음가) | LTR, `clamp(0.78rem, 1.7cqi, 0.9rem)`, sub 컬러, **이탤릭**, `opacity: 0.85` |
+
+> 1.4.4 textbook 앱과 통일된 톤. 음가는 한국어 해석 바로 아래 작게 표시되어 학습자가 동시에 확인할 수 있다.
+
+**스크립트 인라인 테이블 (`script` 컬럼 안의 `<table>`)**
+
+`script` 컬럼에 표준 HTML `<table>` 마크업을 직접 작성하면 앱이 해당 블록을 떼어내 `.script-table` 클래스로 렌더한다. 텍스트(단락·불릿·인용) 부분은 기존대로 처리.
+
+```css
+.script-table {
+  width: 100%; table-layout: fixed;
+  border: 1px solid #cbd5dc; border-radius: 8px;
+  border-collapse: separate; border-spacing: 0;
+  margin: 14px 0 16px; background: #fff;
+  font-size: clamp(.74rem, 1.7cqi, .85rem);
+}
+.script-table td, .script-table th {
+  padding: 9px 8px;
+  border-right: 1px solid #d8dde2;
+  border-bottom: 1px solid #d8dde2;
+  text-align: center; vertical-align: middle;
+  line-height: 1.55; word-break: keep-all;
+}
+.script-table th {
+  background: #eef3f5; font-weight: 700;
+  font-size: clamp(.72rem, 1.55cqi, .82rem);
+}
+.script-table tr:last-child td,
+.script-table tr:last-child th { border-bottom: 0; }
+.script-table td:last-child,
+.script-table th:last-child { border-right: 0; }
+.script-table td[dir="rtl"], .script-table th[dir="rtl"] {
+  font-family: var(--font-ar); font-weight: 500;
+}
+```
+
+**셀 작성 규칙**
+
+- 셀 안에서 줄바꿈은 `<br>` — 앱이 `\n`으로 정규화한 뒤 다시 `<br>`로 렌더.
+- 셀 정렬 방향(`dir="rtl"|"ltr"`)은 셀 내용의 첫 강한 문자로 자동 판정.
+- 셀 안 인라인 강조 `*텍스트*` → `.highlight-text`로 변환.
+
+**작성 예시**
+
+```html
+<table>
+<tr><th>미완료 가운데 모음</th><th>동사 예시</th><th>완료시제 수쿤동사</th></tr>
+<tr><td>담마 (u 모음)</td><td>말하다 يَقُولُ<br>방문하다 يَزُورُ</td><td>قُلْتُ<br>زُرْتُ</td></tr>
+</table>
+```
+
+**관련 JS 함수 (app143s.html 내부)**
+
+- `extractScriptTables(desc)` — `<table>...</table>` 블록과 일반 텍스트를 순서대로 분리.
+- `buildScriptTable(html)` — `<tr><td>`/`<th>` 파싱 후 `.script-table` DOM 노드 생성.
+- `renderSummaryDesc(desc, container)` — 테이블 세그먼트와 텍스트 세그먼트를 순서대로 컨테이너에 추가.
+- 텍스트 세그먼트는 기존 `renderSummaryDescText`(이전 `renderSummaryDesc`의 본문)가 처리 — 단락·불릿·spacer 규칙은 동일.
+
+> 1.4.4 textbook 앱의 `renderScriptLines` / `renderScriptTable`과 동일한 데이터 호환성. 1.4.4로 마이그레이션할 때 `script` 컬럼을 그대로 옮길 수 있다.
 
 ---
 
