@@ -1067,23 +1067,26 @@ function fallbackAudioKey(row) {
   return '';
 }
 
-// dev(localhost)에서만 캐시 우회 — 오디오 수정 즉시 확인용.
-// prod(github.io 등)는 쿼리 없이 GCS 1시간 캐시 그대로 (사용자 빠름).
-// (IS_DEV는 위 유틸 섹션에서 정의)
-function audioCacheBust(u) {
-  return IS_DEV ? `${u}${u.includes('?') ? '&' : '?'}_dev=${Date.now()}` : u;
+// TTS 원문이 바뀌면 같은 파일명이어도 새 URL로 재생한다.
+function audioCacheBust(u, row) {
+  const source = `${getRowId(row)}|${row?.tss || row?.arabic || row?.note || ''}`;
+  let hash = 5381;
+  for (let i = 0; i < source.length; i++) hash = ((hash << 5) + hash) ^ source.charCodeAt(i);
+  const version = (hash >>> 0).toString(36);
+  const suffix = IS_DEV ? `${version}-${Date.now()}` : version;
+  return `${u}${u.includes('?') ? '&' : '?'}_v=${suffix}`;
 }
 
 function audioUrlsFor(row) {
-  if (row?.url) return [audioCacheBust(row.url.trim())];
+  if (row?.url) return [audioCacheBust(row.url.trim(), row)];
   const id = getRowId(row) || fallbackAudioKey(row);
   if (!id) return [];
   const unit = row?.u || state.unit;
   const enc = encodeURIComponent(id.normalize('NFD')).replace(/%2C/gi, ',');
   // mp3 우선 시도 (작고 빠름) → 실패 시 wav 폴백 (audio-rules 규칙)
   return [
-    audioCacheBust(`${AUDIO_BASE}/${unit}/${enc}.mp3`),
-    audioCacheBust(`${AUDIO_BASE}/${unit}/${enc}.wav`),
+    audioCacheBust(`${AUDIO_BASE}/${unit}/${enc}.mp3`, row),
+    audioCacheBust(`${AUDIO_BASE}/${unit}/${enc}.wav`, row),
   ];
 }
 
