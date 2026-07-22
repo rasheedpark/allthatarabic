@@ -475,9 +475,8 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
 }
 
 /* ───────── 표현·래퍼토리 카드 (작게, 인쇄 카드 느낌) ─────────
-   래퍼토리(페어 모드)는 표현(exp)과 완전히 같은 양식. 그리드 모드(css=two/
-   three/five/six 또는 한국어 전무)는 종전대로 .m-rep-table을 .m-card.repertory
-   안에 묶음. */
+   래퍼토리 문장은 표현(exp)과 완전히 같은 양식. 5열 그리드는 한국어가 없는
+   알파벳/발음 연습에만 사용한다. */
 .m-card.exp,
 .m-card.repertory { gap:7px; }
 .m-card.exp .m-ar,
@@ -983,18 +982,34 @@ const inU  = (r,u) => (r.u||'') === u;
 const norm = t => (t||'').toLowerCase().trim();
 const normType = t => norm(t).replace(/\s+/g,'');
 
+// 아랍어 하이라이트: 색 span이 단어 중간 글자를 감싸면 Safari/CoreText에서 이음이 끊긴다.
+// 실제 이음이 있는 경계에만 ZWJ(U+200D) 주입 → 연결 형태 강제(공백·ا·ة 등엔 안 넣음).
+const _AR_LETTER = /[ء-يٱ-ۓݐ-ݿﭐ-﷿ﹰ-﻿]/;
+const _AR_MARK = /[ً-ْٰۖ-ۭ]/;
+const _AR_RJO = new Set(['ا','أ','إ','آ','ٱ','د','ذ','ر','ز','و','ؤ','ة','ى','ء']);
+function _hlArabic(match, inner, offset, whole) {
+  if (!_AR_LETTER.test(inner)) return `<span class="hl-text">${inner}</span>`;
+  const ZWJ = '‍';
+  const skip = ch => _AR_MARK.test(ch) || ch === '*' || ch === '_';
+  const connL = ch => _AR_LETTER.test(ch) && !_AR_RJO.has(ch);
+  const joinR = ch => _AR_LETTER.test(ch) && ch !== 'ء';
+  let bi = offset - 1; while (bi >= 0 && skip(whole[bi])) bi--;
+  const before = bi >= 0 ? whole[bi] : '';
+  let fi = 0; while (fi < inner.length && _AR_MARK.test(inner[fi])) fi++;
+  let li = inner.length - 1; while (li >= 0 && _AR_MARK.test(inner[li])) li--;
+  let ai = offset + match.length; while (ai < whole.length && skip(whole[ai])) ai++;
+  const after = ai < whole.length ? whole[ai] : '';
+  const lz = (connL(before) && joinR(inner[fi] || '')) ? ZWJ : '';
+  const rz = (connL(inner[li] || '') && joinR(after)) ? ZWJ : '';
+  return `${lz}<span class="hl-text hl-ar">${lz}${inner}${rz}</span>${rz}`;
+}
 function parseInline(str) {
   if (!str) return '';
   return String(str)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/\n/g,'<br>')
     .replace(/_([^_\n]+)_/g,'<span class="hl-box-inline">$1</span>')
-    // *…* 안에 Arabic이 있으면 hl-ar 클래스 추가 → font-weight: inherit로
-    //   Safari/CoreText의 weight 경계 셰이핑 끊김 방지 (예: الْقَ*مَر*)
-    .replace(/\*([^*\n]+)\*/g, (_, m) => {
-      const hasAr = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/.test(m);
-      return `<span class="hl-text${hasAr ? ' hl-ar' : ''}">${m}</span>`;
-    });
+    .replace(/\*([^*\n]+)\*/g, _hlArabic);
 }
 
 // 첫 강한 방향 문자로 LTR/RTL 판정 — 마크업(`*_<tag>`) 제거 후 검사.
@@ -1018,10 +1033,7 @@ function parseTrans(str) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/\n/g,'<br>')
     .replace(/_([^_\n]+)_/g,'$1')
-    .replace(/\*([^*\n]+)\*/g, (_, m) => {
-      const hasAr = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/.test(m);
-      return `<span class="hl-text${hasAr ? ' hl-ar' : ''}">${m}</span>`;
-    });
+    .replace(/\*([^*\n]+)\*/g, _hlArabic);
 }
 
 function parseDrillBlank(str) {
@@ -1099,7 +1111,9 @@ function matchesUnit(row, unit, unitRow = getUnitRow(unit)) {
 }
 
 function ptnRef(row) {
-  return row?.['id_ptn(no)'] || row?.id_ptn || '';
+  // The generated number column is the repertoire/drill connection key.
+  // Keep the temporary spreadsheet error header as a fallback while it recovers.
+  return row?.['id_ptn(no)'] || row?.['#REF!'] || row?.id_ptn || '';
 }
 
 function refKey(value) {
@@ -1111,7 +1125,16 @@ function refKey(value) {
 }
 
 function sameRef(a, b) {
-  return refKey(a) && refKey(a) === refKey(b);
+  const left = refKey(a);
+  const right = refKey(b);
+  if (!left || !right) return false;
+  if (left === right) return true;
+
+  // `ptn060_...` is stable; the generated description suffix can change
+  // whenever the pattern sentence is revised.
+  const leftNumber = String(a || '').match(/^ptn(\d+)/i)?.[1];
+  const rightNumber = String(b || '').match(/^ptn(\d+)/i)?.[1];
+  return !!leftNumber && leftNumber === rightNumber;
 }
 
 function ptnLabel(row) {
@@ -1197,40 +1220,57 @@ function buildPagesForUnit(unit) {
     });
   });
 
-  // 드릴 — page 값 있으면 화면 분리, 없으면 한 페이지
+  // 드릴 — 패턴별로 한 모바일 페이지. ref_ptn이 없는 기존 데이터만 page 묶음을 유지.
   const drillRows = rowsByUnit(TABS.drill, unit,
     (t, r) => ['drilla','drillb','drillc','writing'].includes(t) && (r.arabic || '').trim() !== '');
   if (drillRows.length) {
-    const pageVal = r => (r.page || '').toString().trim();
-    const hasPaged = drillRows.some(r => pageVal(r) !== '');
     const chapter = String(unitRow.C || unitRow.c || '');
-    if (hasPaged) {
-      const byPage = new Map();
-      drillRows.forEach(r => {
-        const k = pageVal(r) || '￿';
-        if (!byPage.has(k)) byPage.set(k, []);
-        byPage.get(k).push(r);
-      });
-      const keys = [...byPage.keys()].sort((a, b) => {
-        const na = parseFloat(a), nb = parseFloat(b);
-        if (!isNaN(na) && !isNaN(nb)) return na - nb;
-        return String(a).localeCompare(String(b), undefined, { numeric: true });
-      });
-      keys.forEach((k, i) => {
-        bySec.drill.push({
-          sec:'drill', kind:'drill',
-          title:'드릴', subtitle: `${i+1} / ${keys.length}`,
-          rows: byPage.get(k),
-          chapter,
-        });
-      });
-    } else {
+    const groupedDrills = new Set();
+    ptnRows.forEach((ptn, ptnIndex) => {
+      const ref = ptnRef(ptn);
+      const rows = drillRows.filter(row => sameRef(row.ref_ptn, ref));
+      if (!rows.length) return;
+      rows.forEach(row => groupedDrills.add(row));
       bySec.drill.push({
         sec:'drill', kind:'drill',
-        title:'드릴', subtitle: drillRows.length + '개',
-        rows: drillRows,
+        title:'드릴', subtitle: `${ptnIndex + 1} / ${ptnRows.length}`,
+        rows,
         chapter,
       });
+    });
+
+    const sharedDrills = drillRows.filter(row => !groupedDrills.has(row));
+    if (sharedDrills.length) {
+      const pageVal = r => (r.page || '').toString().trim();
+      const hasPaged = sharedDrills.some(r => pageVal(r) !== '');
+      if (hasPaged) {
+        const byPage = new Map();
+        sharedDrills.forEach(r => {
+          const k = pageVal(r) || '￿';
+          if (!byPage.has(k)) byPage.set(k, []);
+          byPage.get(k).push(r);
+        });
+        const keys = [...byPage.keys()].sort((a, b) => {
+          const na = parseFloat(a), nb = parseFloat(b);
+          if (!isNaN(na) && !isNaN(nb)) return na - nb;
+          return String(a).localeCompare(String(b), undefined, { numeric: true });
+        });
+        keys.forEach((k, i) => {
+          bySec.drill.push({
+            sec:'drill', kind:'drill',
+            title:'드릴', subtitle: `${i+1} / ${keys.length}`,
+            rows: byPage.get(k),
+            chapter,
+          });
+        });
+      } else {
+        bySec.drill.push({
+          sec:'drill', kind:'drill',
+          title:'드릴', subtitle: sharedDrills.length + '개',
+          rows: sharedDrills,
+          chapter,
+        });
+      }
     }
   }
 
@@ -1485,10 +1525,7 @@ function renderPatternCard(row, hero) {
 }
 
 function renderRepertoryCard(rows) {
-  const cssOf = r => (r.css || '').trim().toLowerCase();
-  const isGrid = rows.some(r => ['two','three','five','six'].includes(cssOf(r)))
-              || rows.every(r => !r.korean);   // 한국어 전무 → 자동 five 그리드
-  if (isGrid) {
+  if (useRepertoryGrid(rows)) {
     // 그리드 모드 — 종전대로 한 표를 .m-card.repertory가 감쌈
     const el = document.createElement('div');
     el.className = 'm-card repertory';
@@ -1500,6 +1537,20 @@ function renderRepertoryCard(rows) {
   wrap.className = 'm-rep-wrap';
   rows.forEach(r => wrap.appendChild(renderCard({ ...r, _kind: 'repertory' })));
   return wrap;
+}
+
+function useRepertoryGrid(rows) {
+  const cssOf = r => (r.css || '').trim().toLowerCase();
+  const gridCols = rows.reduce((cols, r) => {
+    const css = cssOf(r);
+    if (css === 'six') return Math.max(cols, 6);
+    if (css === 'five') return Math.max(cols, 5);
+    if (css === 'three') return Math.max(cols, 3);
+    if (css === 'two') return Math.max(cols, 2);
+    return cols;
+  }, 0);
+  // 그리드는 알파벳/발음 노출처럼 실제 칸을 채울 때만 사용한다.
+  return gridCols > 0 && rows.length >= gridCols;
 }
 
 function renderScriptLines(text) {
@@ -1561,11 +1612,14 @@ function renderScriptTable(html) {
 
 function renderRepertory(rows) {
   const cssOf = r => (r.css || '').trim().toLowerCase();
-  if (rows.some(r => cssOf(r) === 'two')) return renderGridTable(rows, 'm-rep-table', false, 2);
-  if (rows.some(r => cssOf(r) === 'three')) return renderGridTable(rows, 'm-rep-table', false, 3);
-  if (rows.some(r => cssOf(r) === 'six')) return renderGridTable(rows, 'm-rep-table', false, 6);
-  const five = rows.some(r => cssOf(r) === 'five') || rows.every(r => !r.korean);
-  if (five) return renderGridTable(rows, 'm-rep-table', false);
+  const useTwo = rows.length >= 2 && rows.some(r => cssOf(r) === 'two');
+  const useThree = rows.length >= 3 && rows.some(r => cssOf(r) === 'three');
+  const useSix = rows.length >= 6 && rows.some(r => cssOf(r) === 'six');
+  const useFive = rows.length >= 5 && rows.some(r => cssOf(r) === 'five');
+  if (useTwo) return renderGridTable(rows, 'm-rep-table', false, 2);
+  if (useThree) return renderGridTable(rows, 'm-rep-table', false, 3);
+  if (useSix) return renderGridTable(rows, 'm-rep-table', false, 6);
+  if (useFive) return renderGridTable(rows, 'm-rep-table', false);
   const wrap = document.createElement('div');
   rows.forEach(r => wrap.appendChild(renderPairRow(r)));
   return wrap;
