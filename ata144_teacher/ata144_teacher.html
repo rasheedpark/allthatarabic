@@ -86,7 +86,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: clamp(1rem, 3vh, 2.5rem);
-  padding: clamp(60px,10vh,100px) clamp(1rem,4vw,3rem) clamp(80px,12vh,120px);
+  /* 상단 패딩은 고정 탭바(#ui-tl) 아래로 확보 — 글자 확대로 콘텐츠가 꽉 차도 안 겹치게 */
+  padding: clamp(100px,13vh,140px) clamp(1rem,4vw,3rem) clamp(80px,12vh,120px);
 }
 
 /* ── baseline 모드: CSS Grid 정렬 ── */
@@ -133,21 +134,22 @@ body {
   line-height: 1.6;
   text-align: center;
 }
-/* A/G 유닛: 문장형이라 폰트 살짝 축소 (일반보다 작지만 sentence 자체도 baseline과 격차 좁힘) */
+/* A/G 유닛: 문장형 — 컨테이너 기준 최대 크기, JS fitArabicText()가 2줄 초과 시 축소 */
 .arabic.arabic-sentence {
-  font-size: clamp(2.5rem, 8vw, 8rem);
+  font-size: clamp(2.5rem, 12cqi, 12rem);
+  line-height: 1.5;
 }
 
 /* ── 한국어/노트 ── */
 .korean {
   display: block;
-  font-size: clamp(1.4rem, 4vw, 4rem);  /* 키움: 3.5vw→4vw, max 3.5→4rem */
+  font-size: clamp(1.6rem, 5vw, 5rem);  /* 키움: 4vw→5vw, max 4→5rem */
   transition: opacity 0.3s;
   line-height: 1.4;
 }
 .note {
   display: block;
-  font-size: clamp(1.25rem, 3.2vw, 3rem);  /* 키움: 2.6vw→3.2vw, max 2.5→3rem */
+  font-size: clamp(1.4rem, 4vw, 4rem);  /* 키움: 3.2vw→4vw, max 3→4rem (항상 .korean보다 작게) */
   color: var(--sub);
   text-align: center;
   transition: opacity 0.3s;
@@ -199,8 +201,9 @@ body {
   text-align: center;
   margin-top: 0.5rem;
 }
-#arabic-area { container-type: inline-size; width: 100%; }
-#text-area { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; min-height: 2rem; }
+/* flex-shrink:0 — #main(flex)이 넘칠 때 박스가 찌그러지면 fitArabicText 실측이 틀어짐 */
+#arabic-area { container-type: inline-size; width: 100%; flex-shrink: 0; }
+#text-area { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; min-height: 2rem; width: 100%; flex-shrink: 0; }
 
 /* ── 하이라이트 ── */
 .highlight-box {
@@ -1057,6 +1060,7 @@ body.book-view #book-root { display: flex; }
     <ul class="key-list">
       <li class="key-row"><span class="key">M</span><span class="key-desc">메뉴 열기/닫기</span></li>
       <li class="key-row"><span class="key">Space</span><span class="key-desc">한국어 가리기/보기</span></li>
+      <li class="key-row"><span class="key">R</span><span class="key-desc">음가 가리기/보기</span></li>
       <li class="key-row"><span class="key">A</span><span class="key-desc">본문 보기/가리기</span></li>
       <li class="key-row"><span class="key">T</span><span class="key-desc">지문 보기/가리기 (나스)</span></li>
       <li class="key-row"><span class="key">S</span><span class="key-desc">오디오 재생/정지</span></li>
@@ -1081,7 +1085,8 @@ body.book-view #book-root { display: flex; }
   <button class="tb-btn tb-nav" id="btn-prev" aria-label="이전 슬라이드">‹</button>
   <button class="tb-btn" id="btn-menu"><span class="kb">M</span> 메뉴</button>
   <button class="tb-btn" id="btn-audio"><span class="kb">S</span> 오디오</button>
-  <button class="tb-btn" id="btn-meaning"><span class="kb">Space</span> 한국어 가리기</button>
+  <button class="tb-btn" id="btn-korean"><span class="kb">Space</span> 한국어</button>
+  <button class="tb-btn" id="btn-note"><span class="kb">R</span> 음가</button>
   <button class="tb-btn" id="btn-arabic"><span class="kb">A</span> 본문</button>
   <button class="tb-btn tb-nav" id="btn-next" aria-label="다음 슬라이드">›</button>
 </div>
@@ -1117,13 +1122,31 @@ const TYPE_EN = { unit:'UNIT', ptn:'PATTERN', repertory:'REPERTORY', drilla:'DRI
 const TYPE_KO = { unit:'유닛',  ptn:'패턴',   repertory:'예문',     drilla:'드릴A',   drillb:'드릴B',   drillc:'드릴C',   writing:'쓰기',    exp:'표현',        kalimat:'단어',      nass:'지문' };
 const LAHJA_FLAG = {
   EGY: '../assets/icons/icon-egypt.png',
+  EGP: '../assets/icons/icon-egypt.png',
   LEV: '../assets/icons/icon-lebanon.png',
   GLF: '../assets/icons/icon-saudi.png',
 };
 
+// 라하 표시 블록 — 모든 렌더 경로 공용. 아이콘 없는 코드(MSA 등)는 원형 배지로 표시해
+// lahja 값이 있는 슬라이드에서는 항상 무언가 보이게 한다.
+function buildLahjaBlock(d) {
+  const codes = (d?.lahja || '').toUpperCase().split(/[,\s]+/).map(t => t.trim()).filter(Boolean);
+  if (!codes.length) return '';
+  const size = 'width:clamp(26px,2.2vw,40px); height:clamp(26px,2.2vw,40px);';
+  const items = codes.map(c => {
+    const src = LAHJA_FLAG[c];
+    if (src) return `<img src="${src}" style="${size} border-radius:50%; opacity:0.92;">`;
+    return `<span style="${size} border-radius:50%; background:var(--text); color:#fff;` +
+      ` display:inline-flex; align-items:center; justify-content:center;` +
+      ` font-size:clamp(8px,0.65vw,12px); font-weight:700; letter-spacing:0.5px; opacity:0.92;">${c}</span>`;
+  });
+  return `<div class="lahja-block" style="margin-top:0.6rem; display:flex; justify-content:center; align-items:center; gap:0.4rem;">${items.join('')}</div>`;
+}
+
 // ── 상태 ──────────────────────────────────────────────
 let slides = [], current = 0;
-let meaningVisible = true;
+let koreanVisible = true;   // 한국어 해석
+let noteVisible = true;     // 음가(romanization)
 let arabicVisible = true;
 let nassTextVisible = false;
 let sidebarOpen = false;
@@ -1575,14 +1598,8 @@ function renderSlide() {
   const nassNum = s.type === 'nass' ? (() => { const m = getRowId(s.data).match(/(\d+)$/); return m ? ' · nass-' + m[1] : ''; })() : '';
   document.getElementById('ui-tr').innerHTML = typeLabel + nassNum;
 
-  // 라하 깃발 (멀티 라하 지원: 'GLF, LEV' → 두 개 표시)
-  const flagSrcs = (s.data?.lahja || '').toUpperCase().split(/[,\s]+/).map(t => t.trim()).filter(Boolean)
-    .map(l => LAHJA_FLAG[l]).filter(Boolean);
-  const lahjaBlockHtml = flagSrcs.length
-    ? `<div class="lahja-block" style="margin-top:0.6rem; display:flex; justify-content:center; gap:0.4rem;">${
-        flagSrcs.map(src => `<img src="${src}" style="width:clamp(22px,1.8vw,32px); height:clamp(22px,1.8vw,32px); border-radius:50%; opacity:0.92;">`).join('')
-      }</div>`
-    : '';
+  // 라하 깃발 (멀티 라하 지원: 'GLF, LEV' → 두 개 표시 / MSA는 배지)
+  const lahjaBlockHtml = buildLahjaBlock(s.data);
 
   // 상단 좌측: 현재 유닛 정보(unit탭) + 섹션 탭
   const tl = document.getElementById('ui-tl');
@@ -1635,7 +1652,8 @@ function renderSlide() {
   document.getElementById('arabic-area').innerHTML =
     `<div class="arabic${isWriting ? ' arabic-writing' : ''}${isSentence ? ' arabic-sentence' : ''}" style="opacity:${arOp};transition:opacity 0.3s;">${arHtml}</div>`;
 
-  const op = meaningVisible ? '1' : '0';
+  const koOp = koreanVisible ? '1' : '0';
+  const noteOp = noteVisible ? '1' : '0';
   const noteText = d.note || d.transliteration || '';
   let koHtml = parseText(d.korean || '');
   let noteHtml = parseAr(noteText);
@@ -1644,12 +1662,54 @@ function renderSlide() {
     noteHtml = applyNomDivider(noteHtml);
   }
   document.getElementById('text-area').innerHTML = `
-    <div class="korean" style="opacity:${op}">${koHtml}</div>
-    ${noteText ? `<div class="note" style="opacity:${op}">${noteHtml}</div>` : ''}
+    <div class="korean" style="opacity:${koOp}">${koHtml}</div>
+    ${noteText ? `<div class="note" style="opacity:${noteOp}">${noteHtml}</div>` : ''}
     ${lahjaBlockHtml}
   `;
 
+  fitArabicText();
   updateIndex();
+}
+
+// ── 아랍어 자동 맞춤 — 최대 2줄 + 세로 공간 안에 들어올 때까지 축소 ──
+function fitArabicText() {
+  const area = document.getElementById('arabic-area');
+  const el = area?.querySelector('.arabic');
+  if (!el || el.closest('.nass-arabic-wrap')) return;
+  el.style.fontSize = '';   // CSS 기본값(최대 크기)에서 시작
+  const main = document.getElementById('main');
+  const textArea = document.getElementById('text-area');
+  if (!main.clientHeight) return;   // 창이 숨겨져(0크기) 있으면 측정 불가 — resize 때 다시 맞춤
+  const fits = () => {
+    const cs = getComputedStyle(el);
+    const lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.5;
+    const lines = Math.round(el.getBoundingClientRect().height / lh);
+    if (lines > 2) return false;
+    const mcs = getComputedStyle(main);
+    const avail = main.clientHeight - parseFloat(mcs.paddingTop) - parseFloat(mcs.paddingBottom);
+    const gap = parseFloat(mcs.rowGap) || 0;
+    const uiTr = document.getElementById('ui-tr');
+    const need = (uiTr ? uiTr.getBoundingClientRect().height + gap : 0) +
+      area.getBoundingClientRect().height + gap + textArea.getBoundingClientRect().height;
+    return need <= avail;
+  };
+  let size = parseFloat(getComputedStyle(el).fontSize);
+  let guard = 60;
+  while (!fits() && size > 40 && guard-- > 0) {
+    size *= 0.95;
+    el.style.fontSize = size.toFixed(1) + 'px';
+  }
+}
+let _fitResizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(_fitResizeTimer);
+  _fitResizeTimer = setTimeout(fitArabicText, 150);
+});
+// 아랍어 폰트 서브셋이 늦게 로드되면 폴백 글꼴 기준으로 잘못 맞춰질 수 있으므로
+// 폰트 로딩이 끝날 때마다 다시 맞춘다.
+if (document.fonts) {
+  document.fonts.ready.then(() => fitArabicText());
+  document.fonts.addEventListener('loadingdone', () => fitArabicText());
 }
 
 function renderBaseline(s, opts = {}) {
@@ -1717,6 +1777,7 @@ function renderBaseline(s, opts = {}) {
 
   wrap.appendChild(grid);
   arabicArea.appendChild(wrap);
+  document.getElementById('text-area').innerHTML = buildLahjaBlock(d);
 
   // 오버플로 축소 + baseline 선 위치 (noLine이면 선 측정 스킵)
   requestAnimationFrame(() => {
@@ -1742,8 +1803,6 @@ function renderBaseline(s, opts = {}) {
       });
     }
   });
-
-  document.getElementById('text-area').innerHTML = '';
 }
 
 function renderWrite(s) {
@@ -1808,10 +1867,11 @@ function renderWrite(s) {
     }
   });
 
-  // 한국어 번역 (meaningVisible 토글 적용)
-  const op = meaningVisible ? '1' : '0';
+  // 한국어 번역 (koreanVisible 토글 적용) + 라하 깃발
+  const op = koreanVisible ? '1' : '0';
   document.getElementById('text-area').innerHTML =
-    `<div class="korean" style="opacity:${op}">${parseText(d.korean || '')}</div>`;
+    `<div class="korean" style="opacity:${op}">${parseText(d.korean || '')}</div>` +
+    buildLahjaBlock(d);
 }
 
 function renderNass(s) {
@@ -1830,30 +1890,28 @@ function renderNass(s) {
   document.getElementById('arabic-area').innerHTML =
     showArabic ? (nassTextHtml + promptHtml) : promptHtml;
 
-  const op = meaningVisible ? '1' : '0';
-  // 라하 깃발 (nass도 일반 슬라이드처럼 표시 — 멀티 라하 지원)
-  const nassFlagSrcs = (d?.lahja || '').toUpperCase().split(/[,\s]+/).map(t => t.trim()).filter(Boolean)
-    .map(l => LAHJA_FLAG[l]).filter(Boolean);
-  const nassFlagHtml = nassFlagSrcs.length
-    ? `<div class="lahja-block" style="margin-top:0.6rem; display:flex; justify-content:center; gap:0.4rem;">${
-        nassFlagSrcs.map(src => `<img src="${src}" style="width:clamp(22px,1.8vw,32px); height:clamp(22px,1.8vw,32px); border-radius:50%; opacity:0.92;">`).join('')
-      }</div>`
-    : '';
+  // 라하 깃발 (nass도 일반 슬라이드처럼 표시 — 멀티 라하 지원, MSA 배지 포함)
   document.getElementById('text-area').innerHTML = `
-    ${d.korean ? `<div class="nass-korean-hint" style="opacity:${op}">${parseText(d.korean)}</div>` : ''}
-    ${d.note ? `<div class="nass-note" style="opacity:${op}">${parseText(d.note)}</div>` : ''}
+    ${d.korean ? `<div class="nass-korean-hint" style="opacity:${koreanVisible ? '1' : '0'}">${parseText(d.korean)}</div>` : ''}
+    ${d.note ? `<div class="nass-note" style="opacity:${noteVisible ? '1' : '0'}">${parseText(d.note)}</div>` : ''}
     ${sual ? `<div class="nass-sual-note">${parseText(sual)}</div>` : ''}
-    ${nassFlagHtml}
+    ${buildLahjaBlock(d)}
   `;
 }
 
-// ── 의미 토글 — 모든 슬라이드 타입에서 동작 (현재 슬라이드 재렌더) ──
-function toggleMeaning() {
+// ── 한국어/음가 토글 — 모든 슬라이드 타입에서 동작 (현재 슬라이드 재렌더) ──
+// 각 렌더 경로(general/nass/write)가 koreanVisible/noteVisible을 직접 반영하므로
+// 슬라이드 타입과 무관하게 재렌더만 하면 어디서든 켜고/끌 수 있음.
+function toggleKorean() {
   if (!slides.length) return;
-  meaningVisible = !meaningVisible;
-  document.getElementById('btn-meaning').classList.toggle('active', !meaningVisible);
-  // 각 렌더 경로(general/nass/baseline/write)가 meaningVisible(=op)을 직접 반영하므로
-  // 슬라이드 타입과 무관하게 재렌더만 하면 어디서든 켜고/끌 수 있음.
+  koreanVisible = !koreanVisible;
+  document.getElementById('btn-korean').classList.toggle('active', !koreanVisible);
+  renderSlide();
+}
+function toggleNote() {
+  if (!slides.length) return;
+  noteVisible = !noteVisible;
+  document.getElementById('btn-note').classList.toggle('active', !noteVisible);
   renderSlide();
 }
 
@@ -2045,7 +2103,8 @@ document.addEventListener('keydown', e => {
   switch(e.key) {
     case 'ArrowRight': case 'ArrowDown': e.preventDefault(); goTo(current+1); break;
     case 'ArrowLeft':  case 'ArrowUp':   e.preventDefault(); goTo(current-1); break;
-    case ' ':          e.preventDefault(); toggleMeaning(); break;
+    case ' ':          e.preventDefault(); toggleKorean(); break;
+    case 'r': case 'R': toggleNote(); break;
     case 'a': case 'A': toggleArabic(); break;
     case 'm': case 'M': toggleSidebar(); break;
     case 't': case 'T': if (slides[current]?.type === 'nass') toggleNass(); break;
@@ -2059,64 +2118,19 @@ document.addEventListener('keydown', e => {
 // ── 버튼 이벤트 ───────────────────────────────────────
 document.getElementById('btn-menu').onclick    = toggleSidebar;
 document.getElementById('btn-audio').onclick   = toggleAudio;
-document.getElementById('btn-meaning').onclick = toggleMeaning;
+document.getElementById('btn-korean').onclick  = toggleKorean;
+document.getElementById('btn-note').onclick    = toggleNote;
 document.getElementById('btn-arabic').onclick  = toggleArabic;
 document.getElementById('btn-prev').onclick    = () => goTo(current - 1);
 document.getElementById('btn-next').onclick    = () => goTo(current + 1);
 // 버튼 클릭 후 포커스 해제 — Space가 버튼 재클릭으로 이중 발동되는 것 방지
-['btn-menu','btn-audio','btn-meaning','btn-arabic','btn-nass','btn-prev','btn-next'].forEach(id => {
+['btn-menu','btn-audio','btn-korean','btn-note','btn-arabic','btn-nass','btn-prev','btn-next'].forEach(id => {
   const b = document.getElementById(id);
   if (b) b.addEventListener('click', () => b.blur());
 });
 
-// ── 스와이프 제스처 (아이패드·마우스 모두 동작) ─────────
-// pointer events 기반. 좌우 스와이프 → 이전/다음 슬라이드.
-// UI 요소(버튼·사이드바·섹션탭) 위에서 시작한 제스처는 무시.
-(() => {
-  let primaryId = null;
-  let startX = 0, startY = 0;
-  let direction = null;   // 'h' | 'v' | null
-  let dragging = false;
-  const SWIPE_THRESHOLD = 60;
-  const DIR_LOCK_MIN = 8;
-
-  const isUIElement = el => !!el?.closest?.('button, #sidebar, #toolbar, #section-tabs, #ui-tl, .sec-tab, .idx-item, audio');
-
-  document.addEventListener('pointerdown', e => {
-    if (primaryId !== null) return;
-    if (e.pointerType === 'mouse' && e.button !== 0) return;
-    if (isUIElement(e.target)) return;
-    primaryId = e.pointerId;
-    startX = e.clientX;
-    startY = e.clientY;
-    direction = null;
-    dragging = false;
-  });
-
-  document.addEventListener('pointermove', e => {
-    if (e.pointerId !== primaryId) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    if (!direction && (Math.abs(dx) > DIR_LOCK_MIN || Math.abs(dy) > DIR_LOCK_MIN)) {
-      direction = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
-      if (direction === 'h') dragging = true;
-    }
-  });
-
-  const finish = e => {
-    if (e.pointerId !== primaryId) return;
-    primaryId = null;
-    if (!dragging) { dragging = false; direction = null; return; }
-    dragging = false;
-    direction = null;
-    const dx = e.clientX - startX;
-    if (dx <= -SWIPE_THRESHOLD)      goTo(current + 1);  // 왼쪽 스와이프 → 다음
-    else if (dx >=  SWIPE_THRESHOLD) goTo(current - 1);  // 오른쪽 스와이프 → 이전
-  };
-
-  document.addEventListener('pointerup', finish);
-  document.addEventListener('pointercancel', finish);
-})();
+// ── 슬라이드 넘김은 키보드 ←→ 와 ‹ › 버튼만 사용 ─────────
+// (터치·클릭·스와이프로는 넘어가지 않음 — 수업 중 오조작 방지, 2026-07-27 확정)
 
 // ── 초기화 ────────────────────────────────────────────
 // 내비게이터 클릭 — 이벤트 위임
