@@ -599,15 +599,34 @@ function isAudioSlideType(type) {
   return ['ptn', 'repertory', 'drilla', 'drillb', 'drillc', 'exp', 'nass'].includes(type);
 }
 
+// 아랍어 하이라이트: 색 span이 단어 중간을 감싸면 Safari에서 이음이 끊긴다.
+// 실제 이음 있는 경계에만 ZWJ(U+200D) 주입해 연결 형태 강제(공백·ا·ة 등엔 안 넣음).
+const _AR_LETTER = /[ء-يٱ-ۓݐ-ݿﭐ-﷿ﹰ-﻿]/;
+const _AR_MARK = /[ً-ْٰۖ-ۭ]/;
+const _AR_RJO = new Set(['ا','أ','إ','آ','ٱ','د','ذ','ر','ز','و','ؤ','ة','ى','ء']);
+function _hlArabic(match, inner, offset, whole) {
+  if (!_AR_LETTER.test(inner)) return `<span class="hl-bold">${inner}</span>`;
+  const ZWJ = '‍';
+  const skip = ch => _AR_MARK.test(ch) || ch === '*' || ch === '_';
+  const connL = ch => _AR_LETTER.test(ch) && !_AR_RJO.has(ch);
+  const joinR = ch => _AR_LETTER.test(ch) && ch !== 'ء';
+  let bi = offset - 1; while (bi >= 0 && skip(whole[bi])) bi--;
+  const before = bi >= 0 ? whole[bi] : '';
+  let fi = 0; while (fi < inner.length && _AR_MARK.test(inner[fi])) fi++;
+  let li = inner.length - 1; while (li >= 0 && _AR_MARK.test(inner[li])) li--;
+  let ai = offset + match.length; while (ai < whole.length && skip(whole[ai])) ai++;
+  const after = ai < whole.length ? whole[ai] : '';
+  const lz = (connL(before) && joinR(inner[fi] || '')) ? ZWJ : '';
+  const rz = (connL(inner[li] || '') && joinR(after)) ? ZWJ : '';
+  return `${lz}<span class="hl-bold hl-ar">${lz}${inner}${rz}</span>${rz}`;
+}
 function parseText(str) {
   if (!str) return '';
   return str
+    .replace(/\*([^*\n]+)\*/g, _hlArabic)
     .replace(/<br\s*\/?>/gi,'<br>')
     .replace(/\n|\r\n|\r/g,'<br>')
-    .replace(/_([^_\n]+)_/g,'<span class="hl-box">$1</span>')
-    .replace(/\*([^*\n]+)\*/g,(_,m) =>
-      `<span class="hl-bold${/[؀-ۿ]/.test(m)?' hl-ar':''}">${m}</span>`
-    );
+    .replace(/_([^_\n]+)_/g,'<span class="hl-box">$1</span>');
 }
 
 // 명사문 구분자 — `css = 'nom'` 행의 `|`를 옅은 회색 분리자로

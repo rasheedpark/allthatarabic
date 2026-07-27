@@ -74,11 +74,7 @@ body {
   align-items: center; gap: 18px;
 }
 .head-category {
-  font-size: 0.72rem;
-  letter-spacing: 0.5px;
-  color: var(--sub);
-  font-weight: 500;
-  margin-bottom: 2px;
+  display: none;   /* 카테고리 라벨(올댓아라빅 표현 등) 미표시 — UNIT 박스로 대체 */
 }
 .head-unit-box {
   display: inline-flex; align-items: stretch;
@@ -858,7 +854,8 @@ body {
 /* ── 푸터 (로고 + 회사명 + 저작권 + 페이지번호) ── */
 .page-foot {
   background: var(--gray-area);
-  padding: 18px 44px 26px;
+  margin-top: auto;          /* 항상 페이지 바닥에 고정(콘텐츠 짧으면 위쪽에 여백) */
+  padding: 18px 44px 40px;   /* 하단 여백을 위쪽 간격(~40px)과 맞춤 */
   display: flex; justify-content: space-between; align-items: center;
   font-size: 0.7rem;
   color: var(--sub-2);
@@ -1114,16 +1111,33 @@ async function fetchSheet(name) {
 }
 
 // ── 유틸 ──────────────────────────────────────────
+// 아랍어 하이라이트: 색 span이 단어 중간 글자를 감싸면 Safari에서 이음이 끊긴다.
+// 실제 이음 있는 경계에만 ZWJ(U+200D) 주입해 연결 형태 강제(공백·ا·ة 등엔 안 넣음).
+const _AR_LETTER = /[ء-يٱ-ۓݐ-ݿﭐ-﷿ﹰ-﻿]/;
+const _AR_MARK = /[ً-ْٰۖ-ۭ]/;
+const _AR_RJO = new Set(['ا','أ','إ','آ','ٱ','د','ذ','ر','ز','و','ؤ','ة','ى','ء']);
+function _hlArabic(match, inner, offset, whole) {
+  if (!_AR_LETTER.test(inner)) return `<span class="hl-text">${inner}</span>`;
+  const ZWJ = '‍';
+  const skip = ch => _AR_MARK.test(ch) || ch === '*' || ch === '_';
+  const connL = ch => _AR_LETTER.test(ch) && !_AR_RJO.has(ch);
+  const joinR = ch => _AR_LETTER.test(ch) && ch !== 'ء';
+  let bi = offset - 1; while (bi >= 0 && skip(whole[bi])) bi--;
+  const before = bi >= 0 ? whole[bi] : '';
+  let fi = 0; while (fi < inner.length && _AR_MARK.test(inner[fi])) fi++;
+  let li = inner.length - 1; while (li >= 0 && _AR_MARK.test(inner[li])) li--;
+  let ai = offset + match.length; while (ai < whole.length && skip(whole[ai])) ai++;
+  const after = ai < whole.length ? whole[ai] : '';
+  const lz = (connL(before) && joinR(inner[fi] || '')) ? ZWJ : '';
+  const rz = (connL(inner[li] || '') && joinR(after)) ? ZWJ : '';
+  return `${lz}<span class="hl-text hl-ar">${lz}${inner}${rz}</span>${rz}`;
+}
 function parseInline(s) {
   if (!s) return '';
   return s
     .replace(/<br\s*\/?>/gi, '<br>')
     .replace(/_([^_\n]+)_/g, '<span class="hl-box-inline">$1</span>')
-    // *…* 안에 Arabic이 있으면 hl-ar 클래스 추가 → weight 상속(셰이핑 보존)
-    .replace(/\*([^*\n]+)\*/g, (_, m) => {
-      const hasAr = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/.test(m);
-      return `<span class="hl-text${hasAr ? ' hl-ar' : ''}">${m}</span>`;
-    })
+    .replace(/\*([^*\n]+)\*/g, _hlArabic)
     .replace(/\r\n|\r|\n/g, '<br>');
 }
 // 첫 강한 방향 문자로 LTR/RTL 판정 — 마크업(`*_<tag>`) 제거 후 검사.
@@ -1154,10 +1168,7 @@ function plain(s) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/_([^_\n]+)_/g, '$1')
-    .replace(/\*([^*\n]+)\*/g, (_, m) => {
-      const hasAr = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/.test(m);
-      return `<span class="hl-text${hasAr ? ' hl-ar' : ''}">${m}</span>`;
-    });
+    .replace(/\*([^*\n]+)\*/g, _hlArabic);
 }
 const plainTrans = plain;
 function wrapArabicTokens(html) {
@@ -1945,7 +1956,7 @@ function renderExpressionPage(unit, expressions, opts) {
 // ── 한 유닛의 페이지 빌드 ──────────────────────────
 async function renderUnit(u) {
   const [unitRaw, patternRaw, repertoryRaw, expressionRaw, drillRaw, nassRaw] = await Promise.all([
-    fetchSheet('unit'),
+    fetchSheet('units'),
     fetchSheet('pattern'),
     fetchSheet('repertory'),
     fetchSheet('expression'),
@@ -2070,7 +2081,7 @@ window.addEventListener('resize', () => adjustBaselines());
 
 async function init() {
   try {
-    const unitRaw = await fetchSheet('unit');
+    const unitRaw = await fetchSheet('units');
     const units = unitRaw
       .filter(okStatus)
       .map(r => r.u || '').filter(Boolean);

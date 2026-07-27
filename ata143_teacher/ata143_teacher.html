@@ -140,6 +140,12 @@ body {
   white-space: normal;
   line-height: 1.7;
 }
+.arabic.arabic-a.arabic-drill-rep {
+  font-size: clamp(1.8rem, 5cqi, 4rem);
+  word-break: keep-all;
+  white-space: normal;
+  line-height: 1.5;
+}
 
 /* 래퍼토리 그리드 (| 구분 다중 항목) */
 .rep-grid {
@@ -644,13 +650,14 @@ function normalizeType(t) {
   return s;
 }
 // ── i열 기반 유닛 맵 (초기화 후 사용) ────────────────
-// i값 등장 순서 → P01~P10, A01~A14 순서로 매핑
+// i값 등장 순서 → P01~P10, A01~A25 순서로 매핑
 let _iUnitMap = {};
 function buildUnitMaps(dsRaw) {
   const ALL_UNITS = [
     'P01','P02','P03','P04','P05','P06','P07','P08','P09','P10',
     'A01','A02','A03','A04','A05','A06','A07','A08','A09','A10',
-    'A11','A12','A13','A14','A15'
+    'A11','A12','A13','A14','A15','A16','A17','A18','A19','A20',
+    'A21','A22','A23','A24','A25'
   ];
   _iUnitMap = {};
   let idx = 0;
@@ -676,7 +683,8 @@ function getBaseUnit(u) { return (u || '').replace(/[a-z]+$/, ''); }
 const DS_UNIT_SEQ = [
   'P01','P02','P03','P04','P05','P06','P07','P08','P09','P10',
   'A01','A02','A03','A04','A05','A06','A07','A08','A09','A10',
-  'A11','A12','A13','A14','A15'
+  'A11','A12','A13','A14','A15','A16','A17','A18','A19','A20',
+  'A21','A22','A23','A24','A25'
 ];
 function annotateUnits(rows) {
   let seqIdx = -1, curUnit = '', prevType = '';
@@ -711,7 +719,7 @@ function fetchSheet(nameOrGid, isGid = false) {
   if (_cache[key]) return Promise.resolve(_cache[key]);
   return new Promise((resolve, reject) => {
     const cb = '__gviz_' + key.replace(/\W/g, '') + '_' + Date.now();
-    const timer = setTimeout(() => { delete window[cb]; reject(new Error('Timeout: ' + key)); }, 15000);
+    const timer = setTimeout(() => { delete window[cb]; reject(new Error('Timeout: ' + key)); }, 30000);
     window[cb] = resp => {
       clearTimeout(timer);
       delete window[cb];
@@ -747,6 +755,15 @@ function fetchSheet(nameOrGid, isGid = false) {
   });
 }
 
+function fetchOptionalSheet(nameOrGid, isGid = false) {
+  return fetchSheet(nameOrGid, isGid).catch(err => {
+    console.warn(err);
+    const key = isGid ? 'gid:' + nameOrGid : nameOrGid;
+    _cache[key] = [];
+    return [];
+  });
+}
+
 // ── parseText ──────────────────────────────────────────
 function parseText(str) {
   if (!str) return '';
@@ -762,6 +779,8 @@ function applyNomDivider(html) {
   return html.replace(/\s*\|\s*/g, '<span class="nom-divider">|</span>');
 }
 const isNomRow = r => (r?.css || '').trim().toLowerCase() === 'nom';
+const hasSlideContent = r => [r?.arabic, r?.korean, r?.note]
+  .some(v => String(v || '').trim());
 
 // ── buildSlides ────────────────────────────────────────
 async function buildSlides(baseUnit) {
@@ -774,7 +793,7 @@ async function buildSlides(baseUnit) {
 
   const [dsRaw, nassRaw] = await Promise.all([
     fetchSheet(TAB_DS),
-    fetchSheet(GID_NASS, true),
+    fetchOptionalSheet(GID_NASS, true),
   ]);
 
   const escaped = baseUnit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -784,12 +803,32 @@ async function buildSlides(baseUnit) {
   const dsRows = dsRaw.filter(r => {
     const t = normalizeType(r.type);
     if (!['pattern','repertorie','drill','exp'].includes(t)) return false;
+    if (!hasSlideContent(r)) return false;
     if (!subReg.test(getRowU(r))) return false;
     const s = (r.status || '').toLowerCase();
     return s === '' || s === 'confirmed';
   });
 
-  dsRows.forEach(r =>
+  // Some 1.4.3 rows were inserted as repertorie -> pattern -> drill.
+  // Keep normal sheet order, but lift a pattern above the immediately preceding
+  // repertorie block when those reps belong to the same later pattern group.
+  const orderedDsRows = [];
+  dsRows.forEach(r => {
+    if (normalizeType(r.type) === 'pattern') {
+      const reps = [];
+      while (orderedDsRows.length && normalizeType(orderedDsRows[orderedDsRows.length - 1].type) === 'repertorie') {
+        reps.unshift(orderedDsRows.pop());
+      }
+      const beforeReps = orderedDsRows[orderedDsRows.length - 1];
+      const repsAlreadyFollowPattern = beforeReps && normalizeType(beforeReps.type) === 'pattern';
+      if (repsAlreadyFollowPattern) orderedDsRows.push(...reps, r);
+      else orderedDsRows.push(r, ...reps);
+    } else {
+      orderedDsRows.push(r);
+    }
+  });
+
+  orderedDsRows.forEach(r =>
     slides.push({ type: normalizeType(r.type), data: r, pg: baseUnit })
   );
 
@@ -797,6 +836,7 @@ async function buildSlides(baseUnit) {
   nassRaw
     .filter(r => {
       if (normalizeType(r.type) !== 'nass') return false;
+      if (!hasSlideContent(r)) return false;
       const s = (r.status || '').toLowerCase();
       if (s !== '' && s !== 'confirmed') return false;
       const nassU = (r.id_nass || '').split('-')[0];
@@ -1156,15 +1196,13 @@ function renderNormal(s) {
   const unitU = getRowU(d);
   const unitPrefix = (unitU || d.id_datasheet || '').charAt(0).toUpperCase();
   const isDrill = s.type === 'drill';
-  // A유닛 드릴: arabic-drill 클래스로 일정 크기 유지 (fitArabicText 생략)
-  const arClass = unitPrefix === 'A'
-    ? (isDrill ? 'arabic arabic-a arabic-drill' : 'arabic arabic-a')
-    : 'arabic';
+  // 드릴도 래퍼토리/패턴과 동일하게 arabic-a + fitArabicText로 크기 맞춤
+  const arClass = unitPrefix === 'A' ? 'arabic arabic-a' : 'arabic';
   const nom = isNomRow(d);
   const wrap = h => nom ? applyNomDivider(h) : h;
   document.getElementById('arabic-area').innerHTML =
     `<div class="${arClass}" style="opacity:${arOp};transition:opacity 0.3s;">${wrap(parseText(d.arabic || ''))}</div>`;
-  if (!isDrill) fitArabicText(document.querySelector('#arabic-area .' + arClass.split(' ')[0]));
+  fitArabicText(document.querySelector('#arabic-area .' + arClass.split(' ')[0]));
 
   const op = meaningVisible ? '1' : '0';
   const noteText = d.note || d.transliteration || '';
@@ -1366,6 +1404,7 @@ function buildIndex() {
   dsRaw.forEach(r => {
     const nt = normalizeType(r.type);
     if (nt !== 'summary' && nt !== 'pattern') return;
+    if (!hasSlideContent(r)) return;
     const s = (r.status || '').toLowerCase();
     if (s !== '' && s !== 'confirmed') return;
     const u = getBaseUnit(getRowU(r));
@@ -1377,6 +1416,7 @@ function buildIndex() {
   // 2) 나스 탭에서 유닛 탐지 — 데이터시트에 없는 유닛 보완
   nassRaw.forEach(r => {
     if (normalizeType(r.type) !== 'nass') return;
+    if (!hasSlideContent(r)) return;
     const s = (r.status || '').toLowerCase();
     if (s !== '' && s !== 'confirmed') return;
     const nassId = (r.id_nass || '');
@@ -1386,11 +1426,12 @@ function buildIndex() {
     units.push({ u, arabic: r.arabic?.split('\n')[0] || '', korean: r.korean?.split('\n')[0] || '' });
   });
 
-  // 3) 순서 정렬: P01-P10, A01-A15
+  // 3) 순서 정렬: P01-P10, A01-A25
   const ORDER = [
     'P01','P02','P03','P04','P05','P06','P07','P08','P09','P10',
     'A01','A02','A03','A04','A05','A06','A07','A08','A09','A10',
-    'A11','A12','A13','A14','A15'
+    'A11','A12','A13','A14','A15','A16','A17','A18','A19','A20',
+    'A21','A22','A23','A24','A25'
   ];
   units.sort((a, b) => {
     const ai = ORDER.indexOf(a.u), bi = ORDER.indexOf(b.u);
@@ -1591,7 +1632,7 @@ async function init() {
   try {
     await Promise.all([
       fetchSheet(TAB_DS),
-      fetchSheet(GID_NASS, true),
+      fetchOptionalSheet(GID_NASS, true),
     ]);
 
     const dsRaw = _cache[TAB_DS] || [];
@@ -1603,6 +1644,7 @@ async function init() {
     dsRaw.forEach(r => {
       const nt = normalizeType(r.type);
       if (nt !== 'summary' && nt !== 'pattern') return;
+      if (!hasSlideContent(r)) return;
       const s = (r.status || '').toLowerCase();
       if (s !== '' && s !== 'confirmed') return;
       const u = getBaseUnit(getRowU(r));
@@ -1610,12 +1652,13 @@ async function init() {
     });
     nassRaw.forEach(r => {
       if (normalizeType(r.type) !== 'nass') return;
+      if (!hasSlideContent(r)) return;
       const s = (r.status || '').toLowerCase();
       if (s !== '' && s !== 'confirmed') return;
       const u = (r.id_nass || '').split('-')[0].toUpperCase();
       if (u && !seen.has(u)) { seen.add(u); baseUnits.push(u); }
     });
-    const ORDER = ['P01','P02','P03','P04','P05','P06','P07','P08','P09','P10','A01','A02','A03','A04','A05','A06','A07','A08','A09','A10','A11','A12','A13','A14','A15'];
+    const ORDER = ['P01','P02','P03','P04','P05','P06','P07','P08','P09','P10','A01','A02','A03','A04','A05','A06','A07','A08','A09','A10','A11','A12','A13','A14','A15','A16','A17','A18','A19','A20','A21','A22','A23','A24','A25'];
     baseUnits.sort((a,b) => { const ai=ORDER.indexOf(a), bi=ORDER.indexOf(b); return (ai===-1?999:ai)-(bi===-1?999:bi); });
 
     const params = new URLSearchParams(location.search);

@@ -132,6 +132,17 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
   gap: clamp(20px, 5cqi, 36px);
 }
 
+/* ── 라흐자 플래그 ── */
+.lahja-block {
+  display: flex; justify-content: center; align-items: center;
+  gap: 8px; margin: 0 0 4px;
+}
+.lahja-flag {
+  width: 30px; height: 30px; border-radius: 50%;
+  object-fit: cover; opacity: 0.92;
+  box-shadow: 0 0 0 1.5px rgba(185,145,85,0.28);
+}
+
 /* ── 아랍어 ── */
 /* 1.4.3 복습앱은 A01+ 문장이 길어서 1.4.4보다 ~30% 작게 — 슬라이드 1장에 한 문장이 안 잘리고 들어가도록 */
 .arabic-text {
@@ -1157,6 +1168,22 @@ function fitRow(el, afterFit) {
   });
 }
 
+/* ━━━━ 라흐자 플래그 (교재앱과 동일 자산) ━━━━ */
+const LAHJA_FLAG = {
+  EGY: '../assets/icons/icon-egypt.png',
+  LEV: '../assets/icons/icon-lebanon.png',
+  GLF: '../assets/icons/icon-saudi.png',
+};
+function buildFlagBlock(d) {
+  const srcs = (d?.lahja || '').toUpperCase().split(/[,\s]+/).map(t => t.trim()).filter(Boolean)
+    .map(l => LAHJA_FLAG[l]).filter(Boolean);
+  if (!srcs.length) return null;
+  const el = document.createElement('div');
+  el.className = 'lahja-block';
+  el.innerHTML = srcs.map(src => `<img class="lahja-flag" src="${src}" alt="">`).join('');
+  return el;
+}
+
 /* ━━━━ 슬라이드 콘텐츠 렌더 (이웃 슬라이드 공용) ━━━━ */
 function renderSlideContent(area, s) {
   area.innerHTML = '';
@@ -1170,6 +1197,12 @@ function renderSlideContent(area, s) {
   if (s.type === 'nass')         renderNass(inner, s);
   else if (s.type === 'summary') renderSummary(area, inner, s);
   else                           renderNormal(inner, s);
+
+  // 라흐자 플래그 — summary 외 모든 타입 상단에 (GLF 드릴·표현·나스 등)
+  if (s.type !== 'summary') {
+    const fb = buildFlagBlock(s.data);
+    if (fb) inner.insertBefore(fb, inner.firstChild);
+  }
 }
 
 /* ━━━━ 일반 슬라이드 렌더링 ━━━━ */

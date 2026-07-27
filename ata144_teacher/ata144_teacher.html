@@ -1150,6 +1150,26 @@ function normalizeType(t) {
 
 function getRowU(r) { return r.u || ''; }
 
+function refKey(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣ء-ي]/g, '');
+}
+
+// `ptn060_...` is stable; the generated description suffix can change
+// whenever the pattern sentence is revised (교재앱과 동일한 폴백).
+function sameRef(a, b) {
+  const left = refKey(a);
+  const right = refKey(b);
+  if (!left || !right) return false;
+  if (left === right) return true;
+  const leftNumber = String(a || '').match(/^ptn(\d+)/i)?.[1];
+  const rightNumber = String(b || '').match(/^ptn(\d+)/i)?.[1];
+  return !!leftNumber && leftNumber === rightNumber;
+}
+
 function getRowId(r) {
   return r.id_unit || r['id_ptn(no)'] || r.id_ptn || r.id_drill || r.id_rep || r.id_repertory || r.id_kalimat || r.id_expression || r.id_nass || '';
 }
@@ -1199,17 +1219,35 @@ function fetchSheetData(name, gid = null) {
 }
 
 // ── parseText ──────────────────────────────────────────
+// 아랍어 하이라이트: 색 span이 단어 중간 글자를 감싸면 사파리(아이패드)에서
+// 이음(cursive joining)이 끊긴다. 실제 이음이 있는 경계에만 ZWJ(U+200D)를 주입해
+// 연결 형태를 강제 → 끊김 방지. (공백·ا·ة 등 비연결 경계엔 넣지 않아 잘못된 연결선 방지)
+const _AR_LETTER = /[ء-يٱ-ۓݐ-ݿﭐ-﷿ﹰ-﻿]/;
+const _AR_MARK = /[ً-ْٰۖ-ۭ]/;
+const _AR_RJO = new Set(['ا','أ','إ','آ','ٱ','د','ذ','ر','ز','و','ؤ','ة','ى','ء']); // 다음 글자로 연결 안 됨(우결합)
+function _hlArabic(match, inner, offset, whole) {
+  if (!_AR_LETTER.test(inner)) return `<span class="highlight-text">${inner}</span>`;
+  const ZWJ = '‍';
+  const skip = ch => _AR_MARK.test(ch) || ch === '*' || ch === '_';
+  const connL = ch => _AR_LETTER.test(ch) && !_AR_RJO.has(ch);   // 다음 글자로 연결 가능(양방향)
+  const joinR = ch => _AR_LETTER.test(ch) && ch !== 'ء';    // 앞 글자로부터 연결 받음
+  let bi = offset - 1; while (bi >= 0 && skip(whole[bi])) bi--;
+  const before = bi >= 0 ? whole[bi] : '';
+  let fi = 0; while (fi < inner.length && _AR_MARK.test(inner[fi])) fi++;
+  let li = inner.length - 1; while (li >= 0 && _AR_MARK.test(inner[li])) li--;
+  let ai = offset + match.length; while (ai < whole.length && skip(whole[ai])) ai++;
+  const after = ai < whole.length ? whole[ai] : '';
+  const lz = (connL(before) && joinR(inner[fi] || '')) ? ZWJ : '';
+  const rz = (connL(inner[li] || '') && joinR(after)) ? ZWJ : '';
+  return `${lz}<span class="highlight-text hl-ar">${lz}${inner}${rz}</span>${rz}`;
+}
 function parseText(str) {
   if (!str) return '';
   return str
+    .replace(/\*([^*\n]+)\*/g, _hlArabic)   // 먼저(원문 맥락에서 이음 판정)
     .replace(/<br\s*\/?>/gi, '<br>')
     .replace(/\n|\r\n|\r/g, '<br>')
-    .replace(/_([^_\n]+)_/g, '<span class="highlight-box">$1</span>')
-    // *…* 안에 Arabic이 있으면 hl-ar 클래스 추가 → weight 상속 (Safari 셰이핑 보존)
-    .replace(/\*([^*\n]+)\*/g, (_, m) => {
-      const hasAr = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/.test(m);
-      return `<span class="highlight-text${hasAr ? ' hl-ar' : ''}">${m}</span>`;
-    });
+    .replace(/_([^_\n]+)_/g, '<span class="highlight-box">$1</span>');
 }
 
 // 첫 강한 방향 문자로 LTR/RTL 판정 — 마크업(`*_<tag>`) 제거 후 검사.
@@ -1270,21 +1308,29 @@ async function buildSlides(baseUnit) {
   // 1. 유닛 슬라이드
   unitRaw.filter(r => inU(r) && ok(r)).forEach(r => push('unit', r));
 
-  // 2. 패턴별: 패턴 → 레퍼토리(예문) (drillA는 별도 모음으로 분리)
+  // 2. 패턴별: 패턴 → 레퍼토리(예문) → 그 패턴의 드릴(drillA, ref_ptn 매칭)
+  //    (page 값을 쓰는 옛 유닛은 드릴을 기존처럼 page 순서 모음으로 유지)
+  const isDrill = r => ['drilla','drillb','drillc'].includes(normalizeType(r.type));
+  const drillAll = drillRaw.filter(r => inU(r) && ok(r) && isDrill(r));
+  const pageVal = r => (r.page || '').toString().trim();
+  const hasPages = drillAll.some(r => pageVal(r) !== '');
+
   patternRaw.filter(r => inU(r) && ok(r)).forEach(ptn => {
     push('ptn', ptn);
     const ref = ptn['id_ptn(no)'] || ptn.id_ptn || '';
     repertoryRaw
-      .filter(r => inU(r) && ok(r) && r.ref_ptn === ref)
+      .filter(r => inU(r) && ok(r) && sameRef(r.ref_ptn, ref))
       .forEach(r => push(normalizeType(r.type), r));
+    if (!hasPages) {
+      drillAll
+        .filter(r => normalizeType(r.type) === 'drilla' && sameRef(r.ref_ptn, ref))
+        .forEach(r => push('drilla', r));
+    }
   });
 
-  // 3+4. 드릴(drillA/B/C) — `page` 값이 있으면 page 순서대로,
-  //      없으면(1·2과 등) 기존 ref_ptn 매칭 로직 유지 (교재앱과 동일 스코핑)
-  const isDrill = r => ['drilla','drillb','drillc'].includes(normalizeType(r.type));
-  const drillAll = drillRaw.filter(r => inU(r) && ok(r) && isDrill(r));
-  const pageVal = r => (r.page || '').toString().trim();
-  if (drillAll.some(r => pageVal(r) !== '')) {
+  // 3+4. 남은 드릴 — page 유닛은 page 오름차순 전량,
+  //      아니면 ref_ptn 비어있는 유닛 공통 drillA → drillB/C(연습)
+  if (hasPages) {
     drillAll
       .map((r, i) => ({ r, i }))
       .sort((a, b) => {
@@ -1295,18 +1341,9 @@ async function buildSlides(baseUnit) {
       })
       .forEach(({ r }) => push(normalizeType(r.type), r));
   } else {
-    // drillA — 패턴별 매칭 먼저, ref_ptn 비어있는 유닛 공통 마지막
-    patternRaw.filter(r => inU(r) && ok(r)).forEach(ptn => {
-      const ref = ptn['id_ptn(no)'] || ptn.id_ptn || '';
-      drillRaw
-        .filter(r => inU(r) && ok(r) && r.ref_ptn === ref && normalizeType(r.type) === 'drilla')
-        .forEach(r => push('drilla', r));
-    });
-    drillRaw.filter(r => inU(r) && ok(r) && normalizeType(r.type) === 'drilla' && !r.ref_ptn)
+    drillAll.filter(r => normalizeType(r.type) === 'drilla' && !r.ref_ptn)
       .forEach(r => push('drilla', r));
-    // drillB/C (연습)
-    drillRaw.filter(r => inU(r) && ok(r) &&
-        (normalizeType(r.type) === 'drillb' || normalizeType(r.type) === 'drillc'))
+    drillAll.filter(r => ['drillb','drillc'].includes(normalizeType(r.type)))
       .forEach(r => push(normalizeType(r.type), r));
   }
 
@@ -1486,7 +1523,7 @@ async function renderUnitBook(baseUnit) {
   const pages = patterns.map((ptn, idx) => {
     const ref = ptn['id_ptn(no)'] || ptn.id_ptn || '';
     const reps = repertoryRaw
-      .filter(r => r.u === baseUnit && ok(r) && normalizeType(r.type) === 'repertory' && r.ref_ptn === ref);
+      .filter(r => r.u === baseUnit && ok(r) && normalizeType(r.type) === 'repertory' && sameRef(r.ref_ptn, ref));
     const unitNo = baseUnit.replace(/^[A-Za-z]+0*/, '') || baseUnit;
     const mark = marks[idx] || (idx + 1);
     const noteText = ptn.note || ptn.transliteration || '';
@@ -1794,10 +1831,19 @@ function renderNass(s) {
     showArabic ? (nassTextHtml + promptHtml) : promptHtml;
 
   const op = meaningVisible ? '1' : '0';
+  // 라하 깃발 (nass도 일반 슬라이드처럼 표시 — 멀티 라하 지원)
+  const nassFlagSrcs = (d?.lahja || '').toUpperCase().split(/[,\s]+/).map(t => t.trim()).filter(Boolean)
+    .map(l => LAHJA_FLAG[l]).filter(Boolean);
+  const nassFlagHtml = nassFlagSrcs.length
+    ? `<div class="lahja-block" style="margin-top:0.6rem; display:flex; justify-content:center; gap:0.4rem;">${
+        nassFlagSrcs.map(src => `<img src="${src}" style="width:clamp(22px,1.8vw,32px); height:clamp(22px,1.8vw,32px); border-radius:50%; opacity:0.92;">`).join('')
+      }</div>`
+    : '';
   document.getElementById('text-area').innerHTML = `
     ${d.korean ? `<div class="nass-korean-hint" style="opacity:${op}">${parseText(d.korean)}</div>` : ''}
     ${d.note ? `<div class="nass-note" style="opacity:${op}">${parseText(d.note)}</div>` : ''}
     ${sual ? `<div class="nass-sual-note">${parseText(sual)}</div>` : ''}
+    ${nassFlagHtml}
   `;
 }
 
