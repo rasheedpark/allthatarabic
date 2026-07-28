@@ -353,6 +353,46 @@ button { font-family: var(--font-kr); cursor: pointer; border: none; }
 }
 /* 산문→불릿 전환 빈 줄 */
 .summary-spacer { height: 10px; flex-shrink: 0; }
+
+/* ── 표 슬라이드 (type=jadwal) — 모바일 세로 1단 ── */
+.jadwal-mobile { width: 100%; }
+.jadwal-title {
+  font-family: var(--font-ar);
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.6;
+}
+.jadwal-sub {
+  font-size: 0.8rem;
+  color: var(--text-sub);
+  text-align: center;
+  margin-top: 2px;
+}
+.script-table.numgrid { margin-top: 12px; }
+.script-table.numgrid td,
+.script-table.numgrid th { padding: 7px 6px; }
+.script-table.numgrid th { font-size: 0.74rem; }
+.script-table.numgrid td:first-child { width: 46px; background: var(--accent-bg); }
+.script-table.numgrid .jd-main {
+  display: block;
+  font-size: 1.15rem;
+  line-height: 1.75;
+}
+.script-table.numgrid td[dir="ltr"] .jd-main {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.script-table.numgrid .jd-sub {
+  display: block;
+  font-family: var(--font-kr);
+  font-size: 0.64rem;
+  font-style: italic;
+  color: var(--text-sub);
+  line-height: 1.3;
+}
 /* 불릿 항목 — dir="auto"면 RTL 시 점이 자동으로 오른쪽 */
 .summary-bullet {
   display: flex;
@@ -971,6 +1011,7 @@ function normalizeType(t) {
   const s = (t || '').toLowerCase().trim();
   if (s.startsWith('pattern')) return 'pattern';
   if (s === 'summary')  return 'summary';
+  if (s === 'jadwal' || s === 'table') return 'jadwal';
   if (s === 'repertorie' || s === 'repertory') return 'repertory';
   if (s === 'drill')   return 'drill';
   if (s === 'exp' || s === 'expression') return 'exp';
@@ -1051,8 +1092,8 @@ async function buildSlides(baseUnit) {
 
   const escaped = baseUnit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const subReg  = new RegExp('^' + escaped + '[a-z]?$', 'i');
-  // 학생용: 요약 + 드릴 + 표현만 포함
-  const validTypes = new Set(['summary', 'drill', 'exp']);
+  // 학생용: 표 + 요약 + 드릴 + 표현만 포함
+  const validTypes = new Set(['jadwal', 'summary', 'drill', 'exp']);
 
   const dsRows = dsRaw.filter(r => {
     const t = normalizeType(r.type);
@@ -1062,10 +1103,11 @@ async function buildSlides(baseUnit) {
     return s === '' || s === 'confirmed';
   });
 
-  // 서머리를 맨 앞으로, 나머지는 시트 순서 유지
+  // 표 → 서머리 → 나머지(시트 순서 유지)
+  const jadwalSlides  = dsRows.filter(r => normalizeType(r.type) === 'jadwal');
   const summarySlides = dsRows.filter(r => normalizeType(r.type) === 'summary');
-  const otherSlides   = dsRows.filter(r => normalizeType(r.type) !== 'summary');
-  [...summarySlides, ...otherSlides].forEach(r =>
+  const otherSlides   = dsRows.filter(r => !['jadwal', 'summary'].includes(normalizeType(r.type)));
+  [...jadwalSlides, ...summarySlides, ...otherSlides].forEach(r =>
     slides.push({ type: normalizeType(r.type), data: r, unit: baseUnit })
   );
 
@@ -1195,11 +1237,12 @@ function renderSlideContent(area, s) {
   area.appendChild(inner);
 
   if (s.type === 'nass')         renderNass(inner, s);
+  else if (s.type === 'jadwal')  renderJadwal(inner, s);
   else if (s.type === 'summary') renderSummary(area, inner, s);
   else                           renderNormal(inner, s);
 
-  // 라흐자 플래그 — summary 외 모든 타입 상단에 (GLF 드릴·표현·나스 등)
-  if (s.type !== 'summary') {
+  // 라흐자 플래그 — summary·jadwal 외 모든 타입 상단에 (GLF 드릴·표현·나스 등)
+  if (s.type !== 'summary' && s.type !== 'jadwal') {
     const fb = buildFlagBlock(s.data);
     if (fb) inner.insertBefore(fb, inner.firstChild);
   }
@@ -1754,6 +1797,62 @@ function renderSummary(area, inner, s) {
 }
 
 /* ━━━━ 나스 슬라이드 렌더링 ━━━━ */
+/* ━━━━ 표 슬라이드 (type=jadwal) — 모바일 세로 1단 ━━━━ */
+function renderJadwal(area, s) {
+  const d = s.data;
+  const wrap = document.createElement('div');
+  wrap.className = 'jadwal-mobile';
+
+  if (d.arabic) {
+    const t = document.createElement('div');
+    t.className = 'jadwal-title';
+    t.setAttribute('dir', 'rtl');
+    t.innerHTML = parseText(d.arabic);
+    wrap.appendChild(t);
+  }
+  if (d.korean) {
+    const k = document.createElement('div');
+    k.className = 'jadwal-sub';
+    k.innerHTML = parseText(d.korean);
+    wrap.appendChild(k);
+  }
+
+  const rows = [];
+  String(d.script || '').replace(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi, (_, rowHtml) => {
+    const cells = [];
+    rowHtml.replace(/<(t[dh])\b[^>]*>([\s\S]*?)<\/t[dh]>/gi, (m, tag, cellHtml) => {
+      cells.push({
+        tag: tag.toLowerCase() === 'th' ? 'th' : 'td',
+        text: cellHtml.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').trim()
+      });
+      return m;
+    });
+    if (cells.length) rows.push(cells);
+    return rowHtml;
+  });
+
+  if (rows.length) {
+    const table = document.createElement('table');
+    table.className = 'script-table numgrid';
+    rows.forEach(cells => {
+      const tr = document.createElement('tr');
+      cells.forEach(c => {
+        const el = document.createElement(c.tag);
+        const lines = c.text.split('\n');
+        const main  = lines[0] || '';
+        const sub   = lines.slice(1).join(' ');
+        el.setAttribute('dir', firstStrongDir(main));
+        el.innerHTML = `<span class="jd-main">${parseText(main)}</span>`
+                     + (sub ? `<span class="jd-sub">${parseText(sub)}</span>` : '');
+        tr.appendChild(el);
+      });
+      table.appendChild(tr);
+    });
+    wrap.appendChild(table);
+  }
+  area.appendChild(wrap);
+}
+
 function renderNass(area, s) {
   area.innerHTML = '';
   nassPassageVisible = false; // 기본: 지문 숨김

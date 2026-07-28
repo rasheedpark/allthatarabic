@@ -538,6 +538,41 @@ body {
   font-weight: 400;
 }
 
+/* ── 표 슬라이드 (type=jadwal) — 한 항목씩 크게 ── */
+.jd-one {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(2px, 1vh, 14px);
+}
+.jd-num {
+  font-family: 'Noto Sans Arabic', serif;
+  font-size: clamp(3.5rem, 15vh, 10rem);
+  line-height: 1.1;
+  font-weight: 700;
+  color: var(--accent);
+}
+.jd-forms {
+  font-family: 'Noto Sans Arabic', serif;
+  font-size: clamp(2rem, 6.5vw, 5rem);
+  line-height: 1.7;
+  color: var(--text);
+  text-align: center;
+}
+.jd-sep { color: var(--sub); font-weight: 400; padding: 0 0.08em; }
+.jd-trans {
+  font-size: clamp(1rem, 2.1vw, 1.9rem);
+  color: var(--sub);
+  font-style: italic;
+  text-align: center;
+}
+.jadwal-cap {
+  font-size: clamp(0.85rem, 1.5vw, 1.3rem);
+  color: var(--sub);
+  text-align: center;
+  margin-top: 4px;
+}
+
 /* ── 모바일 대응 ── */
 @media (max-width: 600px) {
   #ui-tl { max-width: 60vw; }
@@ -603,7 +638,7 @@ const AUDIO_EXTS = ['.mp3', '.wav'];
 const TAB_DS     = 'datasheet';
 const GID_NASS   = '847423907';
 
-const TYPE_EN = { summary:'SUMMARY', pattern:'PATTERN', drill:'DRILL', exp:'EXPRESSION', nass:'NASS', repertorie:'REPERTOIRE', repertory:'REPERTOIRE' };
+const TYPE_EN = { summary:'SUMMARY', pattern:'PATTERN', drill:'DRILL', exp:'EXPRESSION', nass:'NASS', repertorie:'REPERTOIRE', repertory:'REPERTOIRE', jadwal:'TABLE' };
 
 // 라하 깃발 매핑 — 1.4.4와 동일
 const LAHJA_FLAG = {
@@ -641,6 +676,7 @@ let currentPg       = null;
 function normalizeType(t) {
   const s = (t || '').toLowerCase().trim();
   if (s === 'summary')                          return 'summary';
+  if (s === 'jadwal' || s === 'table')          return 'jadwal';
   if (s === 'pattern(a)' || s === 'pattern(p)' || s === 'pattern') return 'pattern';
   if (s === 'drill')                            return 'drill';
   if (s === 'exp' || s === 'expression')        return 'exp';
@@ -802,7 +838,7 @@ async function buildSlides(baseUnit) {
   // 써머리 제외 — 패턴·래퍼토리·드릴만 시트 순서 그대로
   const dsRows = dsRaw.filter(r => {
     const t = normalizeType(r.type);
-    if (!['pattern','repertorie','drill','exp'].includes(t)) return false;
+    if (!['pattern','repertorie','drill','exp','jadwal'].includes(t)) return false;
     if (!hasSlideContent(r)) return false;
     if (!subReg.test(getRowU(r))) return false;
     const s = (r.status || '').toLowerCase();
@@ -828,9 +864,23 @@ async function buildSlides(baseUnit) {
     }
   });
 
-  orderedDsRows.forEach(r =>
-    slides.push({ type: normalizeType(r.type), data: r, pg: baseUnit })
-  );
+  // jadwal(표)은 항목 하나당 슬라이드 1장으로 펼친다 — 선생님이 하나씩 넘기며 진행
+  orderedDsRows.forEach(r => {
+    const t = normalizeType(r.type);
+    if (t === 'jadwal') {
+      const jrows = parseJadwalRows(r.script);
+      const jhead = (jrows.length && jrows[0].every(c => c.tag === 'th')) ? jrows[0] : null;
+      const jbody = jhead ? jrows.slice(1) : jrows;
+      if (jbody.length) {
+        jbody.forEach((cells, i) => slides.push({
+          type: 'jadwal', data: r, pg: baseUnit,
+          jdCells: cells, jdHead: jhead, jdIdx: i, jdTotal: jbody.length
+        }));
+        return;
+      }
+    }
+    slides.push({ type: t, data: r, pg: baseUnit });
+  });
 
   // 나스 슬라이드 — id_nass에서 유닛 추출 (u열 비어있음)
   nassRaw
@@ -909,6 +959,8 @@ function renderSlide() {
 
   if (s.type === 'nass') {
     renderNass(s);
+  } else if (s.type === 'jadwal') {
+    renderJadwal(s);
   } else if (cssMode === 'baseline' || cssMode === 'baseline2') {
     renderBaseline(s, { noLine: cssMode === 'baseline2' });
   } else if (cssMode === 'write') {
@@ -1187,6 +1239,57 @@ function renderSvo(s) {
   const op = meaningVisible ? '1' : '0';
   document.getElementById('text-area').innerHTML =
     translation ? `<div class="svo-translation" style="opacity:${op}">${parseText(translation)}</div>` : '';
+}
+
+// ── renderJadwal (표 슬라이드) ──────────────────────────
+// script 열의 <table> 마크업을 파싱한다. 셀 안의 <br>은 줄바꿈으로,
+// 첫 줄은 본문(아랍어/숫자) 둘째 줄부터는 음가로 렌더한다.
+function parseJadwalRows(html) {
+  const rows = [];
+  String(html || '').replace(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi, (_, rowHtml) => {
+    const cells = [];
+    rowHtml.replace(/<(t[dh])\b[^>]*>([\s\S]*?)<\/t[dh]>/gi, (m, tag, cellHtml) => {
+      cells.push({
+        tag: tag.toLowerCase() === 'th' ? 'th' : 'td',
+        text: cellHtml.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').trim()
+      });
+      return m;
+    });
+    if (cells.length) rows.push(cells);
+    return rowHtml;
+  });
+  return rows;
+}
+
+// 서양 숫자 → 아랍 숫자(٠١٢…) — 선생님앱 표시용
+const AR_DIGITS = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+function toArabicDigits(str) {
+  return String(str == null ? '' : str).replace(/[0-9]/g, ch => AR_DIGITS[+ch]);
+}
+
+// 표 한 항목을 한 화면 가득 — 숫자 위, 형태들은 ، 로 이어서
+function renderJadwal(s) {
+  const d = s.data;
+  const cells = s.jdCells || [];
+  if (!cells.length) { renderNormal(s); return; }
+
+  const num   = (cells[0].text || '').split('\n')[0];
+  const rest  = cells.slice(1).map(c => c.text.split('\n'));
+  const mains = rest.map(f => (f[0] || '').trim()).filter(Boolean);
+  const subs  = rest.map(f => f.slice(1).join(' ').trim()).filter(Boolean);
+
+  const arOp = arabicVisible ? '1' : '0';
+  document.getElementById('arabic-area').innerHTML =
+    `<div class="jd-one" style="opacity:${arOp};transition:opacity 0.3s;">`
+    + `<div class="jd-num">${toArabicDigits(num)}</div>`
+    + `<div class="jd-forms" dir="rtl">`
+    +   mains.map(m => parseText(m)).join('<span class="jd-sep">، </span>')
+    + `</div></div>`;
+
+  const op = meaningVisible ? '1' : '0';
+  document.getElementById('text-area').innerHTML =
+    (subs.length ? `<div class="jd-trans">${subs.join(' , ')}</div>` : '')
+    + (d.korean ? `<div class="jadwal-cap" style="opacity:${op}">${parseText(d.korean)}</div>` : '');
 }
 
 // ── renderNormal ───────────────────────────────────────
