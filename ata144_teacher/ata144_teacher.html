@@ -1130,7 +1130,8 @@ const LAHJA_FLAG = {
 // 라하 표시 블록 — 모든 렌더 경로 공용. 아이콘 없는 코드(MSA 등)는 원형 배지로 표시해
 // lahja 값이 있는 슬라이드에서는 항상 무언가 보이게 한다.
 function buildLahjaBlock(d) {
-  const codes = (d?.lahja || '').toUpperCase().split(/[,\s]+/).map(t => t.trim()).filter(Boolean);
+  // MSA(표준어)는 무표시 — 방언만 국기로 표시한다.
+  const codes = (d?.lahja || '').toUpperCase().split(/[,\s]+/).map(t => t.trim()).filter(c => c && c !== 'MSA');
   if (!codes.length) return '';
   const size = 'width:clamp(26px,2.2vw,40px); height:clamp(26px,2.2vw,40px);';
   const items = codes.map(c => {
@@ -1694,24 +1695,31 @@ function fitArabicText() {
       area.getBoundingClientRect().height + gap + textArea.getBoundingClientRect().height;
     return need <= avail;
   };
+  // 한국어·음가가 아랍어보다 커지지 않게: 한국어 ≤ 아랍어 55%, 음가 ≤ 한국어 85%.
+  // 아랍어 축소 루프 안에서 같이 줄여야 (한국어가 차지하는 높이가 줄어) 아랍어가 덜 작아진다.
+  const koEl = textArea?.querySelector('.korean');
+  const noteEl = textArea?.querySelector('.note');
+  const capText = () => {
+    const arNow = parseFloat(getComputedStyle(el).fontSize);
+    if (koEl) {
+      koEl.style.fontSize = '';
+      const koSize = parseFloat(getComputedStyle(koEl).fontSize);
+      if (koSize > arNow * 0.55) koEl.style.fontSize = (arNow * 0.55).toFixed(1) + 'px';
+    }
+    if (noteEl) {
+      noteEl.style.fontSize = '';
+      const koBase = koEl ? parseFloat(getComputedStyle(koEl).fontSize) : arNow * 0.5;
+      const ntSize = parseFloat(getComputedStyle(noteEl).fontSize);
+      if (ntSize > koBase * 0.85) noteEl.style.fontSize = (koBase * 0.85).toFixed(1) + 'px';
+    }
+  };
+  capText();
   let size = parseFloat(getComputedStyle(el).fontSize);
   let guard = 60;
   while (!fits() && size > 40 && guard-- > 0) {
     size *= 0.95;
     el.style.fontSize = size.toFixed(1) + 'px';
-  }
-  // 아랍어가 축소돼도 한국어·음가가 아랍어보다 커지지 않게: 한국어 ≤ 아랍어 55%, 음가 ≤ 한국어 85%
-  const arFinal = parseFloat(getComputedStyle(el).fontSize);
-  const koEl = textArea?.querySelector('.korean');
-  const noteEl = textArea?.querySelector('.note');
-  if (koEl) {
-    const koSize = parseFloat(getComputedStyle(koEl).fontSize);
-    if (koSize > arFinal * 0.55) koEl.style.fontSize = (arFinal * 0.55).toFixed(1) + 'px';
-  }
-  if (noteEl) {
-    const koBase = koEl ? parseFloat(getComputedStyle(koEl).fontSize) : arFinal * 0.5;
-    const ntSize = parseFloat(getComputedStyle(noteEl).fontSize);
-    if (ntSize > koBase * 0.85) noteEl.style.fontSize = (koBase * 0.85).toFixed(1) + 'px';
+    capText();
   }
 }
 let _fitResizeTimer = null;
