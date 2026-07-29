@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>ATA 1.4.4 오디오 점검</title>
+<link rel="preconnect" href="https://docs.google.com">
+<link rel="preconnect" href="https://storage.googleapis.com">
+<style>
+  @font-face {
+    font-family: "ATA Arabic";
+    src: url("assets/fonts/Dongol-Regular.otf") format("opentype");
+    font-display: swap;
+  }
+
+  :root {
+    --ink: #12205a;
+    --muted: #6e7591;
+    --line: #dde2ee;
+    --soft-line: #edf0f6;
+    --paper: #ffffff;
+    --canvas: #f3f5fa;
+    --blue: #1d49ff;
+    --blue-soft: #eaf0ff;
+    --green: #138a5b;
+    --green-soft: #e7f7f0;
+    --red: #c53949;
+    --red-soft: #fff0f2;
+    --amber: #a86400;
+    --amber-soft: #fff5df;
+    --shadow: 0 18px 50px rgba(27, 43, 98, 0.09);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { min-height: 100%; background: var(--canvas); }
+
+  body {
+    min-height: 100vh;
+    margin: 0;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 8% -10%, rgba(29, 73, 255, 0.12), transparent 32rem),
+      var(--canvas);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  }
+
+  button, select, input { font: inherit; }
+  button, select { color: inherit; }
+  button { cursor: pointer; }
+
+  .shell {
+    width: min(1120px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 34px 0 144px;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    gap: 14px;
+  }
+
+  .brand img {
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+  }
+
+  .eyebrow {
+    margin: 0 0 4px;
+    color: var(--blue);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(22px, 3vw, 30px);
+    letter-spacing: -0.04em;
+  }
+
+  .refresh {
+    flex: 0 0 auto;
+    min-height: 42px;
+    padding: 0 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.8);
+    font-size: 13px;
+    font-weight: 750;
+  }
+
+  .refresh:hover { border-color: var(--blue); background: var(--paper); }
+  .refresh:disabled { cursor: wait; opacity: 0.55; }
+
+  .control-panel {
+    display: grid;
+    grid-template-columns: minmax(150px, 0.8fr) minmax(260px, 1.3fr) minmax(250px, 1fr);
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid rgba(221, 226, 238, 0.8);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(16px);
+  }
+
+  .control-group { min-width: 0; }
+
+  .control-label {
+    display: block;
+    margin: 0 0 8px 2px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+
+  .unit-select {
+    width: 100%;
+    height: 46px;
+    padding: 0 40px 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--paper);
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .filter-row {
+    display: flex;
+    min-height: 46px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .chip {
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--paper);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 750;
+  }
+
+  .chip:hover { border-color: #aeb9d4; color: var(--ink); }
+  .chip.active { border-color: var(--blue); background: var(--blue); color: #fff; }
+
+  .toggle-row {
+    display: flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 13px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--paper);
+  }
+
+  .toggle-copy strong { display: block; font-size: 13px; }
+  .toggle-copy span { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; }
+
+  .switch {
+    position: relative;
+    width: 42px;
+    height: 24px;
+    flex: 0 0 auto;
+  }
+
+  .switch input { position: absolute; opacity: 0; pointer-events: none; }
+
+  .switch-track {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: #cbd1df;
+    transition: 160ms ease;
+  }
+
+  .switch-track::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(18, 32, 90, 0.2);
+    transition: 160ms ease;
+  }
+
+  .switch input:checked + .switch-track { background: var(--blue); }
+  .switch input:checked + .switch-track::after { transform: translateX(18px); }
+
+  .summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 20px;
+    align-items: end;
+    margin: 26px 2px 14px;
+  }
+
+  .summary-title {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .summary-title h2 { margin: 0; font-size: 19px; letter-spacing: -0.03em; }
+  .summary-title span { color: var(--muted); font-size: 12px; }
+
+  .progress-track {
+    width: 100%;
+    height: 8px;
+    margin-top: 11px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #dfe4ef;
+  }
+
+  .progress-value {
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--blue), #6684ff);
+    transition: width 220ms ease;
+  }
+
+  .summary-actions { display: flex; gap: 8px; }
+
+  .small-button {
+    min-height: 38px;
+    padding: 0 13px;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    background: var(--paper);
+    font-size: 12px;
+    font-weight: 750;
+  }
+
+  .small-button:hover { border-color: var(--blue); }
+  .small-button.danger:hover { border-color: var(--red); color: var(--red); }
+
+  .notice {
+    display: none;
+    margin: 14px 0;
+    padding: 13px 15px;
+    border: 1px solid #f2cf8e;
+    border-radius: 12px;
+    background: var(--amber-soft);
+    color: #754b00;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .notice.show { display: block; }
+
+  .list { display: grid; gap: 10px; }
+
+  .audio-card {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: center;
+    min-height: 128px;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 17px;
+    background: var(--paper);
+    box-shadow: 0 6px 20px rgba(24, 42, 91, 0.04);
+    transition: border-color 150ms ease, transform 150ms ease, opacity 150ms ease;
+  }
+
+  .audio-card:hover { border-color: #b8c4df; transform: translateY(-1px); }
+  .audio-card.playing { border-color: var(--blue); box-shadow: 0 10px 30px rgba(29, 73, 255, 0.12); }
+  .audio-card.checked { opacity: 0.66; }
+  .audio-card.checked .arabic { text-decoration: underline; text-decoration-color: #cbd3e4; }
+
+  .play-button {
+    width: 52px;
+    height: 52px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--blue-soft);
+    color: var(--blue);
+    font-size: 19px;
+    font-weight: 900;
+    transition: 150ms ease;
+  }
+
+  .play-button:hover { transform: scale(1.05); background: var(--blue); color: #fff; }
+  .playing .play-button { background: var(--blue); color: #fff; }
+  .play-button:disabled { cursor: not-allowed; background: #eef0f5; color: #a5acbc; transform: none; }
+
+  .card-copy { min-width: 0; }
+
+  .meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 8px;
+  }
+
+  .kind {
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: var(--blue-soft);
+    color: var(--blue);
+    font-size: 10px;
+    font-weight: 850;
+  }
+
+  .dialect, .audio-state, .row-id {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .audio-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .audio-state::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #aeb5c4;
+  }
+
+  .audio-state.ready { color: var(--green); }
+  .audio-state.ready::before { background: var(--green); }
+  .audio-state.missing { color: var(--red); }
+  .audio-state.missing::before { background: var(--red); }
+  .audio-state.checking::before { animation: blink 900ms infinite alternate; }
+
+  @keyframes blink { to { opacity: 0.25; } }
+
+  .arabic {
+    margin: 0;
+    color: #091443;
+    font-family: "ATA Arabic", "Noto Naskh Arabic", serif;
+    font-size: clamp(26px, 3.3vw, 36px);
+    font-weight: 500;
+    line-height: 1.35;
+    white-space: pre-line;
+  }
+
+  .korean {
+    margin: 6px 0 0;
+    color: #303a67;
+    font-size: 14px;
+    line-height: 1.55;
+    white-space: pre-line;
+  }
+
+  .note {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.45;
+    white-space: pre-line;
+  }
+
+  .check-wrap {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    min-width: 62px;
+  }
+
+  .check-wrap input {
+    width: 27px;
+    height: 27px;
+    margin: 0;
+    accent-color: var(--green);
+    cursor: pointer;
+  }
+
+  .check-wrap span { color: var(--muted); font-size: 10px; font-weight: 750; }
+
+  .empty, .loading {
+    padding: 64px 24px;
+    border: 1px dashed #cbd2e1;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.55);
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .loading::before {
+    content: "";
+    display: block;
+    width: 28px;
+    height: 28px;
+    margin: 0 auto 12px;
+    border: 3px solid #dce2f0;
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin 800ms linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .player-dock {
+    position: fixed;
+    z-index: 10;
+    left: 50%;
+    bottom: 18px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 430px);
+    gap: 20px;
+    align-items: center;
+    width: min(920px, calc(100% - 30px));
+    min-height: 78px;
+    padding: 13px 18px;
+    border: 1px solid rgba(204, 211, 228, 0.85);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 18px 55px rgba(15, 28, 78, 0.22);
+    backdrop-filter: blur(18px);
+    transform: translate(-50%, 130%);
+    transition: transform 220ms ease;
+  }
+
+  .player-dock.show { transform: translate(-50%, 0); }
+  .player-copy { min-width: 0; }
+
+  .player-label {
+    margin: 0 0 3px;
+    color: var(--blue);
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+  }
+
+  .player-title {
+    overflow: hidden;
+    margin: 0;
+    font-family: "ATA Arabic", serif;
+    font-size: 24px;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  audio { width: 100%; height: 42px; }
+
+  @media (max-width: 820px) {
+    .control-panel { grid-template-columns: 1fr 1fr; }
+    .control-group:last-child { grid-column: 1 / -1; }
+    .summary { grid-template-columns: 1fr; align-items: start; }
+    .summary-actions { justify-content: flex-end; }
+  }
+
+  @media (max-width: 620px) {
+    .shell { width: min(100% - 20px, 1120px); padding-top: 18px; }
+    .topbar { align-items: flex-start; }
+    .brand img { width: 38px; height: 38px; }
+    .refresh { min-height: 38px; padding: 0 12px; }
+    .control-panel { grid-template-columns: 1fr; padding: 13px; border-radius: 16px; }
+    .control-group:last-child { grid-column: auto; }
+    .audio-card {
+      grid-template-columns: 46px minmax(0, 1fr);
+      gap: 12px;
+      padding: 15px;
+    }
+    .play-button { width: 44px; height: 44px; }
+    .check-wrap {
+      grid-column: 2;
+      grid-row: 2;
+      grid-auto-flow: column;
+      justify-content: end;
+      align-items: center;
+      min-width: 0;
+    }
+    .arabic { font-size: 27px; }
+    .korean { font-size: 13px; }
+    .row-id { width: 100%; overflow-wrap: anywhere; }
+    .player-dock {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      bottom: 10px;
+      padding: 11px 14px;
+    }
+    .player-title { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+<main class="shell">
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/ata-logo2.png" alt="All That Arabic">
+      <div>
+        <p class="eyebrow">ATA 1.4.4 · AUDIO QA</p>
+        <h1>오디오 점검</h1>
+      </div>
+    </div>
+    <button class="refresh" id="refresh-button" type="button">최신 목록 불러오기</button>
+  </header>
+
+  <section class="control-panel" aria-label="점검 필터">
+    <div class="control-group">
+      <label class="control-label" for="unit-select">유닛</label>
+      <select class="unit-select" id="unit-select" disabled>
+        <option>불러오는 중…</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <span class="control-label">종류</span>
+      <div class="filter-row" id="filter-row" role="group" aria-label="오디오 종류"></div>
+    </div>
+
+    <div class="control-group">
+      <span class="control-label">보기</span>
+      <label class="toggle-row">
+        <span class="toggle-copy">
+          <strong>미점검만 보기</strong>
+          <span>체크한 항목은 목록에서 숨깁니다</span>
+        </span>
+        <span class="switch">
+          <input id="unchecked-only" type="checkbox">
+          <span class="switch-track" aria-hidden="true"></span>
+        </span>
+      </label>
+    </div>
+  </section>
+
+  <section class="summary" aria-live="polite">
+    <div>
+      <div class="summary-title">
+        <h2 id="summary-title">오디오 목록</h2>
+        <span id="summary-copy">시트에서 불러오는 중입니다.</span>
+      </div>
+      <div class="progress-track" aria-hidden="true">
+        <div class="progress-value" id="progress-value"></div>
+      </div>
+    </div>
+    <div class="summary-actions">
+      <button class="small-button" id="check-all-button" type="button">보이는 항목 모두 체크</button>
+      <button class="small-button danger" id="reset-button" type="button">현재 유닛 초기화</button>
+    </div>
+  </section>
+
+  <div class="notice" id="notice" role="status"></div>
+  <section class="list" id="audio-list" aria-label="오디오 점검 목록">
+    <div class="loading">최신 시트와 오디오를 확인하고 있습니다.</div>
+  </section>
+</main>
+
+<section class="player-dock" id="player-dock" aria-label="오디오 플레이어">
+  <div class="player-copy">
+    <p class="player-label" id="player-label">재생 중</p>
+    <p class="player-title" id="player-title" dir="rtl">—</p>
+  </div>
+  <audio id="audio-player" controls preload="none"></audio>
+</section>
+
+<script>
+const SHEET_ID = "1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8";
+const AUDIO_BASE = "https://storage.googleapis.com/all-that-arabic-14/audio";
+const STORAGE_KEY = "ata144-audio-review-v1";
+
+const TAB_CONFIG = [
+  { tab: "pattern",    label: "패턴",     types: ["ptn"] },
+  { tab: "repertory", label: "래퍼토리", types: ["repertory", "repertorie"] },
+  { tab: "drill",     label: "드릴",     types: ["drilla", "drillb", "drillc"] },
+  { tab: "expression",label: "표현",     types: ["exp"] },
+  { tab: "nass",      label: "지문",     types: ["nass", "nass+"] }
+];
+
+const state = {
+  items: [],
+  units: [],
+  unit: "",
+  filter: "all",
+  uncheckedOnly: false,
+  checked: loadChecks(),
+  availability: new Map(),
+  activeKey: "",
+  playToken: 0
+};
+
+const els = {
+  unit: document.getElementById("unit-select"),
+  filters: document.getElementById("filter-row"),
+  uncheckedOnly: document.getElementById("unchecked-only"),
+  refresh: document.getElementById("refresh-button"),
+  list: document.getElementById("audio-list"),
+  summaryTitle: document.getElementById("summary-title"),
+  summaryCopy: document.getElementById("summary-copy"),
+  progress: document.getElementById("progress-value"),
+  notice: document.getElementById("notice"),
+  checkAll: document.getElementById("check-all-button"),
+  reset: document.getElementById("reset-button"),
+  dock: document.getElementById("player-dock"),
+  player: document.getElementById("audio-player"),
+  playerLabel: document.getElementById("player-label"),
+  playerTitle: document.getElementById("player-title")
+};
+
+function loadChecks() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveChecks() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.checked));
+}
+
+function normalizeType(value) {
+  const type = String(value || "").trim().toLowerCase();
+  return type === "repertorie" ? "repertory" : type;
+}
+
+function getRowId(row) {
+  return row.id_unit || row["id_ptn(no)"] || row.id_ptn || row.id_drill ||
+    row.id_rep || row.id_repertory || row.id_kalimat || row.id_expression ||
+    row.id_nass || "";
+}
+
+function itemKey(item) {
+  return `${item.unit}/${item.id}`;
+}
+
+function encodeId(id) {
+  return encodeURIComponent(String(id).normalize("NFD")).replace(/%2C/gi, ",");
+}
+
+function audioCandidates(item) {
+  if (item.url) return [item.url];
+  const base = `${AUDIO_BASE}/${encodeURIComponent(item.unit)}/${encodeId(item.id)}`;
+  return [base + ".mp3", base + ".wav"];
+}
+
+function fetchSheetData(tab) {
+  return new Promise((resolve, reject) => {
+    const callback = `__ata_audio_${tab}_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    const script = document.createElement("script");
+    const timer = setTimeout(() => finish(new Error(`${tab} 시트 응답 시간 초과`)), 18000);
+
+    function finish(error, rows = []) {
+      clearTimeout(timer);
+      delete window[callback];
+      script.remove();
+      error ? reject(error) : resolve(rows);
+    }
+
+    window[callback] = response => {
+      try {
+        if (!response || !response.table) throw new Error(`${tab} 시트 데이터 없음`);
+        const headers = response.table.cols.map(col => String(col.label || "").toLowerCase().trim());
+        const rows = (response.table.rows || []).map((row, index) => {
+          const result = { __row: index + 2 };
+          headers.forEach((header, column) => {
+            if (!header) return;
+            const cell = row.c && row.c[column];
+            const value = cell && cell.v != null ? cell.v : "";
+            result[header] = String(value).trim();
+          });
+          return result;
+        });
+        finish(null, rows);
+      } catch (error) {
+        finish(error);
+      }
+    };
+
+    script.onerror = () => finish(new Error(`${tab} 시트를 불러오지 못했습니다.`));
+    script.src =
+      `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq` +
+      `?tqx=out:json;responseHandler:${callback}` +
+      `&sheet=${encodeURIComponent(tab)}&headers=1&_=${Date.now()}`;
+    document.head.appendChild(script);
+  });
+}
+
+function rowToItem(row, config, order) {
+  const type = normalizeType(row.type || config.tab);
+  const id = getRowId(row);
+  const unit = String(row.u || row.U || "").trim().toUpperCase();
+  return {
+    id,
+    unit,
+    tab: config.tab,
+    group: config.tab,
+    groupLabel: config.label,
+    type,
+    arabic: row.arabic || "",
+    korean: row.korean || "",
+    note: row.note || "",
+    lahja: row.lahja || "",
+    status: String(row.status || "").trim().toLowerCase(),
+    url: row.url || "",
+    order
+  };
+}
+
+async function loadAll() {
+  stopPlayback();
+  els.refresh.disabled = true;
+  els.unit.disabled = true;
+  els.list.innerHTML = '<div class="loading">최신 시트와 오디오를 확인하고 있습니다.</div>';
+  showNotice("");
+  state.availability.clear();
+
+  const results = await Promise.allSettled(TAB_CONFIG.map(config => fetchSheetData(config.tab)));
+  const failed = [];
+  const items = [];
+
+  results.forEach((result, configIndex) => {
+    const config = TAB_CONFIG[configIndex];
+    if (result.status === "rejected") {
+      failed.push(config.label);
+      return;
+    }
+    result.value.forEach((row, rowIndex) => {
+      const item = rowToItem(row, config, configIndex * 100000 + rowIndex);
+      if (!item.id || !item.unit || item.status !== "confirmed") return;
+      if (!config.types.map(normalizeType).includes(item.type)) return;
+      items.push(item);
+    });
+  });
+
+  state.items = items.sort((a, b) => a.order - b.order);
+  state.units = [...new Set(items.map(item => item.unit))].sort((a, b) =>
+    a.localeCompare(b, undefined, { numeric: true })
+  );
+
+  const queryUnit = new URLSearchParams(location.search).get("unit")?.toUpperCase();
+  const previousUnit = state.unit;
+  state.unit = state.units.includes(queryUnit) ? queryUnit :
+    state.units.includes(previousUnit) ? previousUnit :
+    state.units[state.units.length - 1] || "";
+
+  renderUnitOptions();
+  render();
+  els.refresh.disabled = false;
+  els.unit.disabled = !state.units.length;
+
+  if (failed.length) showNotice(`${failed.join(", ")} 시트를 불러오지 못해 나머지 항목만 표시합니다.`);
+  probeVisible();
+}
+
+function renderUnitOptions() {
+  els.unit.innerHTML = state.units.map(unit =>
+    `<option value="${escapeHtml(unit)}"${unit === state.unit ? " selected" : ""}>${escapeHtml(unit)}</option>`
+  ).join("");
+}
+
+function renderFilters() {
+  const filters = [{ tab: "all", label: "전체" }, ...TAB_CONFIG];
+  els.filters.innerHTML = filters.map(filter => {
+    const active = state.filter === filter.tab ? " active" : "";
+    const count = state.items.filter(item =>
+      item.unit === state.unit && (filter.tab === "all" || item.group === filter.tab)
+    ).length;
+    return `<button class="chip${active}" type="button" data-filter="${filter.tab}">` +
+      `${escapeHtml(filter.label)} ${count}</button>`;
+  }).join("");
+}
+
+function selectedItems() {
+  return state.items.filter(item => {
+    if (item.unit !== state.unit) return false;
+    if (state.filter !== "all" && item.group !== state.filter) return false;
+    if (state.uncheckedOnly && state.checked[itemKey(item)]) return false;
+    return true;
+  });
+}
+
+function unitItems() {
+  return state.items.filter(item => item.unit === state.unit);
+}
+
+function render() {
+  renderFilters();
+  const visible = selectedItems();
+  const all = unitItems();
+  const checkedCount = all.filter(item => state.checked[itemKey(item)]).length;
+  const readyCount = all.filter(item => state.availability.get(itemKey(item))?.state === "ready").length;
+  const missingCount = all.filter(item => state.availability.get(itemKey(item))?.state === "missing").length;
+  const percent = all.length ? Math.round((checkedCount / all.length) * 100) : 0;
+
+  els.summaryTitle.textContent = `${state.unit || "—"} 오디오`;
+  els.summaryCopy.textContent =
+    `점검 ${checkedCount}/${all.length} · 파일 확인 ${readyCount}` +
+    (missingCount ? ` · 누락 ${missingCount}` : "");
+  els.progress.style.width = `${percent}%`;
+
+  if (!visible.length) {
+    els.list.innerHTML = `<div class="empty">${
+      all.length && state.uncheckedOnly
+        ? "현재 조건의 모든 항목을 점검했습니다."
+        : "현재 조건에 표시할 확정 오디오가 없습니다."
+    }</div>`;
+    return;
+  }
+
+  els.list.innerHTML = visible.map(renderCard).join("");
+}
+
+function renderCard(item) {
+  const key = itemKey(item);
+  const availability = state.availability.get(key) || { state: "checking", label: "확인 중" };
+  const checked = Boolean(state.checked[key]);
+  const playing = state.activeKey === key && !els.player.paused;
+  const rowId = `${item.id}`;
+
+  return `
+    <article class="audio-card${checked ? " checked" : ""}${playing ? " playing" : ""}" data-key="${escapeAttr(key)}">
+      <button class="play-button" type="button" data-play="${escapeAttr(key)}"
+        aria-label="${escapeAttr(item.arabic)} 재생"
+        ${availability.state === "missing" ? "disabled" : ""}>${playing ? "Ⅱ" : "▶"}</button>
+      <div class="card-copy">
+        <div class="meta">
+          <span class="kind">${escapeHtml(item.groupLabel)}</span>
+          ${item.lahja ? `<span class="dialect">${escapeHtml(item.lahja)}</span>` : ""}
+          <span class="audio-state ${availability.state}" data-state="${escapeAttr(key)}">${escapeHtml(availability.label)}</span>
+          <span class="row-id">${escapeHtml(rowId)}</span>
+        </div>
+        <p class="arabic" dir="rtl" lang="ar">${escapeHtml(item.arabic)}</p>
+        ${item.korean ? `<p class="korean">${escapeHtml(item.korean)}</p>` : ""}
+        ${item.note ? `<p class="note">${escapeHtml(item.note)}</p>` : ""}
+      </div>
+      <label class="check-wrap">
+        <input type="checkbox" data-check="${escapeAttr(key)}" ${checked ? "checked" : ""}>
+        <span>점검 완료</span>
+      </label>
+    </article>`;
+}
+
+function showNotice(message) {
+  els.notice.textContent = message;
+  els.notice.classList.toggle("show", Boolean(message));
+}
+
+async function findWorkingUrl(item) {
+  const key = itemKey(item);
+  const cached = state.availability.get(key);
+  if (cached?.state === "ready") return cached.url;
+  if (cached?.state === "missing") return "";
+
+  state.availability.set(key, { state: "checking", label: "확인 중" });
+  updateAvailability(key);
+
+  for (const url of audioCandidates(item)) {
+    if (await probeAudio(url)) {
+      state.availability.set(key, { state: "ready", label: "재생 가능", url });
+      updateAvailability(key);
+      return url;
+    }
+  }
+
+  state.availability.set(key, { state: "missing", label: "파일 없음", url: "" });
+  updateAvailability(key);
+  return "";
+}
+
+function probeAudio(url) {
+  return new Promise(resolve => {
+    const audio = new Audio();
+    let settled = false;
+    const timer = setTimeout(() => finish(false), 8000);
+
+    function finish(ok) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      audio.onloadedmetadata = null;
+      audio.onerror = null;
+      audio.removeAttribute("src");
+      audio.load();
+      resolve(ok);
+    }
+
+    audio.preload = "metadata";
+    audio.onloadedmetadata = () => finish(true);
+    audio.onerror = () => finish(false);
+    audio.src = url;
+    audio.load();
+  });
+}
+
+function updateAvailability(key) {
+  const availability = state.availability.get(key);
+  const target = document.querySelector(`[data-state="${CSS.escape(key)}"]`);
+  if (target && availability) {
+    target.className = `audio-state ${availability.state}`;
+    target.textContent = availability.label;
+  }
+  const button = document.querySelector(`[data-play="${CSS.escape(key)}"]`);
+  if (button) button.disabled = availability?.state === "missing";
+  updateSummaryOnly();
+}
+
+function updateSummaryOnly() {
+  const all = unitItems();
+  const checkedCount = all.filter(item => state.checked[itemKey(item)]).length;
+  const readyCount = all.filter(item => state.availability.get(itemKey(item))?.state === "ready").length;
+  const missingCount = all.filter(item => state.availability.get(itemKey(item))?.state === "missing").length;
+  els.summaryCopy.textContent =
+    `점검 ${checkedCount}/${all.length} · 파일 확인 ${readyCount}` +
+    (missingCount ? ` · 누락 ${missingCount}` : "");
+  els.progress.style.width = `${all.length ? Math.round(checkedCount / all.length * 100) : 0}%`;
+}
+
+async function probeVisible() {
+  const items = selectedItems();
+  const concurrency = 5;
+  let cursor = 0;
+  async function worker() {
+    while (cursor < items.length) {
+      const item = items[cursor++];
+      await findWorkingUrl(item);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, worker));
+}
+
+async function togglePlay(key) {
+  const item = state.items.find(candidate => itemKey(candidate) === key);
+  if (!item) return;
+
+  if (state.activeKey === key && !els.player.paused) {
+    els.player.pause();
+    render();
+    return;
+  }
+
+  const token = ++state.playToken;
+  const url = await findWorkingUrl(item);
+  if (!url || token !== state.playToken) return;
+
+  state.activeKey = key;
+  els.playerLabel.textContent = `${item.unit} · ${item.groupLabel} · ${item.id}`;
+  els.playerTitle.textContent = item.arabic.replace(/\n/g, " / ");
+  els.dock.classList.add("show");
+  els.player.src = url;
+  els.player.load();
+
+  try {
+    await els.player.play();
+  } catch {
+    state.availability.delete(key);
+    const fallback = audioCandidates(item).find(candidate => candidate !== url);
+    if (!fallback) return;
+    els.player.src = fallback;
+    els.player.load();
+    try { await els.player.play(); } catch {
+      state.availability.set(key, { state: "missing", label: "재생 실패", url: "" });
+    }
+  }
+  render();
+}
+
+function stopPlayback() {
+  state.playToken++;
+  state.activeKey = "";
+  els.player.pause();
+  els.player.removeAttribute("src");
+  els.player.load();
+  els.dock.classList.remove("show");
+}
+
+function setCheck(key, checked) {
+  if (checked) state.checked[key] = true;
+  else delete state.checked[key];
+  saveChecks();
+  render();
+}
+
+function updateUrl() {
+  if (!state.unit) return;
+  const url = new URL(location.href);
+  url.searchParams.set("unit", state.unit);
+  history.replaceState(null, "", url);
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function escapeAttr(value) {
+  return escapeHtml(value);
+}
+
+els.filters.addEventListener("click", event => {
+  const button = event.target.closest("[data-filter]");
+  if (!button) return;
+  state.filter = button.dataset.filter;
+  render();
+  probeVisible();
+});
+
+els.unit.addEventListener("change", () => {
+  stopPlayback();
+  state.unit = els.unit.value;
+  state.filter = "all";
+  updateUrl();
+  render();
+  probeVisible();
+});
+
+els.uncheckedOnly.addEventListener("change", () => {
+  state.uncheckedOnly = els.uncheckedOnly.checked;
+  render();
+  probeVisible();
+});
+
+els.list.addEventListener("click", event => {
+  const play = event.target.closest("[data-play]");
+  if (play) togglePlay(play.dataset.play);
+});
+
+els.list.addEventListener("change", event => {
+  const checkbox = event.target.closest("[data-check]");
+  if (checkbox) setCheck(checkbox.dataset.check, checkbox.checked);
+});
+
+els.refresh.addEventListener("click", loadAll);
+
+els.checkAll.addEventListener("click", () => {
+  selectedItems().forEach(item => { state.checked[itemKey(item)] = true; });
+  saveChecks();
+  render();
+});
+
+els.reset.addEventListener("click", () => {
+  const items = unitItems();
+  if (!items.length) return;
+  if (!confirm(`${state.unit}의 점검 체크 ${items.length}개를 초기화할까요?`)) return;
+  items.forEach(item => delete state.checked[itemKey(item)]);
+  saveChecks();
+  render();
+});
+
+els.player.addEventListener("play", render);
+els.player.addEventListener("pause", render);
+els.player.addEventListener("ended", render);
+
+document.addEventListener("keydown", event => {
+  if (event.code !== "Space" || event.target.matches("button, input, select")) return;
+  event.preventDefault();
+  if (els.player.src) els.player.paused ? els.player.play() : els.player.pause();
+});
+
+renderFilters();
+loadAll();
+</script>
+</body>
+</html>
