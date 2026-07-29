@@ -143,13 +143,14 @@ body {
 /* ── 한국어/노트 ── */
 .korean {
   display: block;
-  font-size: clamp(1.6rem, 5vw, 5rem);  /* 키움: 4vw→5vw, max 4→5rem */
+  /* 아랍어가 항상 주인공으로 남도록 보조문은 한 단계 작게 유지 */
+  font-size: clamp(1.4rem, 4vw, 3.5rem);
   transition: opacity 0.3s;
   line-height: 1.4;
 }
 .note {
   display: block;
-  font-size: clamp(1.4rem, 4vw, 4rem);  /* 키움: 3.2vw→4vw, max 3→4rem (항상 .korean보다 작게) */
+  font-size: clamp(1.15rem, 3.2vw, 2.75rem);
   color: var(--sub);
   text-align: center;
   transition: opacity 0.3s;
