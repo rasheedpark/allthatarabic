@@ -244,7 +244,7 @@
     transition: width 220ms ease;
   }
 
-  .summary-actions { display: flex; gap: 8px; }
+  .summary-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 
   .small-button {
     min-height: 38px;
@@ -258,6 +258,13 @@
 
   .small-button:hover { border-color: var(--blue); }
   .small-button.danger:hover { border-color: var(--red); color: var(--red); }
+  .small-button.remake {
+    border-color: #e3a6af;
+    background: var(--red-soft);
+    color: var(--red);
+  }
+  .small-button.remake:hover { border-color: var(--red); background: #ffe4e8; }
+  .small-button:disabled { cursor: not-allowed; opacity: 0.45; }
 
   .notice {
     display: none;
@@ -272,6 +279,19 @@
   }
 
   .notice.show { display: block; }
+
+  .workflow-tip {
+    margin: 14px 2px 0;
+    padding: 12px 14px;
+    border: 1px solid #cfd9ff;
+    border-radius: 12px;
+    background: rgba(234, 240, 255, 0.72);
+    color: #38509c;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .workflow-tip strong { color: var(--ink); }
 
   .list { display: grid; gap: 10px; }
 
@@ -291,8 +311,13 @@
 
   .audio-card:hover { border-color: #b8c4df; transform: translateY(-1px); }
   .audio-card.playing { border-color: var(--blue); box-shadow: 0 10px 30px rgba(29, 73, 255, 0.12); }
-  .audio-card.checked { opacity: 0.66; }
+  .audio-card.checked:not(.remake) { opacity: 0.66; }
   .audio-card.checked .arabic { text-decoration: underline; text-decoration-color: #cbd3e4; }
+  .audio-card.remake {
+    border-color: #e4a4ad;
+    background: linear-gradient(135deg, #fff 0%, #fff8f9 100%);
+    box-shadow: 0 10px 30px rgba(197, 57, 73, 0.09);
+  }
 
   .play-button {
     width: 52px;
@@ -381,6 +406,83 @@
     font-size: 11px;
     line-height: 1.45;
     white-space: pre-line;
+  }
+
+  .feedback {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: end;
+    margin-top: 14px;
+    padding-top: 13px;
+    border-top: 1px solid var(--soft-line);
+  }
+
+  .reason-wrap { min-width: 0; }
+
+  .reason-label {
+    display: block;
+    margin: 0 0 6px 2px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 800;
+  }
+
+  .reason-input {
+    display: block;
+    width: 100%;
+    min-height: 62px;
+    padding: 10px 11px;
+    resize: vertical;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    outline: none;
+    background: #fafbfe;
+    color: var(--ink);
+    font-size: 12px;
+    line-height: 1.5;
+    transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+  }
+
+  .reason-input:focus {
+    border-color: var(--blue);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(29, 73, 255, 0.1);
+  }
+
+  .audio-card.remake .reason-input {
+    border-color: #e4a4ad;
+    background: #fff;
+  }
+
+  .remake-wrap {
+    display: flex;
+    min-height: 42px;
+    align-items: center;
+    gap: 7px;
+    padding: 0 11px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .remake-wrap input {
+    width: 19px;
+    height: 19px;
+    margin: 0;
+    accent-color: var(--red);
+    cursor: pointer;
+  }
+
+  .remake-wrap:has(input:checked) {
+    border-color: var(--red);
+    background: var(--red-soft);
+    color: var(--red);
   }
 
   .check-wrap {
@@ -499,6 +601,8 @@
     .arabic { font-size: 27px; }
     .korean { font-size: 13px; }
     .row-id { width: 100%; overflow-wrap: anywhere; }
+    .feedback { grid-template-columns: 1fr; }
+    .remake-wrap { justify-content: center; }
     .player-dock {
       grid-template-columns: 1fr;
       gap: 8px;
@@ -537,18 +641,36 @@
 
     <div class="control-group">
       <span class="control-label">보기</span>
-      <label class="toggle-row">
-        <span class="toggle-copy">
-          <strong>미점검만 보기</strong>
-          <span>체크한 항목은 목록에서 숨깁니다</span>
-        </span>
-        <span class="switch">
-          <input id="unchecked-only" type="checkbox">
-          <span class="switch-track" aria-hidden="true"></span>
-        </span>
-      </label>
+      <div style="display:grid; gap:8px;">
+        <label class="toggle-row">
+          <span class="toggle-copy">
+            <strong>미점검만 보기</strong>
+            <span>체크한 항목은 목록에서 숨깁니다</span>
+          </span>
+          <span class="switch">
+            <input id="unchecked-only" type="checkbox">
+            <span class="switch-track" aria-hidden="true"></span>
+          </span>
+        </label>
+        <label class="toggle-row">
+          <span class="toggle-copy">
+            <strong>재제작 필요만 보기</strong>
+            <span>사유를 적고 표시한 항목만 모읍니다</span>
+          </span>
+          <span class="switch">
+            <input id="remake-only" type="checkbox">
+            <span class="switch-track" aria-hidden="true"></span>
+          </span>
+        </label>
+      </div>
     </div>
   </section>
+
+  <p class="workflow-tip">
+    <strong>재제작 방법</strong> · 수정 사유 작성 → ‘재제작 필요’ 체크 →
+    Codex에 “표시한 오디오 재제작해 주세요”라고 요청하세요.
+    페이지를 닫았을 때는 ‘재제작 요청 복사’를 눌러 채팅에 붙여넣으면 됩니다.
+  </p>
 
   <section class="summary" aria-live="polite">
     <div>
@@ -561,8 +683,9 @@
       </div>
     </div>
     <div class="summary-actions">
+      <button class="small-button remake" id="copy-remake-button" type="button" disabled>재제작 요청 복사</button>
       <button class="small-button" id="check-all-button" type="button">보이는 항목 모두 체크</button>
-      <button class="small-button danger" id="reset-button" type="button">현재 유닛 초기화</button>
+      <button class="small-button danger" id="reset-button" type="button">점검 체크 초기화</button>
     </div>
   </section>
 
@@ -584,6 +707,7 @@
 const SHEET_ID = "1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8";
 const AUDIO_BASE = "https://storage.googleapis.com/all-that-arabic-14/audio";
 const STORAGE_KEY = "ata144-audio-review-v1";
+const REMAKE_STORAGE_KEY = "ata144-audio-remake-v1";
 
 const TAB_CONFIG = [
   { tab: "pattern",    label: "패턴",     types: ["ptn"] },
@@ -599,22 +723,27 @@ const state = {
   unit: "",
   filter: "all",
   uncheckedOnly: false,
+  remakeOnly: false,
   checked: loadChecks(),
+  remakes: loadRemakes(),
   availability: new Map(),
   activeKey: "",
-  playToken: 0
+  playToken: 0,
+  audioVersion: Date.now()
 };
 
 const els = {
   unit: document.getElementById("unit-select"),
   filters: document.getElementById("filter-row"),
   uncheckedOnly: document.getElementById("unchecked-only"),
+  remakeOnly: document.getElementById("remake-only"),
   refresh: document.getElementById("refresh-button"),
   list: document.getElementById("audio-list"),
   summaryTitle: document.getElementById("summary-title"),
   summaryCopy: document.getElementById("summary-copy"),
   progress: document.getElementById("progress-value"),
   notice: document.getElementById("notice"),
+  copyRemake: document.getElementById("copy-remake-button"),
   checkAll: document.getElementById("check-all-button"),
   reset: document.getElementById("reset-button"),
   dock: document.getElementById("player-dock"),
@@ -634,6 +763,27 @@ function loadChecks() {
 
 function saveChecks() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state.checked));
+}
+
+function loadRemakes() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(REMAKE_STORAGE_KEY) || "{}");
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveRemakes() {
+  localStorage.setItem(REMAKE_STORAGE_KEY, JSON.stringify(state.remakes));
+}
+
+function remakeRecord(key) {
+  const record = state.remakes[key];
+  return {
+    needed: Boolean(record && record.needed),
+    reason: String(record && record.reason || "")
+  };
 }
 
 function normalizeType(value) {
@@ -658,7 +808,8 @@ function encodeId(id) {
 function audioCandidates(item) {
   if (item.url) return [item.url];
   const base = `${AUDIO_BASE}/${encodeURIComponent(item.unit)}/${encodeId(item.id)}`;
-  return [base + ".mp3", base + ".wav"];
+  const version = `?review=${state.audioVersion}`;
+  return [base + ".mp3" + version, base + ".wav" + version];
 }
 
 function fetchSheetData(tab) {
@@ -726,6 +877,7 @@ function rowToItem(row, config, order) {
 
 async function loadAll() {
   stopPlayback();
+  state.audioVersion = Date.now();
   els.refresh.disabled = true;
   els.unit.disabled = true;
   els.list.innerHTML = '<div class="loading">최신 시트와 오디오를 확인하고 있습니다.</div>';
@@ -790,9 +942,11 @@ function renderFilters() {
 
 function selectedItems() {
   return state.items.filter(item => {
+    const key = itemKey(item);
     if (item.unit !== state.unit) return false;
     if (state.filter !== "all" && item.group !== state.filter) return false;
-    if (state.uncheckedOnly && state.checked[itemKey(item)]) return false;
+    if (state.uncheckedOnly && state.checked[key]) return false;
+    if (state.remakeOnly && !remakeRecord(key).needed) return false;
     return true;
   });
 }
@@ -806,6 +960,7 @@ function render() {
   const visible = selectedItems();
   const all = unitItems();
   const checkedCount = all.filter(item => state.checked[itemKey(item)]).length;
+  const remakeCount = all.filter(item => remakeRecord(itemKey(item)).needed).length;
   const readyCount = all.filter(item => state.availability.get(itemKey(item))?.state === "ready").length;
   const missingCount = all.filter(item => state.availability.get(itemKey(item))?.state === "missing").length;
   const percent = all.length ? Math.round((checkedCount / all.length) * 100) : 0;
@@ -813,12 +968,17 @@ function render() {
   els.summaryTitle.textContent = `${state.unit || "—"} 오디오`;
   els.summaryCopy.textContent =
     `점검 ${checkedCount}/${all.length} · 파일 확인 ${readyCount}` +
-    (missingCount ? ` · 누락 ${missingCount}` : "");
+    (missingCount ? ` · 누락 ${missingCount}` : "") +
+    (remakeCount ? ` · 재제작 ${remakeCount}` : "");
   els.progress.style.width = `${percent}%`;
+  els.copyRemake.disabled = remakeCount === 0;
+  els.copyRemake.textContent = remakeCount ? `재제작 요청 복사 (${remakeCount})` : "재제작 요청 복사";
 
   if (!visible.length) {
     els.list.innerHTML = `<div class="empty">${
-      all.length && state.uncheckedOnly
+      all.length && state.remakeOnly
+        ? "현재 유닛에 재제작 표시된 항목이 없습니다."
+        : all.length && state.uncheckedOnly
         ? "현재 조건의 모든 항목을 점검했습니다."
         : "현재 조건에 표시할 확정 오디오가 없습니다."
     }</div>`;
@@ -832,11 +992,12 @@ function renderCard(item) {
   const key = itemKey(item);
   const availability = state.availability.get(key) || { state: "checking", label: "확인 중" };
   const checked = Boolean(state.checked[key]);
+  const remake = remakeRecord(key);
   const playing = state.activeKey === key && !els.player.paused;
   const rowId = `${item.id}`;
 
   return `
-    <article class="audio-card${checked ? " checked" : ""}${playing ? " playing" : ""}" data-key="${escapeAttr(key)}">
+    <article class="audio-card${checked ? " checked" : ""}${remake.needed ? " remake" : ""}${playing ? " playing" : ""}" data-key="${escapeAttr(key)}">
       <button class="play-button" type="button" data-play="${escapeAttr(key)}"
         aria-label="${escapeAttr(item.arabic)} 재생"
         ${availability.state === "missing" ? "disabled" : ""}>${playing ? "Ⅱ" : "▶"}</button>
@@ -850,6 +1011,17 @@ function renderCard(item) {
         <p class="arabic" dir="rtl" lang="ar">${escapeHtml(item.arabic)}</p>
         ${item.korean ? `<p class="korean">${escapeHtml(item.korean)}</p>` : ""}
         ${item.note ? `<p class="note">${escapeHtml(item.note)}</p>` : ""}
+        <div class="feedback">
+          <label class="reason-wrap">
+            <span class="reason-label">수정 사유</span>
+            <textarea class="reason-input" data-reason="${escapeAttr(key)}"
+              placeholder="예: 첫 문장이 너무 빠름 / 걸프 억양이 약함 / 특정 단어 발음 오류">${escapeHtml(remake.reason)}</textarea>
+          </label>
+          <label class="remake-wrap">
+            <input type="checkbox" data-remake="${escapeAttr(key)}" ${remake.needed ? "checked" : ""}>
+            <span>재제작 필요</span>
+          </label>
+        </div>
       </div>
       <label class="check-wrap">
         <input type="checkbox" data-check="${escapeAttr(key)}" ${checked ? "checked" : ""}>
@@ -925,12 +1097,16 @@ function updateAvailability(key) {
 function updateSummaryOnly() {
   const all = unitItems();
   const checkedCount = all.filter(item => state.checked[itemKey(item)]).length;
+  const remakeCount = all.filter(item => remakeRecord(itemKey(item)).needed).length;
   const readyCount = all.filter(item => state.availability.get(itemKey(item))?.state === "ready").length;
   const missingCount = all.filter(item => state.availability.get(itemKey(item))?.state === "missing").length;
   els.summaryCopy.textContent =
     `점검 ${checkedCount}/${all.length} · 파일 확인 ${readyCount}` +
-    (missingCount ? ` · 누락 ${missingCount}` : "");
+    (missingCount ? ` · 누락 ${missingCount}` : "") +
+    (remakeCount ? ` · 재제작 ${remakeCount}` : "");
   els.progress.style.width = `${all.length ? Math.round(checkedCount / all.length * 100) : 0}%`;
+  els.copyRemake.disabled = remakeCount === 0;
+  els.copyRemake.textContent = remakeCount ? `재제작 요청 복사 (${remakeCount})` : "재제작 요청 복사";
 }
 
 async function probeVisible() {
@@ -998,6 +1174,49 @@ function setCheck(key, checked) {
   render();
 }
 
+function setRemake(key, needed) {
+  const current = remakeRecord(key);
+  state.remakes[key] = { needed, reason: current.reason };
+  if (!needed && !current.reason.trim()) delete state.remakes[key];
+  saveRemakes();
+  render();
+}
+
+function setReason(key, reason) {
+  const current = remakeRecord(key);
+  if (!current.needed && !reason.trim()) delete state.remakes[key];
+  else state.remakes[key] = { needed: current.needed, reason };
+  saveRemakes();
+}
+
+async function copyRemakeRequest() {
+  const requests = unitItems().filter(item => remakeRecord(itemKey(item)).needed);
+  if (!requests.length) return;
+
+  const lines = [
+    `ATA 1.4.4 ${state.unit} 오디오 재제작 요청입니다.`,
+    "아래 ID를 적힌 사유에 맞게 다시 제작하고 스토리지에 덮어써 주세요.",
+    ""
+  ];
+
+  requests.forEach((item, index) => {
+    const remake = remakeRecord(itemKey(item));
+    lines.push(
+      `${index + 1}. ${item.id} (${item.groupLabel}${item.lahja ? ` · ${item.lahja}` : ""})`,
+      `사유: ${remake.reason.trim() || "사유 미입력"}`,
+      `아랍어: ${item.arabic.replace(/\n/g, " / ")}`,
+      ""
+    );
+  });
+
+  try {
+    await navigator.clipboard.writeText(lines.join("\n").trim());
+    showNotice(`재제작 요청 ${requests.length}개를 복사했습니다. Codex 채팅에 붙여넣어 주세요.`);
+  } catch {
+    showNotice("자동 복사가 차단됐습니다. 재제작 항목만 보기로 전환한 뒤 이 페이지를 열어둔 채 요청해 주세요.");
+  }
+}
+
 function updateUrl() {
   if (!state.unit) return;
   const url = new URL(location.href);
@@ -1041,6 +1260,12 @@ els.uncheckedOnly.addEventListener("change", () => {
   probeVisible();
 });
 
+els.remakeOnly.addEventListener("change", () => {
+  state.remakeOnly = els.remakeOnly.checked;
+  render();
+  probeVisible();
+});
+
 els.list.addEventListener("click", event => {
   const play = event.target.closest("[data-play]");
   if (play) togglePlay(play.dataset.play);
@@ -1048,10 +1273,21 @@ els.list.addEventListener("click", event => {
 
 els.list.addEventListener("change", event => {
   const checkbox = event.target.closest("[data-check]");
-  if (checkbox) setCheck(checkbox.dataset.check, checkbox.checked);
+  if (checkbox) {
+    setCheck(checkbox.dataset.check, checkbox.checked);
+    return;
+  }
+  const remake = event.target.closest("[data-remake]");
+  if (remake) setRemake(remake.dataset.remake, remake.checked);
+});
+
+els.list.addEventListener("input", event => {
+  const reason = event.target.closest("[data-reason]");
+  if (reason) setReason(reason.dataset.reason, reason.value);
 });
 
 els.refresh.addEventListener("click", loadAll);
+els.copyRemake.addEventListener("click", copyRemakeRequest);
 
 els.checkAll.addEventListener("click", () => {
   selectedItems().forEach(item => { state.checked[itemKey(item)] = true; });
@@ -1073,7 +1309,7 @@ els.player.addEventListener("pause", render);
 els.player.addEventListener("ended", render);
 
 document.addEventListener("keydown", event => {
-  if (event.code !== "Space" || event.target.matches("button, input, select")) return;
+  if (event.code !== "Space" || event.target.matches("button, input, select, textarea")) return;
   event.preventDefault();
   if (els.player.src) els.player.paused ? els.player.play() : els.player.pause();
 });
