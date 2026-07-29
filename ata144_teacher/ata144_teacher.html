@@ -1679,6 +1679,7 @@ function fitArabicText() {
   el.style.fontSize = '';   // CSS 기본값(최대 크기)에서 시작
   const main = document.getElementById('main');
   const textArea = document.getElementById('text-area');
+  textArea?.querySelectorAll('.korean, .note').forEach(n => { n.style.fontSize = ''; });
   if (!main.clientHeight) return;   // 창이 숨겨져(0크기) 있으면 측정 불가 — resize 때 다시 맞춤
   const fits = () => {
     const cs = getComputedStyle(el);
@@ -1698,6 +1699,19 @@ function fitArabicText() {
   while (!fits() && size > 40 && guard-- > 0) {
     size *= 0.95;
     el.style.fontSize = size.toFixed(1) + 'px';
+  }
+  // 아랍어가 축소돼도 한국어·음가가 아랍어보다 커지지 않게: 한국어 ≤ 아랍어 55%, 음가 ≤ 한국어 85%
+  const arFinal = parseFloat(getComputedStyle(el).fontSize);
+  const koEl = textArea?.querySelector('.korean');
+  const noteEl = textArea?.querySelector('.note');
+  if (koEl) {
+    const koSize = parseFloat(getComputedStyle(koEl).fontSize);
+    if (koSize > arFinal * 0.55) koEl.style.fontSize = (arFinal * 0.55).toFixed(1) + 'px';
+  }
+  if (noteEl) {
+    const koBase = koEl ? parseFloat(getComputedStyle(koEl).fontSize) : arFinal * 0.5;
+    const ntSize = parseFloat(getComputedStyle(noteEl).fontSize);
+    if (ntSize > koBase * 0.85) noteEl.style.fontSize = (koBase * 0.85).toFixed(1) + 'px';
   }
 }
 let _fitResizeTimer = null;
