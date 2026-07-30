@@ -136,7 +136,8 @@ body {
 }
 /* A/G 유닛: 문장형 — 컨테이너 기준 최대 크기, JS fitArabicText()가 2줄 초과 시 축소 */
 .arabic.arabic-sentence {
-  font-size: clamp(2.5rem, 12cqi, 12rem);
+  /* 기준: أَرْجِعُ إِلَى الْبَيْت الْآن 길이가 딱 한 줄에 꽉 — 이보다 길면 2줄 균형 줄바꿈 */
+  font-size: clamp(2.5rem, 11cqi, 11rem);
   line-height: 1.5;
   text-wrap: balance;  /* 2줄로 내려가면 양쪽 줄 길이를 비슷하게 (한 단어만 떨어지는 깨짐 방지) */
 }
