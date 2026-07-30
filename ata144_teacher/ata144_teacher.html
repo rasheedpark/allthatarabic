@@ -138,6 +138,7 @@ body {
 .arabic.arabic-sentence {
   font-size: clamp(2.5rem, 12cqi, 12rem);
   line-height: 1.5;
+  text-wrap: balance;  /* 2줄로 내려가면 양쪽 줄 길이를 비슷하게 (한 단어만 떨어지는 깨짐 방지) */
 }
 
 /* ── 한국어/노트 ── */
@@ -203,7 +204,7 @@ body {
   margin-top: 0.5rem;
 }
 /* flex-shrink:0 — #main(flex)이 넘칠 때 박스가 찌그러지면 fitArabicText 실측이 틀어짐 */
-#arabic-area { container-type: inline-size; width: 100%; flex-shrink: 0; }
+#arabic-area { container-type: inline-size; width: 100%; flex-shrink: 0; padding: 0 clamp(1rem, 3vw, 3rem); box-sizing: border-box; }
 #text-area { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; min-height: 2rem; width: 100%; flex-shrink: 0; }
 
 /* ── 하이라이트 ── */
@@ -1684,6 +1685,7 @@ function fitArabicText() {
   textArea?.querySelectorAll('.korean, .note').forEach(n => { n.style.fontSize = ''; });
   if (!main.clientHeight) return;   // 창이 숨겨져(0크기) 있으면 측정 불가 — resize 때 다시 맞춤
   const fits = () => {
+    if (el.scrollWidth > el.clientWidth + 1) return false;  // 폭 초과(긴 단어) → 가로 잘림 방지
     const cs = getComputedStyle(el);
     const lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.5;
     const lines = Math.round(el.getBoundingClientRect().height / lh);
@@ -1717,7 +1719,7 @@ function fitArabicText() {
   capText();
   let size = parseFloat(getComputedStyle(el).fontSize);
   let guard = 60;
-  while (!fits() && size > 40 && guard-- > 0) {
+  while (!fits() && size > 28 && guard-- > 0) {
     size *= 0.95;
     el.style.fontSize = size.toFixed(1) + 'px';
     capText();
