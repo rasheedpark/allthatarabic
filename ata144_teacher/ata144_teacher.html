@@ -1966,6 +1966,7 @@ function toggleSidebar() {
 
 // ── 섹션 탭 ────────────────────────────────────────────
 const SEC_FIXED = [
+  { key:'drilla',  ko:'드릴', en:'Drill A'    },
   { key:'drillb',  ko:'연습', en:'Drill B'    },
   { key:'drillc',  ko:'심화', en:'Drill C'    },
   { key:'exp',     ko:'표현', en:'Expression' },
@@ -2009,11 +2010,11 @@ function updateSectionTabs() {
   if (!container) return;
   const curType = slides[current]?.type;
 
-  // 패턴 하위 슬라이드(ptn/repertory/writing, 패턴에 걸린 drilla)이면
-  // 가장 가까운 이전 ptn 탭 활성화. ref_ptn 없는 drilla(유닛 공통)는 제외.
+  // 패턴·래퍼토리는 가장 가까운 이전 패턴 탭을 활성화한다.
+  // 드릴A는 패턴 뒤에 인터리브되어 있어도 별도 '드릴' 탭을 활성화해
+  // A01~A24의 기존 드릴이 사라진 것처럼 보이지 않게 한다.
   let activePtnKey = null;
-  const isPtnSub = curType === 'ptn' || curType === 'repertory' || curType === 'writing' ||
-    (curType === 'drilla' && (slides[current]?.data?.ref_ptn || '').trim() !== '');
+  const isPtnSub = curType === 'ptn' || curType === 'repertory' || curType === 'writing';
   if (isPtnSub) {
     for (let i = current; i >= 0; i--) {
       if (slides[i]?.type === 'ptn') { activePtnKey = 'ptn_' + i; break; }
