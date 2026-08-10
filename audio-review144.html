@@ -907,7 +907,11 @@ async function loadAll() {
     a.localeCompare(b, undefined, { numeric: true })
   );
 
-  const queryUnit = new URLSearchParams(location.search).get("unit")?.toUpperCase();
+  const query = new URLSearchParams(location.search);
+  const queryUnit = query.get("unit")?.toUpperCase();
+  const queryFilter = String(query.get("type") || "").toLowerCase();
+  const validFilters = new Set(["all", ...TAB_CONFIG.map(config => config.tab)]);
+  if (validFilters.has(queryFilter)) state.filter = queryFilter;
   const previousUnit = state.unit;
   state.unit = state.units.includes(queryUnit) ? queryUnit :
     state.units.includes(previousUnit) ? previousUnit :
@@ -1221,6 +1225,8 @@ function updateUrl() {
   if (!state.unit) return;
   const url = new URL(location.href);
   url.searchParams.set("unit", state.unit);
+  if (state.filter === "all") url.searchParams.delete("type");
+  else url.searchParams.set("type", state.filter);
   history.replaceState(null, "", url);
 }
 
@@ -1241,6 +1247,7 @@ els.filters.addEventListener("click", event => {
   const button = event.target.closest("[data-filter]");
   if (!button) return;
   state.filter = button.dataset.filter;
+  updateUrl();
   render();
   probeVisible();
 });
