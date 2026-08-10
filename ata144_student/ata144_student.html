@@ -520,6 +520,7 @@ const AUDIO_EXTS = new URLSearchParams(location.search).get('audio') === 'wav'
 const TAB_UNIT    = 'units';
 const TAB_PATTERN = 'pattern';
 const TAB_DRILL   = 'drill';
+const TAB_EXPRESSION = 'expression';
 const TAB_KALIMAT = 'kalimat';
 const TAB_NASS    = 'nass';
 
@@ -663,10 +664,11 @@ async function buildSlides(baseUnit) {
   sp.set('unit', baseUnit);
   history.replaceState(null,'','?'+sp.toString());
 
-  const [unitRaw, patternRaw, drillRaw, kalimatRaw, nassRaw] = await Promise.all([
+  const [unitRaw, patternRaw, drillRaw, expressionRaw, kalimatRaw, nassRaw] = await Promise.all([
     fetchSheet(TAB_UNIT),
     fetchSheet(TAB_PATTERN),
     fetchSheet(TAB_DRILL),
+    fetchSheet(TAB_EXPRESSION),
     fetchSheet(TAB_KALIMAT),
     fetchSheet(TAB_NASS),
   ]);
@@ -693,7 +695,7 @@ async function buildSlides(baseUnit) {
     .forEach(r => push('drillb', r));
 
   // 4. exp (표현)
-  kalimatRaw.filter(r => inU(r) && ok(r) && normalizeType(r.type) === 'exp')
+  expressionRaw.filter(r => inU(r) && ok(r) && normalizeType(r.type) === 'exp')
     .forEach(r => push('exp', r));
 
   // 5. nass (지문)
@@ -1254,6 +1256,7 @@ async function init() {
       fetchSheet(TAB_UNIT),
       fetchSheet(TAB_PATTERN),
       fetchSheet(TAB_DRILL),
+      fetchSheet(TAB_EXPRESSION),
       fetchSheet(TAB_KALIMAT),
       fetchSheet(TAB_NASS),
     ]);
