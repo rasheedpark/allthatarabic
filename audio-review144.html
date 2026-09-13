@@ -293,6 +293,27 @@
 
   .workflow-tip strong { color: var(--ink); }
 
+  .shared-bar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 14px 2px 0;
+    padding: 12px 14px;
+    border: 1px solid #b8e0d0;
+    border-radius: 12px;
+    background: var(--green-soft);
+    color: #1e654b;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .shared-bar.show { display: flex; }
+  .shared-bar strong { color: var(--ink); }
+  .sync-state { flex: 0 0 auto; font-weight: 800; }
+  .sync-state.saving { color: var(--amber); }
+  .sync-state.error { color: var(--red); }
+
   .list { display: grid; gap: 10px; }
 
   .audio-card {
@@ -672,6 +693,11 @@
     페이지를 닫았을 때는 ‘재제작 요청 복사’를 눌러 채팅에 붙여넣으면 됩니다.
   </p>
 
+  <div class="shared-bar" id="shared-bar" role="status">
+    <span><strong id="reviewer-name">Merna</strong> 검수 · 입력한 체크와 수정 사유가 공용 목록에 자동 저장됩니다.</span>
+    <span class="sync-state" id="sync-state">연결 중</span>
+  </div>
+
   <section class="summary" aria-live="polite">
     <div>
       <div class="summary-title">
@@ -708,6 +734,14 @@ const SHEET_ID = "1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8";
 const AUDIO_BASE = "https://storage.googleapis.com/all-that-arabic-14/audio";
 const STORAGE_KEY = "ata144-audio-review-v1";
 const REMAKE_STORAGE_KEY = "ata144-audio-remake-v1";
+const FEEDBACK_API = "https://ata144-review-feedback-287996655031.asia-northeast3.run.app";
+const pageQuery = new URLSearchParams(location.search);
+const sharedReview = {
+  id: String(pageQuery.get("review") || "").trim().toLowerCase(),
+  key: String(pageQuery.get("key") || "").trim(),
+  reviewer: String(pageQuery.get("reviewer") || "Merna").trim() || "Merna"
+};
+sharedReview.enabled = Boolean(sharedReview.id && sharedReview.key);
 
 const TAB_CONFIG = [
   { tab: "pattern",    label: "패턴",     types: ["ptn"] },
@@ -732,6 +766,9 @@ const state = {
   audioVersion: Date.now()
 };
 
+const sharedSaveTimers = new Map();
+let sharedPending = 0;
+
 const els = {
   unit: document.getElementById("unit-select"),
   filters: document.getElementById("filter-row"),
@@ -749,8 +786,89 @@ const els = {
   dock: document.getElementById("player-dock"),
   player: document.getElementById("audio-player"),
   playerLabel: document.getElementById("player-label"),
-  playerTitle: document.getElementById("player-title")
+  playerTitle: document.getElementById("player-title"),
+  sharedBar: document.getElementById("shared-bar"),
+  reviewerName: document.getElementById("reviewer-name"),
+  syncState: document.getElementById("sync-state")
 };
+
+function setSyncState(label, className = "") {
+  if (!sharedReview.enabled) return;
+  els.syncState.textContent = label;
+  els.syncState.className = `sync-state${className ? ` ${className}` : ""}`;
+}
+
+function sharedEndpoint() {
+  const url = new URL(`${FEEDBACK_API}/feedback`);
+  url.searchParams.set("review", sharedReview.id);
+  url.searchParams.set("key", sharedReview.key);
+  return url;
+}
+
+async function loadSharedFeedback() {
+  if (!sharedReview.enabled) return;
+  setSyncState("불러오는 중", "saving");
+  const response = await fetch(sharedEndpoint(), { cache: "no-store" });
+  if (!response.ok) throw new Error(`feedback ${response.status}`);
+  const payload = await response.json();
+  state.checked = {};
+  state.remakes = {};
+  Object.entries(payload.items || {}).forEach(([key, record]) => {
+    if (record.checked) state.checked[key] = true;
+    if (record.needed || String(record.reason || "").trim()) {
+      state.remakes[key] = {
+        needed: Boolean(record.needed),
+        reason: String(record.reason || "")
+      };
+    }
+  });
+  setSyncState("공용 저장 연결됨");
+}
+
+async function saveSharedRecord(key, keepalive = false) {
+  if (!sharedReview.enabled) return;
+  const remake = remakeRecord(key);
+  sharedPending += 1;
+  setSyncState("저장 중", "saving");
+  try {
+    const response = await fetch(sharedEndpoint(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        review: sharedReview.id,
+        itemKey: key,
+        needed: remake.needed,
+        reason: remake.reason,
+        checked: Boolean(state.checked[key]),
+        reviewer: sharedReview.reviewer
+      }),
+      cache: "no-store",
+      keepalive
+    });
+    if (!response.ok) throw new Error(`feedback ${response.status}`);
+    sharedPending -= 1;
+    if (!sharedPending) setSyncState("저장됨");
+  } catch (error) {
+    sharedPending = Math.max(0, sharedPending - 1);
+    setSyncState("저장 실패 · 다시 시도해 주세요", "error");
+  }
+}
+
+function scheduleSharedSave(key, delay = 650) {
+  if (!sharedReview.enabled) return;
+  clearTimeout(sharedSaveTimers.get(key));
+  sharedSaveTimers.set(key, setTimeout(() => {
+    sharedSaveTimers.delete(key);
+    saveSharedRecord(key);
+  }, delay));
+}
+
+async function syncSharedKeys(keys) {
+  if (!sharedReview.enabled) return;
+  for (let index = 0; index < keys.length; index += 8) {
+    await Promise.all(keys.slice(index, index + 8).map(key => saveSharedRecord(key)));
+  }
+}
 
 function loadChecks() {
   try {
@@ -875,6 +993,61 @@ function rowToItem(row, config, order) {
   };
 }
 
+function applyInitialSelection() {
+  const query = new URLSearchParams(location.search);
+  const queryUnit = query.get("unit")?.toUpperCase();
+  const queryFilter = String(query.get("type") || "").toLowerCase();
+  const validFilters = new Set(["all", ...TAB_CONFIG.map(config => config.tab)]);
+  if (validFilters.has(queryFilter)) state.filter = queryFilter;
+  const previousUnit = state.unit;
+  state.unit = queryUnit === "ALL" ? "ALL" :
+    state.units.includes(queryUnit) ? queryUnit :
+    state.units.includes(previousUnit) ? previousUnit :
+    state.units[state.units.length - 1] || "";
+}
+
+function reviewText(value) {
+  return Array.isArray(value) ? value.join("\n") : String(value || "");
+}
+
+async function loadDraftManifest(manifestPath) {
+  const response = await fetch(manifestPath, { cache: "no-store" });
+  if (!response.ok) throw new Error("draft manifest");
+  const data = await response.json();
+  const items = Array.isArray(data.items) ? data.items : [];
+
+  state.items = items.map((item, order) => ({
+    id: String(item.id || ""),
+    unit: String(item.unit || "A35").trim().toUpperCase(),
+    tab: "nass",
+    group: "nass",
+    groupLabel: "지문",
+    type: "nass",
+    arabic: reviewText(item.arabic),
+    korean: reviewText(item.korean),
+    note: reviewText(item.note),
+    lahja: String(item.lahja || ""),
+    status: "draft",
+    url: String(item.audio || ""),
+    order
+  })).filter(item => item.id && item.arabic);
+  state.units = [...new Set(state.items.map(item => item.unit))].sort((a, b) =>
+    a.localeCompare(b, undefined, { numeric: true })
+  );
+  try {
+    await loadSharedFeedback();
+  } catch {
+    setSyncState("공용 저장 연결 실패", "error");
+  }
+  applyInitialSelection();
+  renderUnitOptions();
+  render();
+  els.refresh.disabled = false;
+  els.unit.disabled = !state.units.length;
+  showNotice(`${data.title || "초안 지문 듣기"} · 시트 반영 전 검수용 파일입니다.`);
+  probeVisible();
+}
+
 async function loadAll() {
   stopPlayback();
   state.audioVersion = Date.now();
@@ -883,6 +1056,18 @@ async function loadAll() {
   els.list.innerHTML = '<div class="loading">최신 시트와 오디오를 확인하고 있습니다.</div>';
   showNotice("");
   state.availability.clear();
+
+  const draftManifest = new URLSearchParams(location.search).get("manifest");
+  if (draftManifest) {
+    try {
+      await loadDraftManifest(draftManifest);
+    } catch (error) {
+      els.summaryCopy.textContent = "초안 검수 데이터를 불러오지 못했습니다.";
+      els.list.innerHTML = '<div class="empty">초안 검수 데이터를 불러오지 못했습니다.</div>';
+      els.refresh.disabled = false;
+    }
+    return;
+  }
 
   const results = await Promise.allSettled(TAB_CONFIG.map(config => fetchSheetData(config.tab)));
   const failed = [];
@@ -907,15 +1092,13 @@ async function loadAll() {
     a.localeCompare(b, undefined, { numeric: true })
   );
 
-  const query = new URLSearchParams(location.search);
-  const queryUnit = query.get("unit")?.toUpperCase();
-  const queryFilter = String(query.get("type") || "").toLowerCase();
-  const validFilters = new Set(["all", ...TAB_CONFIG.map(config => config.tab)]);
-  if (validFilters.has(queryFilter)) state.filter = queryFilter;
-  const previousUnit = state.unit;
-  state.unit = state.units.includes(queryUnit) ? queryUnit :
-    state.units.includes(previousUnit) ? previousUnit :
-    state.units[state.units.length - 1] || "";
+  try {
+    await loadSharedFeedback();
+  } catch {
+    setSyncState("공용 저장 연결 실패", "error");
+  }
+
+  applyInitialSelection();
 
   renderUnitOptions();
   render();
@@ -927,9 +1110,16 @@ async function loadAll() {
 }
 
 function renderUnitOptions() {
-  els.unit.innerHTML = state.units.map(unit =>
+  const allOption = state.units.length > 1
+    ? `<option value="ALL"${state.unit === "ALL" ? " selected" : ""}>전체 유닛</option>`
+    : "";
+  els.unit.innerHTML = allOption + state.units.map(unit =>
     `<option value="${escapeHtml(unit)}"${unit === state.unit ? " selected" : ""}>${escapeHtml(unit)}</option>`
   ).join("");
+}
+
+function itemMatchesUnit(item) {
+  return state.unit === "ALL" || item.unit === state.unit;
 }
 
 function renderFilters() {
@@ -937,7 +1127,7 @@ function renderFilters() {
   els.filters.innerHTML = filters.map(filter => {
     const active = state.filter === filter.tab ? " active" : "";
     const count = state.items.filter(item =>
-      item.unit === state.unit && (filter.tab === "all" || item.group === filter.tab)
+      itemMatchesUnit(item) && (filter.tab === "all" || item.group === filter.tab)
     ).length;
     return `<button class="chip${active}" type="button" data-filter="${filter.tab}">` +
       `${escapeHtml(filter.label)} ${count}</button>`;
@@ -947,7 +1137,7 @@ function renderFilters() {
 function selectedItems() {
   return state.items.filter(item => {
     const key = itemKey(item);
-    if (item.unit !== state.unit) return false;
+    if (!itemMatchesUnit(item)) return false;
     if (state.filter !== "all" && item.group !== state.filter) return false;
     if (state.uncheckedOnly && state.checked[key]) return false;
     if (state.remakeOnly && !remakeRecord(key).needed) return false;
@@ -956,7 +1146,7 @@ function selectedItems() {
 }
 
 function unitItems() {
-  return state.items.filter(item => item.unit === state.unit);
+  return state.items.filter(itemMatchesUnit);
 }
 
 function render() {
@@ -969,7 +1159,7 @@ function render() {
   const missingCount = all.filter(item => state.availability.get(itemKey(item))?.state === "missing").length;
   const percent = all.length ? Math.round((checkedCount / all.length) * 100) : 0;
 
-  els.summaryTitle.textContent = `${state.unit || "—"} 오디오`;
+  els.summaryTitle.textContent = `${state.unit === "ALL" ? "전체 유닛" : state.unit || "—"} 오디오`;
   els.summaryCopy.textContent =
     `점검 ${checkedCount}/${all.length} · 파일 확인 ${readyCount}` +
     (missingCount ? ` · 누락 ${missingCount}` : "") +
@@ -1007,6 +1197,7 @@ function renderCard(item) {
         ${availability.state === "missing" ? "disabled" : ""}>${playing ? "Ⅱ" : "▶"}</button>
       <div class="card-copy">
         <div class="meta">
+          <span class="kind">${escapeHtml(item.unit)}</span>
           <span class="kind">${escapeHtml(item.groupLabel)}</span>
           ${item.lahja ? `<span class="dialect">${escapeHtml(item.lahja)}</span>` : ""}
           <span class="audio-state ${availability.state}" data-state="${escapeAttr(key)}">${escapeHtml(availability.label)}</span>
@@ -1175,6 +1366,7 @@ function setCheck(key, checked) {
   if (checked) state.checked[key] = true;
   else delete state.checked[key];
   saveChecks();
+  scheduleSharedSave(key, 0);
   render();
 }
 
@@ -1183,6 +1375,7 @@ function setRemake(key, needed) {
   state.remakes[key] = { needed, reason: current.reason };
   if (!needed && !current.reason.trim()) delete state.remakes[key];
   saveRemakes();
+  scheduleSharedSave(key, 0);
   render();
 }
 
@@ -1191,6 +1384,7 @@ function setReason(key, reason) {
   if (!current.needed && !reason.trim()) delete state.remakes[key];
   else state.remakes[key] = { needed: current.needed, reason };
   saveRemakes();
+  scheduleSharedSave(key);
 }
 
 async function copyRemakeRequest() {
@@ -1198,7 +1392,7 @@ async function copyRemakeRequest() {
   if (!requests.length) return;
 
   const lines = [
-    `ATA 1.4.4 ${state.unit} 오디오 재제작 요청입니다.`,
+    `ATA 1.4.4 ${state.unit === "ALL" ? "전체 유닛" : state.unit} 오디오 재제작 요청입니다.`,
     "아래 ID를 적힌 사유에 맞게 다시 제작하고 스토리지에 덮어써 주세요.",
     ""
   ];
@@ -1293,13 +1487,23 @@ els.list.addEventListener("input", event => {
   if (reason) setReason(reason.dataset.reason, reason.value);
 });
 
+els.list.addEventListener("focusout", event => {
+  const reason = event.target.closest("[data-reason]");
+  if (!reason || !sharedReview.enabled) return;
+  clearTimeout(sharedSaveTimers.get(reason.dataset.reason));
+  sharedSaveTimers.delete(reason.dataset.reason);
+  saveSharedRecord(reason.dataset.reason);
+});
+
 els.refresh.addEventListener("click", loadAll);
 els.copyRemake.addEventListener("click", copyRemakeRequest);
 
 els.checkAll.addEventListener("click", () => {
-  selectedItems().forEach(item => { state.checked[itemKey(item)] = true; });
+  const keys = selectedItems().map(itemKey);
+  keys.forEach(key => { state.checked[key] = true; });
   saveChecks();
   render();
+  syncSharedKeys(keys);
 });
 
 els.reset.addEventListener("click", () => {
@@ -1309,6 +1513,7 @@ els.reset.addEventListener("click", () => {
   items.forEach(item => delete state.checked[itemKey(item)]);
   saveChecks();
   render();
+  syncSharedKeys(items.map(itemKey));
 });
 
 els.player.addEventListener("play", render);
@@ -1322,6 +1527,10 @@ document.addEventListener("keydown", event => {
 });
 
 renderFilters();
+if (sharedReview.enabled) {
+  els.reviewerName.textContent = sharedReview.reviewer;
+  els.sharedBar.classList.add("show");
+}
 loadAll();
 </script>
 </body>

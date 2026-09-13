@@ -3,6 +3,7 @@
 *.pdf
 *.docx
 *.avif
+.review-feedback-144.env
 
 # Claude 작업폴더
 .claude/
