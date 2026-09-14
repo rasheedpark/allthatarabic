@@ -4,7 +4,7 @@
     {
       "id": "nass_madha-tafalu-al",
       "unit": "A21",
-      "pattern": "",
+      "pattern": "A21_yudarrisu-al-mudarris-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -22,7 +22,7 @@
     {
       "id": "nass_limadha-tughayyiru-al",
       "unit": "A21",
-      "pattern": "",
+      "pattern": "A21_yudarrisu-al-mudarris-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -33,14 +33,14 @@
       "tss": "لِمَاذَا تُغَيِّرُ الْمَوْعِد دَائِمًا؟\nفِي الْحَقِيقَة عِنْدِي اِجْتِمَاع الْيَوْم، آسِف.",
       "korean": "왜 항상 약속 시간을 바꿔요?\n사실은 오늘 회의가 있어서요, 미안해요.",
       "note": "limādhā tughayyiru al-mawʕid dāʔiman?\nfī al-ḥaqīqa ʕindī ijtimāʕ al-yawm, āsif",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A21/nass_limadha-tughayyiru-al.mp3?v=1789280788314556462",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A21/nass_limadha-tughayyiru-al.mp3?v=1789387530000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_hal-tuqabilu-al",
       "unit": "A21",
-      "pattern": "",
+      "pattern": "A21_yudarrisu-al-mudarris-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -51,14 +51,14 @@
       "tss": "هَلْ تُقَابِلُ الْمُدِير غَدًا؟\nنَعَم، نَحْنُ عَلَى مَوْعِد.",
       "korean": "내일 매니저를 만나요?\n네, 그럼 그때 봬요.",
       "note": "hal tuqābilu al-mudīr ghadan?\nnaʕam, naḥnu ʕalā mawʕid",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A21/nass_hal-tuqabilu-al.mp3?v=1789280792240081749",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A21/nass_hal-tuqabilu-al.mp3?v=1789387536000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_hal-nunaqishu-al",
       "unit": "A21",
-      "pattern": "",
+      "pattern": "A21_yudarrisu-al-mudarris-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -76,7 +76,7 @@
     {
       "id": "nass_atini-al-miftah",
       "unit": "A21",
-      "pattern": "",
+      "pattern": "A21_yudarrisu-al-mudarris-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -94,7 +94,7 @@
     {
       "id": "nass_akmaltu-ad-dars",
       "unit": "A21",
-      "pattern": "",
+      "pattern": "A21_yudarrisu-al-mudarris-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -112,7 +112,7 @@
     {
       "id": "nass_nawwart-ya-majid",
       "unit": "A21",
-      "pattern": "",
+      "pattern": "A21_yudarrisu-al-mudarris-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -130,7 +130,7 @@
     {
       "id": "nass_nawwart-ya-khalid",
       "unit": "A21",
-      "pattern": "",
+      "pattern": "A21_yudarrisu-al-mudarris-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -148,7 +148,7 @@
     {
       "id": "nass_asif-mumkin-tatini",
       "unit": "A21",
-      "pattern": "",
+      "pattern": "A21_yudarrisu-al-mudarris-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -166,7 +166,7 @@
     {
       "id": "nass_umar-mumkin-tasawwirni",
       "unit": "A21",
-      "pattern": "",
+      "pattern": "A21_yudarrisu-al-mudarris-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -177,14 +177,14 @@
       "tss": "عُمَرْ، مُمْكِنْ تَصَوِّرْنِي؟\nمِنْ عُيُونِي، أَصَوِّرِكْ الْحِينْ.",
       "korean": "오마르, 나 사진 좀 찍어줄래?\n그래, 지금 찍어줄게.",
       "note": "ʕumar, mumkin taṣawwirnī?\nmin ʕyūnī, aṣawwirak al-ḥīn",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A21/nass_umar-mumkin-tasawwirni.mp3?v=1789280766213212358",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A21/nass_umar-mumkin-tasawwirni.mp3?v=1789387523000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_wasalat-ar-risala",
       "unit": "A21",
-      "pattern": "",
+      "pattern": "A21_yudarrisu-al-mudarris-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -202,7 +202,7 @@
     {
       "id": "nass_ana-ashahid-al",
       "unit": "A21",
-      "pattern": "",
+      "pattern": "A21_yudarrisu-al-mudarris-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -220,7 +220,7 @@
     {
       "id": "nass_mumkin-tuhdir-al",
       "unit": "A21",
-      "pattern": "",
+      "pattern": "A21_yudarrisu-al-mudarris-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -231,14 +231,14 @@
       "tss": "مُمْكِن تُحْضِر الْمَاي؟\nحَاضِر، الْحِين!",
       "korean": "물 좀 가져다줄래?\n알겠습니다, 지금요!",
       "note": "mumkin tuḥḍir al-māy?\nḥāḍir, al-ḥīn!",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A21/nass_mumkin-tuhdir-al.mp3?v=1789280809024622406",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A21/nass_mumkin-tuhdir-al.mp3?v=1789387542000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_ya-salman-ana",
       "unit": "A22",
-      "pattern": "",
+      "pattern": "A22_tataallamu-sara-al-arabiyya",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -256,7 +256,7 @@
     {
       "id": "nass_naam-ana-ataallam",
       "unit": "A22",
-      "pattern": "",
+      "pattern": "A22_tataallamu-sara-al-arabiyya",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -274,7 +274,7 @@
     {
       "id": "nass_hal-tatadhakkaru-mawid",
       "unit": "A22",
-      "pattern": "",
+      "pattern": "A22_tataallamu-sara-al-arabiyya",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -292,7 +292,7 @@
     {
       "id": "nass_atawasalu-maa-sara",
       "unit": "A22",
-      "pattern": "",
+      "pattern": "A22_tataallamu-sara-al-arabiyya",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -310,7 +310,7 @@
     {
       "id": "nass_nabqa-ala-tawasul",
       "unit": "A22",
-      "pattern": "",
+      "pattern": "A22_tataallamu-sara-al-arabiyya",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -328,7 +328,7 @@
     {
       "id": "nass_tatakallamu-al-arabiyya",
       "unit": "A22",
-      "pattern": "",
+      "pattern": "A22_tataallamu-sara-al-arabiyya",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -346,7 +346,7 @@
     {
       "id": "nass_mabruk-ya-majid",
       "unit": "A22",
-      "pattern": "",
+      "pattern": "A22_tataallamu-sara-al-arabiyya",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -364,7 +364,7 @@
     {
       "id": "nass_hind-ana-marida",
       "unit": "A22",
-      "pattern": "",
+      "pattern": "A22_tataallamu-sara-al-arabiyya",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -375,14 +375,14 @@
       "tss": "هِنْدْ، أَنَا مَرِيضَة شُوَيَّ الْيَوْمْ، مَا أَقْدَرْ أَتَحَرَّكْ لِلْمَرْكَزْ، آسِفَهْ.\nسَلَامَاتْ، وِشْ السَّالْفَهْ؟",
       "korean": "힌드 씨, 저 오늘 조금 아파서 센터에 못 갈 것 같아요. 미안해요.\n아이고, 괜찮아요? 무슨 일이에요?",
       "note": "hind, anā marīḍa shuwayy al-yawm, mā aqdar ataḥarrak lil-markaz. āsfa.\nsalāmāt, wish as-sālifa?",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A22/nass_hind-ana-marida.mp3?v=1789280830296374559",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A22/nass_hind-ana-marida.mp3?v=1789387551000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_atdarrab-fi-an",
       "unit": "A22",
-      "pattern": "",
+      "pattern": "A22_tataallamu-sara-al-arabiyya",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -393,14 +393,14 @@
       "tss": "أَتَدَرَّب فِي النَّادِي كُلّ يَوْم.\nعَنْ جِدّ؟ أَحْسَنْت! يَلَّا نَبْدَأ.",
       "korean": "나 매일 체육관에서 운동해.\n진짜? 대단한데! 자, 우리도 시작하자.",
       "note": "atdarrab fī an-nādī kull yawm.\nʕan jidd? aḥsant! yallā nabdaʔ",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A22/nass_atdarrab-fi-an.mp3?v=1789280848820113682",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A22/nass_atdarrab-fi-an.mp3?v=1789387557000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_win-nataqabal-fi",
       "unit": "A22",
-      "pattern": "",
+      "pattern": "A22_tataallamu-sara-al-arabiyya",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -411,14 +411,14 @@
       "tss": "وِين نَتَقَابَل، فِي الْكَافِيه؟\nإِي، اِتَّفَقْنَا.",
       "korean": "어디서 만날까, 카페에서?\n응, 콜!",
       "note": "wīn nataqābal, fī al-kāfīh?\nī, ittafaqnā",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A22/nass_win-nataqabal-fi.mp3?v=1789280852611627497",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A22/nass_win-nataqabal-fi.mp3?v=1789387562000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_qaid-tataallam-arabi",
       "unit": "A22",
-      "pattern": "",
+      "pattern": "A22_tataallamu-sara-al-arabiyya",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -436,7 +436,7 @@
     {
       "id": "nass_tafaddal-al-ashaʔ",
       "unit": "A22",
-      "pattern": "",
+      "pattern": "A22_tataallamu-sara-al-arabiyya",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -454,7 +454,7 @@
     {
       "id": "nass_subhan-allah-intafaʔa",
       "unit": "A23",
-      "pattern": "",
+      "pattern": "A23_inkasara-jawwali-ams",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -472,7 +472,7 @@
     {
       "id": "nass_alu-inqataa-al",
       "unit": "A23",
-      "pattern": "",
+      "pattern": "A23_inkasara-jawwali-ams",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -490,7 +490,7 @@
     {
       "id": "nass_subhan-allah-hadha",
       "unit": "A23",
-      "pattern": "",
+      "pattern": "A23_inkasara-jawwali-ams",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -508,7 +508,7 @@
     {
       "id": "nass_al-matam-al",
       "unit": "A23",
-      "pattern": "",
+      "pattern": "A23_inkasara-jawwali-ams",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -526,7 +526,7 @@
     {
       "id": "nass_hali-al-mudir",
       "unit": "A23",
-      "pattern": "",
+      "pattern": "A23_inkasara-jawwali-ams",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -544,7 +544,7 @@
     {
       "id": "nass_sudimtu-mina-al",
       "unit": "A23",
-      "pattern": "",
+      "pattern": "A23_inkasara-jawwali-ams",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -562,7 +562,7 @@
     {
       "id": "nass_jawwali-inkasar-ams",
       "unit": "A23",
-      "pattern": "",
+      "pattern": "A23_inkasara-jawwali-ams",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -580,7 +580,7 @@
     {
       "id": "nass_mumkin-at-tadkhin",
       "unit": "A23",
-      "pattern": "",
+      "pattern": "A23_inkasara-jawwali-ams",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -598,7 +598,7 @@
     {
       "id": "nass_inta-mawlud-win",
       "unit": "A23",
-      "pattern": "",
+      "pattern": "A23_inkasara-jawwali-ams",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -609,14 +609,14 @@
       "tss": "إِنْتَ مَوْلُود وِين؟\nأَنَا مَوْلُود فِي كُورِيَا، وَإِنْتَ؟",
       "korean": "너 어디서 태어났어?\n난 한국에서 태어났어, 너는?",
       "note": "inta mawlūd wīn?\nanā mawlūd fī kūriyā, wa-inta?",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A23/nass_inta-mawlud-win.mp3?v=1789280896213672819",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A23/nass_inta-mawlud-win.mp3?v=1789387568000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_ams-inbasatt-wayid",
       "unit": "A23",
-      "pattern": "",
+      "pattern": "A23_inkasara-jawwali-ams",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -634,7 +634,7 @@
     {
       "id": "nass_mumkin-taftah-ash",
       "unit": "A23",
-      "pattern": "",
+      "pattern": "A23_inkasara-jawwali-ams",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -652,7 +652,7 @@
     {
       "id": "nass_subhan-allah-haqibatak",
       "unit": "A23",
-      "pattern": "",
+      "pattern": "A23_inkasara-jawwali-ams",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -663,14 +663,14 @@
       "tss": "سُبْحَان الله، حَقِيبَتك حِلْوَهْ! مِنْ وِين؟\nمَصْنُوعَة فِي كُورِيَا!",
       "korean": "우와, 가방 예쁘다! 어디 거야?\n한국에서 만든 거야!",
       "note": "subḥān allāh, ḥaqībatak ḥilwa! min wīn?\nmaṣnūʕa fī kūriyā!",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A23/nass_subhan-allah-haqibatak.mp3?v=1789280928486055957",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A23/nass_subhan-allah-haqibatak.mp3?v=1789387574000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_sa-usawwiruk-ibtasim",
       "unit": "A24",
-      "pattern": "",
+      "pattern": "A24_antaziru-fi-al-maqha",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -681,14 +681,14 @@
       "tss": "سَأُصَوِّرُك. اِبْتَسِم!\nنَعَم! لَكِنْ أَنَا أَنْتَظِرُ الْبَاص الْآن!",
       "korean": "사진 찍어줄게요. 웃으세요!\n네! 근데 저 지금 버스 기다리고 있어요!",
       "note": "sa-uṣawwiruk. ibtasim!\nnaʕam! lākin anā antaẓiru al-bāṣ al-ān!",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A24/nass_sa-usawwiruk-ibtasim.mp3?v=1789280933327854878",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A24/nass_sa-usawwiruk-ibtasim.mp3?v=1789387580000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_hadha-al-matam",
       "unit": "A24",
-      "pattern": "",
+      "pattern": "A24_antaziru-fi-al-maqha",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -706,7 +706,7 @@
     {
       "id": "nass_hal-anta-mustaidd",
       "unit": "A24",
-      "pattern": "",
+      "pattern": "A24_antaziru-fi-al-maqha",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -724,7 +724,7 @@
     {
       "id": "nass_ana-tabana-jiddan",
       "unit": "A24",
-      "pattern": "",
+      "pattern": "A24_antaziru-fi-al-maqha",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -735,14 +735,14 @@
       "tss": "أَنَا تَعْبَانَة جِدًّا.\nمِنَ اللَّازِم الِاسْتِرَاحَة الْيَوْم.",
       "korean": "저 너무 피곤해요.\n오늘은 꼭 쉬어야 해요.",
       "note": "anā taʕbāna jiddan\nmina al-lāzim al-istirāḥa al-yawm",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A24/nass_ana-tabana-jiddan.mp3?v=1789280956823433042",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A24/nass_ana-tabana-jiddan.mp3?v=1789387592000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_alu-ittasalt-ashan",
       "unit": "A24",
-      "pattern": "",
+      "pattern": "A24_antaziru-fi-al-maqha",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -760,7 +760,7 @@
     {
       "id": "nass_intaha-al-ijtima",
       "unit": "A24",
-      "pattern": "",
+      "pattern": "A24_antaziru-fi-al-maqha",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -771,14 +771,14 @@
       "tss": "اِنْتَهَى الِاجْتِمَاع؟ لَازِم أَنْتَظِر وَايِد؟\nلِسَّه مَا انْتَهَى. كَلِّمْنِي بَعْد سَاعَهْ.",
       "korean": "회의 끝났어? 한참 기다려야 해?\n아직 안 끝났어. 한 시간 뒤에 전화해줘.",
       "note": "intahā al-ijtimāʕ? lāzim antaẓir wāyid?\nlissah mā intahā. kallimnī baʕd sāʕa",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A24/nass_intaha-al-ijtima.mp3?v=1789280943563282961",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A24/nass_intaha-al-ijtima.mp3?v=1789387587000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_kayf-nruh-nastaʔjir",
       "unit": "A24",
-      "pattern": "",
+      "pattern": "A24_antaziru-fi-al-maqha",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -796,7 +796,7 @@
     {
       "id": "nass_khalas-mistaiddin-lil",
       "unit": "A24",
-      "pattern": "",
+      "pattern": "A24_antaziru-fi-al-maqha",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -807,14 +807,14 @@
       "tss": "خَلَاص، مِسْتَعِدِّين لِلْحَفْلَهْ؟\nإِي، كُلّ شَيْء جَاهِز. تَبِي شَيْء؟ كَلِّمْنِي.",
       "korean": "파티 준비 다 됐어?\n응, 다 준비됐어. 뭐 필요해? 말해줘.",
       "note": "khalāṣ, mistaʕiddīn lil-ḥafla?\nī, kull shayʔ jāhiz. tabī shayʔ? kallimnī",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A24/nass_khalas-mistaiddin-lil.mp3?v=1789280967068783617",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A24/nass_khalas-mistaiddin-lil.mp3?v=1789387599000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_hadhihi-as-sayyara",
       "unit": "A25",
-      "pattern": "",
+      "pattern": "A25_uhibbu-al-ahmar",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -832,7 +832,7 @@
     {
       "id": "nass_hadha-al-qamis",
       "unit": "A25",
-      "pattern": "",
+      "pattern": "A25_uhibbu-al-ahmar",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -850,7 +850,7 @@
     {
       "id": "nass_ya-ilahi-sara",
       "unit": "A25",
-      "pattern": "",
+      "pattern": "A25_uhibbu-al-ahmar",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -868,7 +868,7 @@
     {
       "id": "nass_sara-wajhuka-asfar",
       "unit": "A25",
-      "pattern": "",
+      "pattern": "A25_uhibbu-al-ahmar",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -886,7 +886,7 @@
     {
       "id": "nass_ihmarra-wajhuhu-hal",
       "unit": "A25",
-      "pattern": "",
+      "pattern": "A25_uhibbu-al-ahmar",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -897,14 +897,14 @@
       "tss": "اِحْمَرَّ وَجْهُهُ. هَلْ هُوَ بِخَيْر؟\nنَعَم، هُوَ بِخَيْر. الْجَوّ حَارّ فَقَط.",
       "korean": "그의 얼굴이 빨개졌어요. 괜찮은가요?\n네, 괜찮아요. 날씨가 더울 뿐이에요.",
       "note": "iḥmarra wajhuhu. hal huwa bi-khayr?\nnaʕam, huwa bi-khayr. al-jaww ḥārr faqaṭ.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A25/nass_ihmarra-wajhuhu-hal.mp3?v=1789281018278700092",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A25/nass_ihmarra-wajhuhu-hal.mp3?v=1789387611000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_ihmarrat-yaduhu-hal",
       "unit": "A25",
-      "pattern": "",
+      "pattern": "A25_uhibbu-al-ahmar",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -915,14 +915,14 @@
       "tss": "اِحْمَرَّتْ يَدُهُ. هَلْ هُوَ مَرِيض؟\nلَا بَأْس، الْجَوّ بَارِد فَقَط.",
       "korean": "그의 손이 빨개졌어요. 아픈가요?\n괜찮아요. 날씨가 추울 뿐이에요.",
       "note": "iḥmarrat yaduhu. hal huwa marīḍ?\nlā baʔs, al-jaww bārid faqaṭ.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A25/nass_ihmarrat-yaduhu-hal.mp3?v=1789281023225453229",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A25/nass_ihmarrat-yaduhu-hal.mp3?v=1789387617000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_hay-as-saa",
       "unit": "A25",
-      "pattern": "",
+      "pattern": "A25_uhibbu-al-ahmar",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -940,7 +940,7 @@
     {
       "id": "nass_hadha-al-qalam",
       "unit": "A25",
-      "pattern": "",
+      "pattern": "A25_uhibbu-al-ahmar",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -958,7 +958,7 @@
     {
       "id": "nass_sar-wajhak-ahmar",
       "unit": "A25",
-      "pattern": "",
+      "pattern": "A25_uhibbu-al-ahmar",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -969,14 +969,14 @@
       "tss": "صَار وَجْهك أَحْمَر. شُو صَار؟\nوَالله؟ مُسْتَحِيل!",
       "korean": "너 얼굴 빨개졌어. 무슨 일이야?\n정말? 그럴 리가 없는데!",
       "note": "ṣār wajhak aḥmar. shū ṣār?\nwallāh? mustaḥīl!",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A25/nass_sar-wajhak-ahmar.mp3?v=1789281008002249904",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A25/nass_sar-wajhak-ahmar.mp3?v=1789387604000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_sar-wajhak-asfar",
       "unit": "A25",
-      "pattern": "",
+      "pattern": "A25_uhibbu-al-ahmar",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -994,7 +994,7 @@
     {
       "id": "nass_ihmarrat-ash-shams",
       "unit": "A25",
-      "pattern": "",
+      "pattern": "A25_uhibbu-al-ahmar",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1005,14 +1005,14 @@
       "tss": "اِحْمَرَّت الشَّمْس. نَرْجَع الْبَيْت؟\nلَا، الْجَوّ حِلْو الْحِين.",
       "korean": "해가 붉어졌어. 집에 돌아갈까?\n아니, 지금 날씨가 좋아.",
       "note": "iḥmarrat ash-shams. narjaʕ al-bayt?\nlā, al-jaww ḥilw al-ḥīn.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A25/nass_ihmarrat-ash-shams.mp3?v=1789281027080750354",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A25/nass_ihmarrat-ash-shams.mp3?v=1789387624000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_isfarrat-as-sura",
       "unit": "A25",
-      "pattern": "",
+      "pattern": "A25_uhibbu-al-ahmar",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1030,7 +1030,7 @@
     {
       "id": "nass_qabaltu-al-mudir",
       "unit": "A26",
-      "pattern": "",
+      "pattern": "A26_darrastu-al-arabiyya-sabahan",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1041,14 +1041,14 @@
       "tss": "قَابَلْتُ الْمُدِير صَبَاحًا وَكَلَّمْتُهُ.\nالْحَمْدُ لله، أَخِيرًا قَابَلْتَهُ! مَاذَا قَالَ؟",
       "korean": "아침에 매니저를 만났고 그와 이야기했어요.\n다행이네요. 드디어 만났군요! 뭐라고 하던가요?",
       "note": "qābaltu al-mudīr ṣabāḥan wa-kallamtuhu.\nal-ḥamdu lillāh, akhīran qābaltahu! mādhā qāla?",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A26/nass_qabaltu-al-mudir.mp3?v=1789281037649193246",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A26/nass_qabaltu-al-mudir.mp3?v=1789387630000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_akmaltu-al-imtihan",
       "unit": "A26",
-      "pattern": "",
+      "pattern": "A26_darrastu-al-arabiyya-sabahan",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1059,14 +1059,14 @@
       "tss": "أَكْمَلْتُ الِامْتِحَان وَأَجَبْتُ عَنْ كُلّ سُؤَال بَعْدَ الظُّهْر.\nمَا شَاءَ الله! أَحْسَنْتَ.",
       "korean": "오후에 시험을 마치고 모든 문제에 답했어요.\n와, 대단하네요! 잘했어요.",
       "note": "akmaltu al-imtiḥān wa-ajabtu ʕan kull suʾāl baʕda aẓ-ẓuhr.\nmā shāʾa allāh! aḥsanta.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A26/nass_akmaltu-al-imtihan.mp3?v=1789281060126291226",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A26/nass_akmaltu-al-imtihan.mp3?v=1789387643000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_hal-aghlaqta-al",
       "unit": "A26",
-      "pattern": "",
+      "pattern": "A26_darrastu-al-arabiyya-sabahan",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1082,27 +1082,27 @@
       "generated": true
     },
     {
-      "id": "nass_ala-fikra-madha",
+      "id": "nass_madha-tanawalta-maa",
       "unit": "A26",
-      "pattern": "",
+      "pattern": "A26_darrastu-al-arabiyya-sabahan",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
         "F",
         "M"
       ],
-      "arabic": "عَلَى فِكْرَة، مَاذَا تَنَاوَلْتَ مَعَ صَدِيقِكَ أَمْس؟\nتَنَاوَلْنَا الْخُبْز وَشَرِبْنَا الشَّاي فِي الْمَقْهَى.",
-      "tss": "عَلَى فِكْرَة، مَاذَا تَنَاوَلْتَ مَعَ صَدِيقِكَ أَمْس؟\nتَنَاوَلْنَا الْخُبْز وَشَرِبْنَا الشَّاي فِي الْمَقْهَى.",
-      "korean": "그나저나, 어제 친구와 뭐 먹었어요?\n카페에서 빵을 먹고 차를 마셨어요.",
-      "note": "ʕalā fikra, mādhā tanāwalta maʕa ṣadīqika ams?\ntanāwalnā al-khubz wa-sharibnā ash-shāy fī al-maqhā.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A26/nass_ala-fikra-madha.mp3?v=1789281074914255948",
+      "arabic": "مَاذَا تَنَاوَلْتَ مَعَ صَدِيقِكَ أَمْس؟\nتَنَاوَلْنَا الْخُبْز وَشَرِبْنَا الشَّاي فِي الْمَقْهَى.",
+      "tss": "مَاذَا تَنَاوَلْتَ مَعَ صَدِيقِكَ أَمْس؟\nتَنَاوَلْنَا الْخُبْز وَشَرِبْنَا الشَّاي فِي الْمَقْهَى.",
+      "korean": "어제 친구와 뭐 먹었어요?\n카페에서 빵을 먹고 차를 마셨어요.",
+      "note": "mādhā tanāwalta maʕa ṣadīqika ams?\ntanāwalnā al-khubz wa-sharibnā ash-shāy fī al-maqhā.",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A26/nass_madha-tanawalta-maa.mp3?v=1789387649000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_sabahan-taakhkhara-al",
       "unit": "A26",
-      "pattern": "",
+      "pattern": "A26_darrastu-al-arabiyya-sabahan",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1120,7 +1120,7 @@
     {
       "id": "nass_hali-intazarta-al",
       "unit": "A26",
-      "pattern": "",
+      "pattern": "A26_darrastu-al-arabiyya-sabahan",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1138,7 +1138,7 @@
     {
       "id": "nass_ams-saadt-khalid",
       "unit": "A26",
-      "pattern": "",
+      "pattern": "A26_darrastu-al-arabiyya-sabahan",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1156,7 +1156,7 @@
     {
       "id": "nass_wallahi-ma-tawaqqat",
       "unit": "A26",
-      "pattern": "",
+      "pattern": "A26_darrastu-al-arabiyya-sabahan",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1174,7 +1174,7 @@
     {
       "id": "nass_malesh-ma-arsalt",
       "unit": "A26",
-      "pattern": "",
+      "pattern": "A26_darrastu-al-arabiyya-sabahan",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1185,14 +1185,14 @@
       "tss": "مَعْلِش، مَا أَرْسَلْت الرِّسَالَة الْبَارِح.\nحَصَل خَيْر، بَسّ لَازِم تَرْسِلْهَا الْيَوْم.",
       "korean": "미안, 어제 메시지를 안 보냈어.\n괜찮아. 그래도 오늘은 꼭 보내야 해.",
       "note": "maʕlēsh, mā arsalt ar-risāla al-bāriḥ.\nḥaṣal khayr, bass lāzim tarsilhā al-yawm.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A26/nass_malesh-ma-arsalt.mp3?v=1789281054633183885",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A26/nass_malesh-ma-arsalt.mp3?v=1789387636000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_jibt-al-qahwa",
       "unit": "A26",
-      "pattern": "",
+      "pattern": "A26_darrastu-al-arabiyya-sabahan",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1210,7 +1210,7 @@
     {
       "id": "nass_lesh-ghayyart-al",
       "unit": "A26",
-      "pattern": "",
+      "pattern": "A26_darrastu-al-arabiyya-sabahan",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1228,7 +1228,7 @@
     {
       "id": "nass_sajjalt-ismi-fi",
       "unit": "A26",
-      "pattern": "",
+      "pattern": "A26_darrastu-al-arabiyya-sabahan",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1246,7 +1246,7 @@
     {
       "id": "nass_taattalat-sayyarati-faja",
       "unit": "A26",
-      "pattern": "",
+      "pattern": "A26_darrastu-al-arabiyya-sabahan",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1257,14 +1257,14 @@
       "tss": "تَعَطَّلَت سَيَّارَتِي فَجْأَهْ. وَالله، وَرْطَهْ.\nعَسَى مَا شَرّ؟ إِنْت زَيْن؟",
       "korean": "내 차가 갑자기 망가졌어. 최악이야.\n별일 없는 거지? 너는 괜찮아?",
       "note": "taʕaṭṭalat sayyāratī fajʾa. wallāh, warṭa.\nʕasā mā sharr? inta zēn?",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A26/nass_taattalat-sayyarati-faja.mp3?v=1789281089331739785",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A26/nass_taattalat-sayyarati-faja.mp3?v=1789387655000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_taakhkhara-al-bas",
       "unit": "A26",
-      "pattern": "",
+      "pattern": "A26_darrastu-al-arabiyya-sabahan",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1275,14 +1275,14 @@
       "tss": "تَأَخَّرَ الْبَاص سَاعَهْ. وَصَلْت مُتَأَخِّر.\nمَا عَلَيْك، الْمُدَرِّس لِسَّه مَا بَدَأ الدَّرْس.",
       "korean": "버스가 한 시간 늦었어. 나도 늦게 도착했어.\n걱정 마, 선생님도 아직 수업을 시작하지 않았어.",
       "note": "taʾakhkhara al-bāṣ sāʕa. waṣalt mutaʾakhkhir.\nmā ʕalayk, al-mudarris lissah mā badaʾ ad-dars.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A26/nass_taakhkhara-al-bas.mp3?v=1789282041558447572",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A26/nass_taakhkhara-al-bas.mp3?v=1789387662000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_ma-sha-allah",
       "unit": "A27",
-      "pattern": "",
+      "pattern": "A27_hadhihi-sayyarat-muhammad",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1293,14 +1293,14 @@
       "tss": "مَا شَاءَ اللهْ، هَلْ هَذِهِ هِيَ سَيَّارَتُكَ؟ رَائِعَة!\nهَهَه، لَا لَا. هِيَ سَيَّارَة رَاانِيَا. رَائِعَة، صَحِيح؟",
       "korean": "마샤알라, 이게 네 차야? 정말 멋있다!\n하하, 아니야. 라니아 차야. 멋있지?",
       "note": "mā shāʾ allāh, hal hādhihi hiya sayyāratuka? rāʾiʕa!\nhaha, lā lā. hiya sayyārat rāniyā. rāʾiʕa, ṣaḥīḥ?",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A27/nass_ma-sha-allah.mp3?v=1789281245901677055",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A27/nass_ma-sha-allah.mp3?v=1789387727000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_ya-umar-hadha",
       "unit": "A27",
-      "pattern": "",
+      "pattern": "A27_hadhihi-sayyarat-muhammad",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1318,7 +1318,7 @@
     {
       "id": "nass_afwan-ayna-mudir",
       "unit": "A27",
-      "pattern": "",
+      "pattern": "A27_hadhihi-sayyarat-muhammad",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1336,7 +1336,7 @@
     {
       "id": "nass_afwan-ayna-mahattat",
       "unit": "A27",
-      "pattern": "",
+      "pattern": "A27_hadhihi-sayyarat-muhammad",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1347,14 +1347,14 @@
       "tss": "عَفْوًا، أَيْنَ مَحَطَّة الْقِطَار؟\nقَرِيبَة مِنْ هُنَا، عَلَى الْيَمِين. فِي أَمَان الله.",
       "korean": "실례합니다, 기차역이 어디예요?\n여기서 가까워요. 오른쪽에 있어요. 안녕히 가세요.",
       "note": "ʕafwan, ayna maḥaṭṭat al-qiṭār?\nqarība min hunā, ʕalā al-yamīn. fī amān allāh.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A27/nass_afwan-ayna-mahattat.mp3?v=1789281266055019523",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A27/nass_afwan-ayna-mahattat.mp3?v=1789387732000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_hadhihi-qaimat-at",
       "unit": "A27",
-      "pattern": "",
+      "pattern": "A27_hadhihi-sayyarat-muhammad",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1372,7 +1372,7 @@
     {
       "id": "nass_ahlan-wa-sahlan",
       "unit": "A27",
-      "pattern": "",
+      "pattern": "A27_hadhihi-sayyarat-muhammad",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1390,7 +1390,7 @@
     {
       "id": "nass_hadhi-hadiyyat-hanan",
       "unit": "A27",
-      "pattern": "",
+      "pattern": "A27_hadhihi-sayyarat-muhammad",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1408,7 +1408,7 @@
     {
       "id": "nass_hadha-unwan-ash",
       "unit": "A27",
-      "pattern": "",
+      "pattern": "A27_hadhihi-sayyarat-muhammad",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1426,7 +1426,7 @@
     {
       "id": "nass_mumkin-aftah-shubbak",
       "unit": "A27",
-      "pattern": "",
+      "pattern": "A27_hadhihi-sayyarat-muhammad",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1444,7 +1444,7 @@
     {
       "id": "nass_mumkin-tasakkir-bab",
       "unit": "A27",
-      "pattern": "",
+      "pattern": "A27_hadhihi-sayyarat-muhammad",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1462,7 +1462,7 @@
     {
       "id": "nass_ya-ahmad-anta",
       "unit": "A27",
-      "pattern": "",
+      "pattern": "A27_hadhihi-sayyarat-muhammad",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1473,14 +1473,14 @@
       "tss": "يَا أَحْمَد، أَنْتَ جَاهِز؟ نَرُوح الْحِين؟\nإِي، مَعِي حَقِيبَة سَفَر. يَلّا نَبْدَأ.",
       "korean": "아흐마드, 준비됐어? 지금 갈까?\n응, 여행가방도 있어. 자, 출발하자.",
       "note": "yā aḥmad, anta jāhiz? narūḥ al-ḥīn?\nī, maʕī ḥaqībat safar. yallā nabdaʾ.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A27/nass_ya-ahmad-anta.mp3?v=1789281298914590173",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A27/nass_ya-ahmad-anta.mp3?v=1789387738000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_hal-hadhihi-hadiyya",
       "unit": "A28",
-      "pattern": "",
+      "pattern": "A28_hadha-kitab-jadid",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1498,7 +1498,7 @@
     {
       "id": "nass_ayna-at-talib",
       "unit": "A28",
-      "pattern": "",
+      "pattern": "A28_hadha-kitab-jadid",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1516,7 +1516,7 @@
     {
       "id": "nass_hal-al-mawid",
       "unit": "A28",
-      "pattern": "",
+      "pattern": "A28_hadha-kitab-jadid",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1534,7 +1534,7 @@
     {
       "id": "nass_afwan-hal-al",
       "unit": "A28",
-      "pattern": "",
+      "pattern": "A28_hadha-kitab-jadid",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1552,7 +1552,7 @@
     {
       "id": "nass_hadhi-ghurfa-nazifa",
       "unit": "A28",
-      "pattern": "",
+      "pattern": "A28_hadha-kitab-jadid",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1563,14 +1563,14 @@
       "tss": "هَذِي غُرْفَة نَظِيفَة وَهَادِيَة، نَحْجِزْهَا؟\nإِيه، مَا عَلَيْهَا كَلَام.",
       "korean": "이 방 깨끗하고 조용한데, 예약할까?\n응, 흠잡을 데 없네.",
       "note": "hadhī ghurfa naẓīfa wa-hādiya, naḥjizha?\nīh, mā ʕalayhā kalām.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A28/nass_hadhi-ghurfa-nazifa.mp3?v=1789281308990467900",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A28/nass_hadhi-ghurfa-nazifa.mp3?v=1789387744000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_wen-at-taliba",
       "unit": "A28",
-      "pattern": "",
+      "pattern": "A28_hadha-kitab-jadid",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1581,14 +1581,14 @@
       "tss": "وَيْن الطَّالِبَة الْمِصْرِيَّة؟ لَازِم أَكَلِّمْهَا الْحِين.\nفِعْلًا، أَنَا كَلَّمْتْهَا. مَا عَلَيْك.",
       "korean": "그 이집트 여학생 어디 있어요? 지금 연락해야 해요.\n정말, 제가 이미 연락했어요. 걱정 마세요.",
       "note": "wēn aṭ-ṭāliba al-miṣriyya? lāzim akallimhā al-ḥīn.\nfiʕlan, anā kallamthā. mā ʕalayk.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A28/nass_wen-at-taliba.mp3?v=1789281320710389315",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A28/nass_wen-at-taliba.mp3?v=1789387750000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_mata-yulinu-al",
       "unit": "A29",
-      "pattern": "",
+      "pattern": "A29_la-ahduru-ad-dars-al-yawm",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1606,7 +1606,7 @@
     {
       "id": "nass_al-tariq-muzdahim",
       "unit": "A29",
-      "pattern": "",
+      "pattern": "A29_la-ahduru-ad-dars-al-yawm",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1624,7 +1624,7 @@
     {
       "id": "nass_uridu-an-ukmila",
       "unit": "A29",
-      "pattern": "",
+      "pattern": "A29_la-ahduru-ad-dars-al-yawm",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1635,14 +1635,14 @@
       "tss": "أُرِيدُ أَنْ أُكْمِلَ هَذِهِ الْمَهَمَّةْ، الْيَوْمْ، وَلَكِنْ عِنْدِي عَمَلْ كَثِيرْ.\nعَلَى الْعُمُومْ، دَعْهَا عَلَيَّ. سَأُسَاعِدُكَ لِنُسَلِّمَهَا قَبْلْ الْمَسَاءْ.",
       "korean": "오늘 이 업무를 끝내고 싶은데 할 일이 많아.\n아무튼, 내게 맡겨. 저녁 전에 제출할 수 있게 도와줄게.",
       "note": "urīdu an ukmila hādhihi al-mahamma al-yawm, walakin ʕindī ʕamal kathīr.\nʕalā al-ʕumūm, daʕhā ʕalayya. saʾusāʕiduka linusallimahā qabl al-masāʾ.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A29/nass_uridu-an-ukmila.mp3?v=1789281116732834809",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A29/nass_uridu-an-ukmila.mp3?v=1789387671000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_ana-mutaakhkhir-hal",
       "unit": "A29",
-      "pattern": "",
+      "pattern": "A29_la-ahduru-ad-dars-al-yawm",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1660,7 +1660,7 @@
     {
       "id": "nass_hal-adkhulu-al",
       "unit": "A29",
-      "pattern": "",
+      "pattern": "A29_la-ahduru-ad-dars-al-yawm",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1678,7 +1678,7 @@
     {
       "id": "nass_hal-akulu-hadha",
       "unit": "A29",
-      "pattern": "",
+      "pattern": "A29_la-ahduru-ad-dars-al-yawm",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1696,7 +1696,7 @@
     {
       "id": "nass_hal-aktubu-hadhihi",
       "unit": "A29",
-      "pattern": "",
+      "pattern": "A29_la-ahduru-ad-dars-al-yawm",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1714,7 +1714,7 @@
     {
       "id": "nass_bitu-sayyarati-al",
       "unit": "A30",
-      "pattern": "",
+      "pattern": "A30_qultu-laka-min-qabl",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1725,14 +1725,14 @@
       "tss": "بِعْتُ سَيَّارَتِي الْأُسْبُوع الْمَاضِي.\nحَقًّا؟ لَمْ يَخْطُر بِبَالِي.",
       "korean": "저 지난주에 차를 팔았어요.\n정말요? 생각도 못 했어요.",
       "note": "biʕtu sayyāratī al-usbūʕ al-māḍī.\nḥaqqan? lam yakhṭur bibālī.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A30/nass_bitu-sayyarati-al.mp3?v=1789281390613202956",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A30/nass_bitu-sayyarati-al.mp3?v=1789387767000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_zurtu-al-mathaf",
       "unit": "A30",
-      "pattern": "",
+      "pattern": "A30_qultu-laka-min-qabl",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1750,7 +1750,7 @@
     {
       "id": "nass_nasitu-miftah-al",
       "unit": "A30",
-      "pattern": "",
+      "pattern": "A30_qultu-laka-min-qabl",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1761,14 +1761,14 @@
       "tss": "نَسِيتُ مِفْتَاح الْغُرْفَة. أَعْطِنِي مِفْتَاحَك، مِنْ فَضْلِك.\nلَحْظَةً، رَأَيْتُ مِفْتَاحَك عَلَى الطَّاوِلَة.",
       "korean": "방 열쇠를 깜빡했어요. 열쇠 좀 주세요.\n잠깐만요, 탁자 위에서 열쇠 봤는데요.",
       "note": "nasītu miftāḥ al-ghurfa. aʕṭinī miftāḥak, min faḍlik.\nlaḥẓatan, raʾaytu miftāḥak ʕalā al-ṭāwila.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A30/nass_nasitu-miftah-al.mp3?v=1789281402328752033",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A30/nass_nasitu-miftah-al.mp3?v=1789387775000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_hal-ada-al",
       "unit": "A30",
-      "pattern": "",
+      "pattern": "A30_qultu-laka-min-qabl",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1779,14 +1779,14 @@
       "tss": "هَلْ عَادَ الْمُدِير مِنَ الْمَطَار؟\nلَمْ يَعُدْ بَعْد. أَتَتْ سَارَة قَبْلَ قَلِيل.",
       "korean": "매니저가 공항에서 돌아왔어요?\n아직 안 돌아왔어요. 사라가 조금 전에 왔어요.",
       "note": "hal ʕāda al-mudīr mina al-maṭār?\nlam yaʕud baʕd. atat sāra qabla qalīl.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A30/nass_hal-ada-al.mp3?v=1789281407721130839",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A30/nass_hal-ada-al.mp3?v=1789387781000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_atini-raqmak-attasil",
       "unit": "A30",
-      "pattern": "",
+      "pattern": "A30_qultu-laka-min-qabl",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1804,7 +1804,7 @@
     {
       "id": "nass_wayn-al-mudir",
       "unit": "A30",
-      "pattern": "",
+      "pattern": "A30_qultu-laka-min-qabl",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -1815,14 +1815,14 @@
       "tss": "وَيْن الْمُدِير؟ عِنْدِي مَوْعِد مَعَه.\nجِيت فِي وَقْتَك، الْمُدِير جَا تَوّ.",
       "korean": "매니저 어디 있어? 나 약속 있는데.\n마침 잘 왔네, 방금 오셨어.",
       "note": "wayn al-mudīr? ʕindī mawʕid maʕah.\njīt fī waqtak, al-mudīr jā taww.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A30/nass_wayn-al-mudir.mp3?v=1789281490377817060",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A30/nass_wayn-al-mudir.mp3?v=1789387813000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_nahnu-mutarjimun-mina",
       "unit": "A31",
-      "pattern": "",
+      "pattern": "A31_al-muwazzafun-fi-al-maktab",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1840,7 +1840,7 @@
     {
       "id": "nass_ya-jamaa-antum",
       "unit": "A31",
-      "pattern": "",
+      "pattern": "A31_al-muwazzafun-fi-al-maktab",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1858,7 +1858,7 @@
     {
       "id": "nass_maryam-ayna-al",
       "unit": "A31",
-      "pattern": "",
+      "pattern": "A31_al-muwazzafun-fi-al-maktab",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1876,7 +1876,7 @@
     {
       "id": "nass_law-samaht-al",
       "unit": "A31",
-      "pattern": "",
+      "pattern": "A31_al-muwazzafun-fi-al-maktab",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1894,7 +1894,7 @@
     {
       "id": "nass_naqrau-kalimat-ad",
       "unit": "A31",
-      "pattern": "",
+      "pattern": "A31_al-muwazzafun-fi-al-maktab",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1912,7 +1912,7 @@
     {
       "id": "nass_hind-hal-qarati",
       "unit": "A31",
-      "pattern": "",
+      "pattern": "A31_al-muwazzafun-fi-al-maktab",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1930,7 +1930,7 @@
     {
       "id": "nass_law-samaht-ya",
       "unit": "A31",
-      "pattern": "",
+      "pattern": "A31_al-muwazzafun-fi-al-maktab",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1948,7 +1948,7 @@
     {
       "id": "nass_mahmud-ayna-al",
       "unit": "A31",
-      "pattern": "",
+      "pattern": "A31_al-muwazzafun-fi-al-maktab",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -1959,32 +1959,32 @@
       "tss": "مَحْمُود، أَيْنَ الْكُتُب؟ عِنْدِي دَرْس الْآن.\nعَلَى الطَّاوِلَة. تَفَضَّل.",
       "korean": "마흐무드, 책들은 어디에 있어요? 지금 수업이 있어요.\n테이블 위에 있어요. 자, 여기요.",
       "note": "maḥmūd, ayna al-kutub? ʕindī dars al-ān.\nʕalā aṭ-ṭāwila. tafaḍḍal.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A31/nass_mahmud-ayna-al.mp3?v=1789281386102979733",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A31/nass_mahmud-ayna-al.mp3?v=1789387762000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_nadir-baramij-al",
       "unit": "A31",
-      "pattern": "",
+      "pattern": "A31_al-muwazzafun-fi-al-maktab",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
-        "F",
+        "M",
         "M"
       ],
       "arabic": "نَادِر، بَرَامِج الْعَمَل مُو عَلَى الْجِهَاز.\nمَعَك حَقّ. خَلُّونَا نَشُوف.",
       "tss": "نَادِر، بَرَامِج الْعَمَل مُو عَلَى الْجِهَاز.\nمَعَك حَقّ. خَلُّونَا نَشُوف.",
       "korean": "나디르, 업무용 프로그램들이 기기에 없어요.\n네 말이 맞아요. 한번 봅시다.",
       "note": "nādir, barāmij al-ʕamal mū ʕalā al-jihāz.\nmaʕak ḥaqq. khallūnā nshūf.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A31/nass_nadir-baramij-al.mp3?v=1789281380235847945",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A31/nass_nadir-baramij-al.mp3?v=1789387756000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_hal-yuqaddimun-at",
       "unit": "A32",
-      "pattern": "",
+      "pattern": "A32_yadrusun-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2002,7 +2002,7 @@
     {
       "id": "nass_hal-ana-mutaakhkhir",
       "unit": "A32",
-      "pattern": "",
+      "pattern": "A32_yadrusun-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2013,14 +2013,14 @@
       "tss": "هَلْ أَنَا مُتَأَخِّرْ؟ أَيْنَ الْمُهَنْدِسُونْ؟\nلَا، مِنْ حُسْنْ الْحَظّْ، لَمْ يَبْدَؤُوا الِاجْتِمَاعْ بَعْدْ. هُمْ فِي الْمَكْتَبْ الْآنْ.",
       "korean": "저 늦었어요? 엔지니어들은 어디에 있어요?\n아니요. 다행히 아직 회의를 시작하지 않았어요. 지금 사무실에 있어요.",
       "note": "hal anā mutaʾakhkhir? ayna al-muhandisūn?\nlā, min ḥusn al-ḥaẓẓ, lam yabdaʾū al-ijtimāʕ baʕd. hum fī al-maktab al-ān.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A32/nass_hal-ana-mutaakhkhir.mp3?v=1789281152432427586",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A32/nass_hal-ana-mutaakhkhir.mp3?v=1789387679000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_mata-yadhhabun-ila",
       "unit": "A32",
-      "pattern": "",
+      "pattern": "A32_yadrusun-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2038,7 +2038,7 @@
     {
       "id": "nass_yukmilun-al-mashru",
       "unit": "A32",
-      "pattern": "",
+      "pattern": "A32_yadrusun-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2056,7 +2056,7 @@
     {
       "id": "nass_nahnu-nurajiu-ad",
       "unit": "A32",
-      "pattern": "",
+      "pattern": "A32_yadrusun-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2074,7 +2074,7 @@
     {
       "id": "nass_ana-fi-khidmatikum",
       "unit": "A32",
-      "pattern": "",
+      "pattern": "A32_yadrusun-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2085,14 +2085,14 @@
       "tss": "أَنَا فِي خِدْمَتِكُمْ. مَاذَا تُرِيدُونْ؟\nنُرِيدُ قَهْوَ وَشَايْ، مِنْ فَضْلِكْ.",
       "korean": "제가 도와드리겠습니다. 무엇을 원하세요?\n커피와 차를 부탁합니다.",
       "note": "anā fī khidmatikum. mādhā turīdūn?\nnurīdu qahwa wa-shāy, min faḍlik.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A32/nass_ana-fi-khidmatikum.mp3?v=1789281178653885005",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A32/nass_ana-fi-khidmatikum.mp3?v=1789387687000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_hal-tadhhabun-ila",
       "unit": "A32",
-      "pattern": "",
+      "pattern": "A32_yadrusun-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2110,7 +2110,7 @@
     {
       "id": "nass_idha-mumkin-hal",
       "unit": "A32",
-      "pattern": "",
+      "pattern": "A32_yadrusun-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -2128,7 +2128,7 @@
     {
       "id": "nass_nura-ma-alayki",
       "unit": "A32",
-      "pattern": "",
+      "pattern": "A32_yadrusun-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -2139,14 +2139,14 @@
       "tss": "نُورَهْ، مَا عَلَيْكِي أَمْرْ، مُمْكِنْ تَكْتُبِينْ الرِّسَالَ الْيَوْمْ؟\nأَبْشِرْ، بَعْدْ شُوَيّْ.",
       "korean": "누라, 부탁 하나만. 오늘 메시지를 써 줄래?\n알겠어요. 조금 있다가요.",
       "note": "nūra, mā ʕalayki amr, mumkin taktubīn ar-risāla al-yawm?\nabshir, baʕd shuwayy.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A32/nass_nura-ma-alayki.mp3?v=1789281190163586758",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A32/nass_nura-ma-alayki.mp3?v=1789387692000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_hind-taruhin-al",
       "unit": "A32",
-      "pattern": "",
+      "pattern": "A32_yadrusun-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -2164,7 +2164,7 @@
     {
       "id": "nass_sara-asaki-bi",
       "unit": "A32",
-      "pattern": "",
+      "pattern": "A32_yadrusun-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -2182,7 +2182,7 @@
     {
       "id": "nass_maryam-mumkin-tarsilin",
       "unit": "A32",
-      "pattern": "",
+      "pattern": "A32_yadrusun-al-arabiyya-fi-al-markaz",
       "status": "confirmed",
       "lahja": "GLF",
       "speakers": [
@@ -2200,7 +2200,7 @@
     {
       "id": "nass_hal-al-maqadan",
       "unit": "A33",
-      "pattern": "",
+      "pattern": "A33_hal-antuma-taliban-huna",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2211,14 +2211,14 @@
       "tss": "هَلِ الْمَقْعَدَانْ قَرِيبَانْ مِنَ الْبَوَّابَهْ؟\nنَعَمْ، هُمَا جَنْبًا إِلَى جَنْبْ.",
       "korean": "두 좌석은 게이트에서 가까워요?\n네, 두 좌석은 나란히 있어요.",
       "note": "hal al-maqʕadān qarībān mina al-bawwāba?\nnaʕam, humā janban ilā janb.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A33/nass_hal-al-maqadan.mp3?v=1789281211299068900",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A33/nass_hal-al-maqadan.mp3?v=1789387699000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_hal-al-ghurfatan",
       "unit": "A33",
-      "pattern": "",
+      "pattern": "A33_hal-antuma-taliban-huna",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2236,7 +2236,7 @@
     {
       "id": "nass_sa-uqabilu-al",
       "unit": "A33",
-      "pattern": "",
+      "pattern": "A33_hal-antuma-taliban-huna",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2247,14 +2247,14 @@
       "tss": "سَأُقَابِلُ الْعَمِيلَيْنْ وَجْهًا لِوَجْهْ الْيَوْمْ.\nجَيِّدْ. لَا تَنْسَ الْعَرْضْ.",
       "korean": "오늘 두 고객을 직접 만나볼게요.\n좋아요. 제안서를 잊지 마세요.",
       "note": "sa-uqābilu al-ʕamīlayn wajhan li-wajh al-yawm.\njayyid. lā tansa al-ʕarḍ.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A33/nass_sa-uqabilu-al.mp3?v=1789281563360161301",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A33/nass_sa-uqabilu-al.mp3?v=1789387705000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_mina-al-afdal",
       "unit": "A33",
-      "pattern": "",
+      "pattern": "A33_hal-antuma-taliban-huna",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2265,14 +2265,14 @@
       "tss": "مِنَ الْأَفْضَلْ أَنْ تَزُورَ الْفَرْعَيْنْ الْيَوْمْ.\nحَاضِرْ. سَأَذْهَبُ دُونَ تَأْخِيرْ.",
       "korean": "오늘 두 지점을 방문하는 편이 좋겠어요.\n알겠습니다. 지체 없이 갈게요.",
       "note": "mina al-afḍal an tazūra al-farʕayn al-yawm.\nḥāḍir. sa-adhhabu dūna taʾkhīr.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A33/nass_mina-al-afdal.mp3?v=1789281228835119807",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A33/nass_mina-al-afdal.mp3?v=1789387711000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_sara-maryam-hal",
       "unit": "A33",
-      "pattern": "",
+      "pattern": "A33_hal-antuma-taliban-huna",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2283,14 +2283,14 @@
       "tss": "سَارَهْ، مَرْيَمْ، هَلْ أَنْتُمَا جَاهِزَتَانْ لِلِامْتِحَانْ؟\nنَعَمْ، نَحْنُ نَدْرُسُ كَمَا يَنْبَغِي كُلَّ يَوْمْ.",
       "korean": "사라, 마르얌. 두 사람은 시험 준비가 되었어요?\n네, 저희는 매일 제대로 공부하고 있어요.",
       "note": "sāra, maryam, hal antumā jāhizatān li-l-imtiḥān?\nnaʕam, naḥnu nadrusu kamā yanbaghī kulla yawm.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A33/nass_sara-maryam-hal.mp3?v=1789281234188422603",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A33/nass_sara-maryam-hal.mp3?v=1789387719000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_ayna-umar-wa",
       "unit": "A33",
-      "pattern": "",
+      "pattern": "A33_hal-antuma-taliban-huna",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2308,7 +2308,7 @@
     {
       "id": "nass_as-salamu-alaykum",
       "unit": "A34",
-      "pattern": "",
+      "pattern": "A34_ma-rayukum",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2326,7 +2326,7 @@
     {
       "id": "nass_shukran-li-taawunikum",
       "unit": "A34",
-      "pattern": "",
+      "pattern": "A34_ma-rayukum",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2344,7 +2344,7 @@
     {
       "id": "nass_tahta-amrikum-hal",
       "unit": "A34",
-      "pattern": "",
+      "pattern": "A34_ma-rayukum",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2362,7 +2362,7 @@
     {
       "id": "nass_lam-arakum-mundhu",
       "unit": "A34",
-      "pattern": "",
+      "pattern": "A34_ma-rayukum",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2380,7 +2380,7 @@
     {
       "id": "nass_sayyidati-wa-sadati",
       "unit": "A34",
-      "pattern": "",
+      "pattern": "A34_ma-rayukum",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2398,7 +2398,7 @@
     {
       "id": "nass_hal-tadhhabuna-maana",
       "unit": "A34",
-      "pattern": "",
+      "pattern": "A34_ma-rayukum",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2416,7 +2416,7 @@
     {
       "id": "nass_inda-al-bab",
       "unit": "A35",
-      "pattern": "",
+      "pattern": "A35_fi-al-markaz-thalatha-tullab",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2434,7 +2434,7 @@
     {
       "id": "nass_hadhihi-thalath-suwar",
       "unit": "A35",
-      "pattern": "",
+      "pattern": "A35_fi-al-markaz-thalatha-tullab",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2445,32 +2445,32 @@
       "tss": "هَذِهِ ثَلَاث صُوَرْ مِنَ الْحَفْلْ. كَيْفَ تَرَاهَا؟\nمِائَة بِالْمِائَة، صُوَرْ رَائِعَهْ.",
       "korean": "이건 행사 사진 세 장이에요. 어떻게 보여요?\n백 퍼센트예요. 사진이 정말 멋지네요.",
       "note": "hādhihi thalāth ṣuwar min al-ḥafl. kayfa tarāhā?\nmiʾa bi-l-miʾa, ṣuwar rāʾiʕa.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A35/nass_hadhihi-thalath-suwar.mp3?v=1789281458228654187",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A35/nass_hadhihi-thalath-suwar.mp3?v=1789387787000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_hal-arsalta-ishrin",
       "unit": "A35",
-      "pattern": "",
+      "pattern": "A35_fi-al-markaz-thalatha-tullab",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
         "M",
-        "F"
+        "M"
       ],
       "arabic": "هَلْ أَرْسَلْتَ ٢٠ رِسَالَةً إِلَى الزَّبَائِن؟\nنَعَم، أَرْسَلْتُهَا دَفْعَةً وَاحِدَةً.",
       "tss": "هَلْ أَرْسَلْتَ عِشْرِينْ رِسَالَةً إِلَى الزَّبَائِنْ؟\nنَعَمْ، أَرْسَلْتُهَا دَفْعَةً وَاحِدَةً.",
       "korean": "고객들에게 메시지 스무 통을 보냈어요?\n네, 한 번에 보냈어요.",
       "note": "hal arsalta ʕishrīn risālatan ilā az-zabāʾin?\nnaʕam, arsaltuhā dafʕatan wāḥidatan.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A35/nass_hal-arsalta-ishrin.mp3?v=1789281463747505526",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A35/nass_hal-arsalta-ishrin.mp3?v=1789387793000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_thaman-hadhihi-al",
       "unit": "A35",
-      "pattern": "",
+      "pattern": "A35_fi-al-markaz-thalatha-tullab",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2481,14 +2481,14 @@
       "tss": "ثَمَنْ هَذِهِ الْقَهْوَهْ عِشْرُونْ رِيَالًا.\nتَفَضَّلْ، هَذِهِ خَمْسَ وَعِشْرُونْ رِيَالًا. الْبَاقِي لَكْ.",
       "korean": "이 커피는 20리얄이에요.\n여기 25리얄이요. 잔돈은 가지세요.",
       "note": "thaman hādhihi al-qahwa ʕishrūn riyālan.\ntafaḍḍal, hādhihi khamsa wa-ʕishrūn riyālan. al-bāqī lak.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A35/nass_thaman-hadhihi-al.mp3?v=1789281570147746155",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A35/nass_thaman-hadhihi-al.mp3?v=1789387800000000000",
       "voices": [],
       "generated": true
     },
     {
       "id": "nass_hal-jahhazta-mia",
       "unit": "A35",
-      "pattern": "",
+      "pattern": "A35_fi-al-markaz-thalatha-tullab",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2506,7 +2506,7 @@
     {
       "id": "nass_hal-fi-hadhihi",
       "unit": "A35",
-      "pattern": "",
+      "pattern": "A35_fi-al-markaz-thalatha-tullab",
       "status": "confirmed",
       "lahja": "MSA",
       "speakers": [
@@ -2517,7 +2517,7 @@
       "tss": "هَلْ فِي هَذِهِ الْمَدِينَ ثَلَاثُمِائَة فُنْدُقْ؟\nنَعَمْ، مَا شَاءَ اللهْ، هِيَ مَدِينَ كَبِيرَهْ.",
       "korean": "이 도시에 호텔이 300곳이나 있어요?\n네, 마샤알라, 정말 큰 도시예요.",
       "note": "hal fī hādhihi al-madīna thalāthumiʾa funduq?\nnaʕam, mā shāʾa allāh, hiya madīna kabīra.",
-      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A35/nass_hal-fi-hadhihi.mp3?v=1789281480755922019",
+      "audio": "https://storage.googleapis.com/all-that-arabic-14/review-audio/1.4.4/a21-a35/A35/nass_hal-fi-hadhihi.mp3?v=1789387806000000000",
       "voices": [],
       "generated": true
     }
