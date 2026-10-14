@@ -1,0 +1,22 @@
+/* These decorations affect paint only, not Arabic shaping or copied text. */
+::highlight(ata-color) {
+  color: var(--hl-text, var(--accent, #4055dd));
+}
+::highlight(ata-box) {
+  background-color: #e8ecff;
+  text-decoration: underline;
+  text-decoration-color: var(--accent, #4055dd);
+}
+.ata-ar-whole-box,
+.ata-ar-fallback {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  font-style: inherit !important;
+  letter-spacing: 0 !important;
+  unicode-bidi: normal !important;
+}
+.ata-ar-fallback { color: var(--hl-text, var(--accent, #4055dd)); }
+@media print {
+  .ata-ar-ink { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}

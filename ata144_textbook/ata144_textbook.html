@@ -817,6 +817,8 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   color:#fff; font-size:13px; line-height:1.6;
 }
 </style>
+<link rel="stylesheet" href="../assets/arabic-highlight.css?v=20261014">
+<script src="../assets/arabic-highlight.js?v=20261014"></script>
 </head>
 <body>
 
@@ -982,12 +984,14 @@ const inU  = (r,u) => (r.u||'') === u;
 const norm = t => (t||'').toLowerCase().trim();
 const normType = t => norm(t).replace(/\s+/g,'');
 
-// 아랍어 하이라이트: 색 span이 단어 중간 글자를 감싸면 Safari/CoreText에서 이음이 끊긴다.
-// 실제 이음이 있는 경계에만 ZWJ(U+200D) 주입 → 연결 형태 강제(공백·ا·ة 등엔 안 넣음).
+// Scope this rendering fix to the four newly authored units only.
+function newUnitHighlight() { return /^A3[6-9]$/.test(state.unit || ''); }
+function protectNewUnitHighlight(html) { return newUnitHighlight() ? ATAHighlight.protect(html) : html; }
 const _AR_LETTER = /[ء-يٱ-ۓݐ-ݿﭐ-﷿ﹰ-﻿]/;
 const _AR_MARK = /[ً-ْٰۖ-ۭ]/;
 const _AR_RJO = new Set(['ا','أ','إ','آ','ٱ','د','ذ','ر','ز','و','ؤ','ة','ى','ء']);
 function _hlArabic(match, inner, offset, whole) {
+  if (newUnitHighlight()) return `<span class="hl-text">${inner}</span>`;
   if (!_AR_LETTER.test(inner)) return `<span class="hl-text">${inner}</span>`;
   const ZWJ = '‍';
   const skip = ch => _AR_MARK.test(ch) || ch === '*' || ch === '_';
@@ -1005,11 +1009,11 @@ function _hlArabic(match, inner, offset, whole) {
 }
 function parseInline(str) {
   if (!str) return '';
-  return String(str)
+  return protectNewUnitHighlight(String(str)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/\n/g,'<br>')
     .replace(/_([^_\n]+)_/g,'<span class="hl-box-inline">$1</span>')
-    .replace(/\*([^*\n]+)\*/g, _hlArabic);
+    .replace(/\*([^*\n]+)\*/g, _hlArabic));
 }
 
 // 첫 강한 방향 문자로 LTR/RTL 판정 — 마크업(`*_<tag>`) 제거 후 검사.
@@ -1029,11 +1033,11 @@ function firstStrongDir(raw) {
 
 function parseTrans(str) {
   if (!str) return '';
-  return String(str)
+  return protectNewUnitHighlight(String(str)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/\n/g,'<br>')
     .replace(/_([^_\n]+)_/g,'$1')
-    .replace(/\*([^*\n]+)\*/g, _hlArabic);
+    .replace(/\*([^*\n]+)\*/g, _hlArabic));
 }
 
 function parseDrillBlank(str) {

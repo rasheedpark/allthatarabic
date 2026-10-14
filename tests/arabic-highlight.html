@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arabic highlight regression</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/arabic-highlight.css">
+<script>if (location.search.includes('fallback')) window.Highlight = undefined;</script>
+<script src="../assets/arabic-highlight.js"></script>
+<style>
+@font-face { font-family: Dongol; src: url('../assets/fonts/Dongol-Regular.otf'); }
+body { margin: 24px; color: #172234; font: 16px sans-serif; --accent: #1d49ff; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+td, th { padding: 12px; border-bottom: 1px solid #d5dae8; text-align: start; overflow-wrap: anywhere; }
+.sample { font-family: 'Noto Sans Arabic'; font-weight: 500; font-size: 32px; line-height: 2; direction: rtl; }
+.dongol .sample { font-family: Dongol; }
+.highlight-text, .hl-text, .hl-bold { color: var(--accent); font-weight: 700; }
+.highlight-box, .hl-box, .hl-box-inline { border: 2px solid #1d49ff; padding: .1em .25em; }
+.measure { display: inline-block; white-space: nowrap; }
+#report { white-space: pre-wrap; }
+@media(max-width: 600px) { body { margin: 12px; } .sample { font-size: 24px; } td, th { padding: 6px; } }
+</style>
+<h1>아랍어 강조 검증</h1>
+<p id="report">검증 중</p>
+<table><thead><tr><th>원문</th><th>수정된 강조</th></tr></thead><tbody id="examples"></tbody></table>
+<div id="checks" hidden></div>
+<script>
+(async function () {
+  const apps = [
+    ['ata144_teacher', 'parseText'], ['ata144_textbook', 'parseInline']
+  ];
+  const samples = ['لَ*ا*', 'الْقَ*مَر*', 'شُكْر*ًا*', 'يَكْتُب*ُ*', 'يُ*دَرِّ*س',
+    'سَيِّ*ئ*', '*أَهْلًا* وَسَهْلًا', 'سُ*ؤَ*ال', 'الطَّالِبَ*ان*', 'زَوْجَ*ة*'];
+  const failures = [];
+  let count = 0;
+  function check(ok, message) { count++; if (!ok) failures.push(message); }
+  const parsers = [];
+  for (const [app, name] of apps) {
+    const source = await (await fetch('../' + app + '/' + app + '.html')).text();
+    const helper = source.match(/function newUnitHighlight\(\)[\s\S]*?\n}\n(?=function parse)/)[0];
+    const parser = source.match(new RegExp('function ' + name + '\\([^)]*\\) \\{[\\s\\S]*?\\n\\}'))[0];
+    for (const unit of ['A36', 'A37', 'A38', 'A39']) {
+      parsers.push([app + ' ' + unit, new Function('const currentPg = "' + unit + '"; const state = {unit:currentPg};\n' + helper + '\n' + parser + '\nreturn ' + name)()]);
+    }
+  }
+  for (const [app, parse] of parsers) {
+    for (const raw of samples.concat(['الْقَ_مَر_', '_كَانَ_ الدَّرْس *صَعْبًا*', '_الْقَ*مَر*_', '*한국어* مَرْحَبًا'])) {
+      const holder = document.createElement('div');
+      holder.innerHTML = parse(raw);
+      document.getElementById('checks').append(holder);
+      check(holder.textContent === raw.replace(/[*_]/g, ''), app + ': text changed: ' + raw);
+      check(!holder.textContent.includes('\u200d'), app + ': injected joiner: ' + raw);
+      check(!holder.querySelector('.highlight-text, .hl-text, .hl-bold') || raw.includes('한국어'), app + ': Arabic split: ' + raw);
+    }
+  }
+  const parse = parsers[0][1];
+  for (const font of ['noto', 'dongol']) {
+    for (const raw of samples) {
+      const row = document.createElement('tr');
+      row.className = font;
+      row.innerHTML = '<td class="sample"><span class="measure plain"></span></td><td class="sample"><span class="measure fixed"></span></td>';
+      row.querySelector('.plain').textContent = raw.replace(/\*/g, '');
+      row.querySelector('.fixed').innerHTML = parse(raw);
+      document.getElementById('examples').append(row);
+    }
+  }
+  await document.fonts.ready;
+  ATAHighlight.refresh();
+  for (const row of document.querySelectorAll('#examples tr')) {
+    const a = row.querySelector('.plain').getBoundingClientRect().width;
+    const b = row.querySelector('.fixed').getBoundingClientRect().width;
+    check(Math.abs(a - b) < 0.1, 'Shaping width changed: ' + row.querySelector('.plain').textContent + ' ' + a + '/' + b);
+  }
+  if (window.Highlight) {
+    check(CSS.highlights.get('ata-color').size > 0, 'Color ranges missing');
+    check(CSS.highlights.get('ata-box').size > 0, 'Partial box ranges missing');
+  }
+  document.getElementById('report').textContent = failures.length ? failures.join('\n') : count + ' checks passed (' + (window.Highlight ? 'range paint' : 'whole-word fallback') + ')';
+  document.body.dataset.failures = String(failures.length);
+})();
+</script>
+</html>

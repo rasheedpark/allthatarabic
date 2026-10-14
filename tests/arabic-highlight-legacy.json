@@ -1,0 +1,16 @@
+{
+  "teacher": {
+    "الْقَ*مَر*": "الْقَ‍<span class=\"highlight-text hl-ar\">‍مَر</span>",
+    "شُكْر*ًا*": "شُكْر<span class=\"highlight-text hl-ar\">ًا</span>",
+    "_كَانَ_ الدَّرْس *صَعْبًا*": "<span class=\"highlight-box\">كَانَ</span> الدَّرْس <span class=\"highlight-text hl-ar\">صَعْبًا</span>",
+    "*한국어*": "<span class=\"highlight-text\">한국어</span>",
+    "a\nb": "a<br>b"
+  },
+  "textbook": {
+    "الْقَ*مَر*": "الْقَ‍<span class=\"hl-text hl-ar\">‍مَر</span>",
+    "شُكْر*ًا*": "شُكْر<span class=\"hl-text hl-ar\">ًا</span>",
+    "_كَانَ_ الدَّرْس *صَعْبًا*": "<span class=\"hl-box-inline\">كَانَ</span> الدَّرْس <span class=\"hl-text hl-ar\">صَعْبًا</span>",
+    "*한국어*": "<span class=\"hl-text\">한국어</span>",
+    "a\nb": "a<br>b"
+  }
+}

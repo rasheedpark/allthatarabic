@@ -1037,6 +1037,8 @@ body.book-view #book-root { display: flex; }
   }
 }
 </style>
+<link rel="stylesheet" href="../assets/arabic-highlight.css?v=20261014">
+<script src="../assets/arabic-highlight.js?v=20261014"></script>
 </head>
 <body>
 
@@ -1246,13 +1248,14 @@ function fetchSheetData(name, gid = null) {
 }
 
 // ── parseText ──────────────────────────────────────────
-// 아랍어 하이라이트: 색 span이 단어 중간 글자를 감싸면 사파리(아이패드)에서
-// 이음(cursive joining)이 끊긴다. 실제 이음이 있는 경계에만 ZWJ(U+200D)를 주입해
-// 연결 형태를 강제 → 끊김 방지. (공백·ا·ة 등 비연결 경계엔 넣지 않아 잘못된 연결선 방지)
+// Scope this rendering fix to the four newly authored units only.
+function newUnitHighlight() { return /^A3[6-9]$/.test(currentPg || ''); }
+function protectNewUnitHighlight(html) { return newUnitHighlight() ? ATAHighlight.protect(html) : html; }
 const _AR_LETTER = /[ء-يٱ-ۓݐ-ݿﭐ-﷿ﹰ-﻿]/;
 const _AR_MARK = /[ً-ْٰۖ-ۭ]/;
 const _AR_RJO = new Set(['ا','أ','إ','آ','ٱ','د','ذ','ر','ز','و','ؤ','ة','ى','ء']); // 다음 글자로 연결 안 됨(우결합)
 function _hlArabic(match, inner, offset, whole) {
+  if (newUnitHighlight()) return `<span class="highlight-text">${inner}</span>`;
   if (!_AR_LETTER.test(inner)) return `<span class="highlight-text">${inner}</span>`;
   const ZWJ = '‍';
   const skip = ch => _AR_MARK.test(ch) || ch === '*' || ch === '_';
@@ -1270,11 +1273,11 @@ function _hlArabic(match, inner, offset, whole) {
 }
 function parseText(str) {
   if (!str) return '';
-  return str
+  return protectNewUnitHighlight(str
     .replace(/\*([^*\n]+)\*/g, _hlArabic)   // 먼저(원문 맥락에서 이음 판정)
     .replace(/<br\s*\/?>/gi, '<br>')
     .replace(/\n|\r\n|\r/g, '<br>')
-    .replace(/_([^_\n]+)_/g, '<span class="highlight-box">$1</span>');
+    .replace(/_([^_\n]+)_/g, '<span class="highlight-box">$1</span>'));
 }
 
 // 첫 강한 방향 문자로 LTR/RTL 판정 — 마크업(`*_<tag>`) 제거 후 검사.
@@ -1295,11 +1298,11 @@ function firstStrongDir(raw) {
 // ── parseDrillBlank — 드릴B 전용: *X* → 같은 배경색 박스로 가리기 ──
 function parseDrillBlank(str) {
   if (!str) return '';
-  return str
+  return protectNewUnitHighlight(str
     .replace(/<br\s*\/?>/gi, '<br>')
     .replace(/\n|\r\n|\r/g, '<br>')
     .replace(/_([^_\n]+)_/g, '<span class="highlight-box">$1</span>')
-    .replace(/\*([^*\n]+)\*/g, '<span class="drill-blank">$1</span>');
+    .replace(/\*([^*\n]+)\*/g, '<span class="drill-blank">$1</span>'));
 }
 
 // ── applyNomDivider — `css = 'nom'` 명사문 구분자: `|` → 옅은 회색 분리자
