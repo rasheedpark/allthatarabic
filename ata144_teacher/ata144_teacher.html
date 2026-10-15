@@ -258,6 +258,29 @@ body {
   align-items: center; gap: 0.8rem;
   min-height: 4rem;
 }
+.nass-scroll {
+  width: 100%;
+  max-height: min(68vh, calc(100vh - 190px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(29,73,255,0.35) transparent;
+  padding: 0 clamp(0.25rem, 1vw, 1rem) clamp(1rem, 2vh, 2rem);
+}
+.nass-scroll::-webkit-scrollbar { width: 8px; }
+.nass-scroll::-webkit-scrollbar-track { background: transparent; }
+.nass-scroll::-webkit-scrollbar-thumb {
+  background: rgba(29,73,255,0.3);
+  border-radius: 99px;
+}
+.nass-support {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+}
 .nass-sual {
   font-family: 'Noto Kufi Arabic', 'Noto Sans Arabic', serif;
   font-size: clamp(1.1rem, 2.5vw, 2.2rem);
@@ -267,7 +290,7 @@ body {
   text-align: center;
 }
 .nass-arabic-wrap {
-  max-height: 55vh; overflow-y: auto;
+  max-height: none; overflow: visible;
   width: 100%; padding: 0 clamp(1rem,5vw,4rem);
 }
 .nass-arabic-wrap .arabic {
@@ -1929,16 +1952,23 @@ function renderNass(s) {
 
   const promptHtml = `<div class="nass-prompt"></div>`;
 
-  document.getElementById('arabic-area').innerHTML =
-    showArabic ? (nassTextHtml + promptHtml) : promptHtml;
+  const supportHtml = `
+    <div class="nass-support">
+      ${d.korean ? `<div class="nass-korean-hint" style="opacity:${koreanVisible ? '1' : '0'}">${parseText(d.korean)}</div>` : ''}
+      ${d.note ? `<div class="nass-note" style="opacity:${noteVisible ? '1' : '0'}">${parseText(d.note)}</div>` : ''}
+      ${sual ? `<div class="nass-sual-note">${parseText(sual)}</div>` : ''}
+      ${buildLahjaBlock(d)}
+    </div>`;
 
-  // 라하 깃발 (nass도 일반 슬라이드처럼 표시 — 멀티 라하 지원, MSA 배지 포함)
-  document.getElementById('text-area').innerHTML = `
-    ${d.korean ? `<div class="nass-korean-hint" style="opacity:${koreanVisible ? '1' : '0'}">${parseText(d.korean)}</div>` : ''}
-    ${d.note ? `<div class="nass-note" style="opacity:${noteVisible ? '1' : '0'}">${parseText(d.note)}</div>` : ''}
-    ${sual ? `<div class="nass-sual-note">${parseText(sual)}</div>` : ''}
-    ${buildLahjaBlock(d)}
-  `;
+  // 긴 지문에서도 번역과 음가가 화면 밖으로 밀려나지 않도록
+  // 아랍어·한국어·음가를 하나의 스크롤 영역으로 묶는다.
+  document.getElementById('arabic-area').innerHTML = `
+    <div class="nass-scroll">
+      ${showArabic ? nassTextHtml : ''}
+      ${promptHtml}
+      ${supportHtml}
+    </div>`;
+  document.getElementById('text-area').innerHTML = '';
 }
 
 // ── 한국어/음가 토글 — 모든 슬라이드 타입에서 동작 (현재 슬라이드 재렌더) ──
