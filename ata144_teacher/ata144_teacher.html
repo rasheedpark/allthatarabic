@@ -99,7 +99,7 @@ body {
 }
 .bl-grid {
   display:grid;
-  grid-template-columns:repeat(var(--items,5), 1fr);
+  grid-template-columns:repeat(var(--items,5), minmax(0, 1fr));
   direction:rtl;
   width:100%;
   column-gap:clamp(6px,3vw,28px);
@@ -1680,6 +1680,7 @@ function renderSlide() {
 
 // ── 아랍어 자동 맞춤 — 최대 2줄 + 세로 공간 안에 들어올 때까지 축소 ──
 function fitArabicText() {
+  fitBaselineText();
   const area = document.getElementById('arabic-area');
   const el = area?.querySelector('.arabic');
   if (!el || el.closest('.nass-arabic-wrap')) return;
@@ -1777,13 +1778,11 @@ function renderBaseline(s, opts = {}) {
   grid.style.setProperty('--items', letters.length || 4);
 
   // 행 1: 단일 글자
-  let firstLetter = null;
   letters.forEach(ch => {
     const letter = document.createElement('span');
     letter.className = 'bl-letter';
     letter.innerHTML = parseText(ch);
     grid.appendChild(letter);
-    if (!firstLetter) firstLetter = letter;
   });
 
   // 행 2: 위치별 연결형 (데이터에 두 번째 줄이 있을 때만)
@@ -1808,30 +1807,44 @@ function renderBaseline(s, opts = {}) {
   arabicArea.appendChild(wrap);
   document.getElementById('text-area').innerHTML = buildLahjaBlock(d);
 
-  // 오버플로 축소 + baseline 선 위치 (noLine이면 선 측정 스킵)
-  requestAnimationFrame(() => {
-    if (!grid.isConnected) return;
-    const avail = (arabicArea.clientWidth ?? 0) - 48;
-    const actual = grid.scrollWidth;
-    if (actual > avail && avail > 0) {
-      const sc = Math.max(0.65, avail / actual);
-      grid.style.transform = `scale(${sc.toFixed(4)})`;
-      grid.style.transformOrigin = 'center top';
-    }
-    if (line) {
-      requestAnimationFrame(() => {
-        if (!grid.isConnected || !firstLetter) return;
-        const probe = document.createElement('span');
-        probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;overflow:hidden;';
-        firstLetter.appendChild(probe);
-        const wrapRect  = wrap.getBoundingClientRect();
-        const probeRect = probe.getBoundingClientRect();
-        probe.remove();
-        if (wrapRect.height > 0)
-          line.style.top = (probeRect.bottom - wrapRect.top) + 'px';
-      });
-    }
-  });
+  requestAnimationFrame(fitBaselineText);
+}
+
+// Measure the glyphs, not an overflowing RTL grid's client box.
+function fitBaselineText() {
+  const wrap = document.querySelector('#arabic-area .bl-wrap');
+  const grid = wrap?.querySelector('.bl-grid');
+  if (!grid || !wrap.clientWidth) return;
+  grid.style.transform = 'none';
+  grid.style.width = '100%';
+  grid.style.marginLeft = '0';
+  wrap.style.height = '';
+  const columns = grid.querySelectorAll('.bl-letter').length;
+  if (!columns) return;
+  const range = document.createRange();
+  let widest = 0;
+  for (const cell of grid.children) {
+    range.selectNodeContents(cell);
+    widest = Math.max(widest, range.getBoundingClientRect().width);
+  }
+  const gap = parseFloat(getComputedStyle(grid).columnGap) || 0;
+  const available = wrap.clientWidth;
+  const width = Math.max(available, Math.ceil(widest * columns + gap * (columns - 1)));
+  grid.style.width = width + 'px';
+  grid.style.marginLeft = (available - width) / 2 + 'px';
+  grid.style.transformOrigin = 'center top';
+  grid.style.transform = `scale(${available / width})`;
+  wrap.style.height = grid.getBoundingClientRect().height + 'px';
+
+  const line = wrap.querySelector('.bl-line');
+  const letter = grid.querySelector('.bl-letter');
+  if (line && letter) {
+    const probe = document.createElement('span');
+    probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;overflow:hidden;';
+    letter.appendChild(probe);
+    line.style.top = (probe.getBoundingClientRect().bottom - wrap.getBoundingClientRect().top) + 'px';
+    probe.remove();
+  }
 }
 
 function renderWrite(s) {
