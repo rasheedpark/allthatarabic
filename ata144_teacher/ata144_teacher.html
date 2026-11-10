@@ -99,7 +99,7 @@ body {
 }
 .bl-grid {
   display:grid;
-  grid-template-columns:repeat(var(--items,5), 1fr);
+  grid-template-columns:repeat(var(--items,5), minmax(0, 1fr));
   direction:rtl;
   width:100%;
   column-gap:clamp(6px,3vw,28px);
@@ -238,6 +238,41 @@ body {
   user-select: none;
 }
 
+/* ── 숫자 표 슬라이드 (appendix type=jadwal) ── */
+.jd-one {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(2px, 1vh, 14px);
+}
+.jd-num {
+  font-family: 'Noto Sans Arabic', serif;
+  font-size: clamp(3.5rem, 15vh, 10rem);
+  line-height: 1.1;
+  font-weight: 700;
+  color: var(--accent);
+}
+.jd-forms {
+  font-family: 'Noto Sans Arabic', serif;
+  font-size: clamp(2rem, 6.5vw, 5rem);
+  line-height: 1.7;
+  color: var(--text);
+  text-align: center;
+}
+.jd-sep { color: var(--sub); font-weight: 400; padding: 0 0.08em; }
+.jd-trans {
+  font-size: clamp(1rem, 2.1vw, 1.9rem);
+  color: var(--sub);
+  font-style: italic;
+  text-align: center;
+}
+.jadwal-cap {
+  font-size: clamp(0.85rem, 1.5vw, 1.3rem);
+  color: var(--sub);
+  text-align: center;
+  margin-top: 4px;
+}
+
 /* ── 드릴B 빈칸 (*X* 가리기) — 글자 자체는 안 보이게, 박스만 노출 ── */
 .drill-blank {
   display: inline;  /* ⚠️ inline 필수 — inline-block은 Arabic shaping 끊김 */
@@ -258,6 +293,29 @@ body {
   align-items: center; gap: 0.8rem;
   min-height: 4rem;
 }
+.nass-scroll {
+  width: 100%;
+  max-height: min(68vh, calc(100vh - 190px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(29,73,255,0.35) transparent;
+  padding: 0 clamp(0.25rem, 1vw, 1rem) clamp(1rem, 2vh, 2rem);
+}
+.nass-scroll::-webkit-scrollbar { width: 8px; }
+.nass-scroll::-webkit-scrollbar-track { background: transparent; }
+.nass-scroll::-webkit-scrollbar-thumb {
+  background: rgba(29,73,255,0.3);
+  border-radius: 99px;
+}
+.nass-support {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+}
 .nass-sual {
   font-family: 'Noto Kufi Arabic', 'Noto Sans Arabic', serif;
   font-size: clamp(1.1rem, 2.5vw, 2.2rem);
@@ -267,7 +325,7 @@ body {
   text-align: center;
 }
 .nass-arabic-wrap {
-  max-height: 55vh; overflow-y: auto;
+  max-height: none; overflow: visible;
   width: 100%; padding: 0 clamp(1rem,5vw,4rem);
 }
 .nass-arabic-wrap .arabic {
@@ -1036,7 +1094,117 @@ body.book-view #book-root { display: flex; }
     margin-top: 18px;
   }
 }
+
+/* ── 수업 중 수정 신고 ──────────────────────────────────
+   열쇠를 가진 선생님에게만 보인다(링크로 켠다). 수업을 멈추지 않는 것이 유일한 기준:
+   F로 열고 1·2·3으로 대상, 한 줄 쓰고 Enter. C는 본 자리 표시(확인). */
+#btn-report { display: none; }
+#btn-report.on { display: flex; }
+#btn-report.has-report { opacity: 1; color: #D6336C; }
+
+#report-chip {
+  position: fixed; z-index: 31;
+  top: clamp(0.6rem,1.4vw,1.1rem); right: clamp(0.6rem,1.4vw,1.1rem);
+  display: none; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.92);
+  border: 1px solid var(--border); border-radius: 20px;
+  padding: 4px 11px;
+  font-size: clamp(0.5rem,0.75vw,0.68rem); color: var(--sub);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 1px 6px rgba(29,73,255,0.07);
+}
+#report-chip.on { display: flex; }
+#report-chip .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--border); flex: none;
+}
+#report-chip.reported { color: #D6336C; border-color: #F3C2D4; }
+#report-chip.reported .dot { background: #D6336C; }
+#report-chip.seen .dot { background: var(--accent); }
+#report-chip.done { color: #0C8A5F; border-color: #BFE5D6; }
+#report-chip.done .dot { background: #0C8A5F; }
+
+#report-panel {
+  position: fixed; inset: 0; z-index: 60;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(18,32,90,0.18);
+  backdrop-filter: blur(3px);
+}
+#report-panel.open { display: flex; }
+.rp-box {
+  width: min(92vw, 440px);
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: 16px;
+  padding: clamp(1rem,1.8vw,1.4rem);
+  box-shadow: 0 12px 40px rgba(18,32,90,0.18);
+  font-size: clamp(0.7rem,1vw,0.84rem);
+}
+.rp-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 0.8rem; margin-bottom: 0.9rem;
+}
+.rp-where { color: var(--text); font-weight: 700; line-height: 1.5; }
+.rp-where .rp-sub {
+  display: block; margin-top: 0.25rem;
+  font-weight: 400; color: var(--sub);
+  font-size: 0.86em; word-break: break-all;
+}
+.rp-where .rp-ar {
+  display: block; margin-top: 0.35rem;
+  font-family: 'Noto Sans Arabic', serif; direction: rtl;
+  font-weight: 400; font-size: 1.15em; line-height: 1.6;
+  max-height: 3.4em; overflow: hidden;
+}
+.rp-x {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--sub); font-size: 1.05em; line-height: 1; padding: 2px 4px;
+}
+.rp-row { display: flex; gap: 0.5rem; margin-bottom: 0.7rem; }
+.rp-target, .rp-cf, .rp-save, .rp-del {
+  font-family: inherit; font-size: 1em; cursor: pointer;
+  border: 1.5px solid var(--border); background: #fff;
+  color: var(--text); border-radius: 9px;
+  padding: 0.5rem 0.2rem; flex: 1;
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.rp-target:hover, .rp-cf:hover, .rp-del:hover { border-color: var(--accent); color: var(--accent); }
+.rp-target.sel { background: var(--accent); border-color: var(--accent); color: #fff; }
+.rp-target.sel .kb { background: rgba(255,255,255,0.2); border-color: transparent; color: #fff; }
+.rp-target .kb, .rp-save .kb {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fff; border: 1.5px solid var(--border); border-radius: 4px;
+  padding: 0 4px; font-size: 0.8em; font-weight: 700; min-width: 1.5em;
+}
+#rp-reason {
+  width: 100%; box-sizing: border-box;
+  font-family: inherit; font-size: 1em; color: var(--text);
+  border: 1.5px solid var(--border); border-radius: 9px;
+  padding: 0.55rem 0.7rem; margin-bottom: 0.7rem;
+  background: var(--bg);
+}
+#rp-reason:focus { outline: none; border-color: var(--accent); background: #fff; }
+.rp-save { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.rp-save .kb { background: rgba(255,255,255,0.2); border-color: transparent; color: #fff; }
+.rp-save:disabled { opacity: 0.4; pointer-events: none; }
+.rp-del { flex: 0 0 auto; padding: 0.5rem 0.8rem; color: var(--sub); }
+.rp-cf.on { background: var(--accent-wash); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+.rp-sep {
+  border-top: 1px solid var(--border);
+  margin: 0.9rem 0 0.7rem; padding-top: 0.1rem;
+}
+.rp-msg { min-height: 1.3em; color: var(--sub); font-size: 0.88em; }
+.rp-msg.bad { color: #D6336C; }
+.rp-msg.good { color: #0C8A5F; }
+.rp-hist {
+  margin-top: 0.3rem; color: var(--sub); font-size: 0.82em; line-height: 1.7;
+  max-height: 7em; overflow-y: auto;
+}
+.rp-hist div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.book-view #report-chip { display: none !important; }
 </style>
+<link rel="stylesheet" href="../assets/arabic-highlight.css?v=20261014">
+<script src="../assets/arabic-highlight.js?v=20261014"></script>
 </head>
 <body>
 
@@ -1088,10 +1256,39 @@ body.book-view #book-root { display: flex; }
   <button class="tb-btn tb-nav" id="btn-prev" aria-label="이전 슬라이드">‹</button>
   <button class="tb-btn" id="btn-menu"><span class="kb">M</span> 메뉴</button>
   <button class="tb-btn" id="btn-audio"><span class="kb">S</span> 오디오</button>
+  <button class="tb-btn" id="btn-report"><span class="kb">F</span> 신고</button>
   <button class="tb-btn" id="btn-korean"><span class="kb">Space</span> 한국어</button>
   <button class="tb-btn" id="btn-note"><span class="kb">R</span> 음가</button>
   <button class="tb-btn" id="btn-arabic"><span class="kb">A</span> 본문</button>
   <button class="tb-btn tb-nav" id="btn-next" aria-label="다음 슬라이드">›</button>
+</div>
+
+<!-- 수정 신고 (열쇠를 가진 선생님에게만 보인다) -->
+<div id="report-chip"></div>
+<div id="report-panel">
+  <div class="rp-box">
+    <div class="rp-head">
+      <div class="rp-where" id="rp-where"></div>
+      <button class="rp-x" id="rp-close" aria-label="닫기">✕</button>
+    </div>
+    <div class="rp-row">
+      <button class="rp-target" data-target="content"><span class="kb">1</span> 내용</button>
+      <button class="rp-target" data-target="audio"><span class="kb">2</span> 음원</button>
+      <button class="rp-target" data-target="both"><span class="kb">3</span> 둘 다</button>
+    </div>
+    <input id="rp-reason" type="text" maxlength="200" autocomplete="off" placeholder="한 줄 사유 (예: 목적어인데 목적격이 없다)">
+    <div class="rp-row">
+      <button class="rp-save" id="rp-save">신고 저장 <span class="kb">Enter</span></button>
+      <button class="rp-del" id="rp-del">신고 취소</button>
+    </div>
+    <div class="rp-sep"></div>
+    <div class="rp-row">
+      <button class="rp-cf" id="rp-cf1">확인1</button>
+      <button class="rp-cf" id="rp-cf2">확인2</button>
+    </div>
+    <div class="rp-msg" id="rp-msg"></div>
+    <div class="rp-hist" id="rp-hist"></div>
+  </div>
 </div>
 
 <audio id="slide-audio"></audio>
@@ -1110,6 +1307,7 @@ const TAB_DRILL   = 'drill';
 const TAB_EXPRESSION = 'expression';
 const TAB_KALIMAT = 'kalimat';
 const TAB_NASS    = 'nass';
+const TAB_APPENDIX = 'appendix';
 
 // dev/prod 판정 — localhost/127.0.0.1/file: 은 dev (draft 노출), 그 외 prod (confirmed만)
 const IS_DEV = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || location.protocol === 'file:';
@@ -1121,8 +1319,8 @@ const okStatus = r => {
   return false;
 };
 
-const TYPE_EN = { unit:'UNIT', ptn:'PATTERN', repertory:'REPERTORY', drilla:'DRILL A', drillb:'DRILL B', drillc:'DRILL C', writing:'WRITING', exp:'EXPRESSION', kalimat:'KALIMAT', nass:'NASS' };
-const TYPE_KO = { unit:'유닛',  ptn:'패턴',   repertory:'예문',     drilla:'드릴A',   drillb:'드릴B',   drillc:'드릴C',   writing:'쓰기',    exp:'표현',        kalimat:'단어',      nass:'지문' };
+const TYPE_EN = { unit:'UNIT', ptn:'PATTERN', repertory:'REPERTORY', drilla:'DRILL A', drillb:'DRILL B', drillc:'DRILL C', writing:'WRITING', exp:'EXPRESSION', kalimat:'KALIMAT', nass:'NASS', jadwal:'NUMBERS' };
+const TYPE_KO = { unit:'유닛',  ptn:'패턴',   repertory:'예문',     drilla:'드릴A',   drillb:'드릴B',   drillc:'드릴C',   writing:'쓰기',    exp:'표현',        kalimat:'단어',      nass:'지문', jadwal:'숫자' };
 const LAHJA_FLAG = {
   EGY: '../assets/icons/icon-egypt.png',
   EGP: '../assets/icons/icon-egypt.png',
@@ -1172,6 +1370,7 @@ function normalizeType(t) {
   if (tl === 'exp')     return 'exp';
   if (tl === 'kalimat') return 'kalimat';
   if (tl === 'nass')    return 'nass';
+  if (tl === 'jadwal')  return 'jadwal';
   return tl;
 }
 
@@ -1198,7 +1397,7 @@ function sameRef(a, b) {
 }
 
 function getRowId(r) {
-  return r.id_unit || r['id_ptn(no)'] || r.id_ptn || r.id_drill || r.id_rep || r.id_repertory || r.id_kalimat || r.id_expression || r.id_nass || '';
+  return r.id_unit || r['id_ptn(no)'] || r.id_ptn || r.id_drill || r.id_rep || r.id_repertory || r.id_kalimat || r.id_expression || r.id_nass || r.id_appendix || '';
 }
 
 // ── JSONP 데이터 로더 ──────────────────────────────────
@@ -1239,20 +1438,21 @@ function fetchSheetData(name, gid = null) {
     };
     const script = document.createElement('script');
     const param = gid ? `gid=${gid}` : `sheet=${encodeURIComponent(name)}`;
-    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}&${param}&headers=1`;
+    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}&${param}&headers=1&_=${Date.now()}`;
     script.onerror = () => { clearTimeout(timer); delete window[cb]; reject(new Error('Fail: '+cacheKey)); };
     document.head.appendChild(script);
   });
 }
 
 // ── parseText ──────────────────────────────────────────
-// 아랍어 하이라이트: 색 span이 단어 중간 글자를 감싸면 사파리(아이패드)에서
-// 이음(cursive joining)이 끊긴다. 실제 이음이 있는 경계에만 ZWJ(U+200D)를 주입해
-// 연결 형태를 강제 → 끊김 방지. (공백·ا·ة 등 비연결 경계엔 넣지 않아 잘못된 연결선 방지)
+// Scope this rendering fix to the four newly authored units only.
+function newUnitHighlight() { return /^A3[6-9]$/.test(currentPg || ''); }
+function protectNewUnitHighlight(html) { return newUnitHighlight() ? ATAHighlight.protect(html) : html; }
 const _AR_LETTER = /[ء-يٱ-ۓݐ-ݿﭐ-﷿ﹰ-﻿]/;
 const _AR_MARK = /[ً-ْٰۖ-ۭ]/;
 const _AR_RJO = new Set(['ا','أ','إ','آ','ٱ','د','ذ','ر','ز','و','ؤ','ة','ى','ء']); // 다음 글자로 연결 안 됨(우결합)
 function _hlArabic(match, inner, offset, whole) {
+  if (newUnitHighlight()) return `<span class="highlight-text">${inner}</span>`;
   if (!_AR_LETTER.test(inner)) return `<span class="highlight-text">${inner}</span>`;
   const ZWJ = '‍';
   const skip = ch => _AR_MARK.test(ch) || ch === '*' || ch === '_';
@@ -1270,11 +1470,11 @@ function _hlArabic(match, inner, offset, whole) {
 }
 function parseText(str) {
   if (!str) return '';
-  return str
+  return protectNewUnitHighlight(str
     .replace(/\*([^*\n]+)\*/g, _hlArabic)   // 먼저(원문 맥락에서 이음 판정)
     .replace(/<br\s*\/?>/gi, '<br>')
     .replace(/\n|\r\n|\r/g, '<br>')
-    .replace(/_([^_\n]+)_/g, '<span class="highlight-box">$1</span>');
+    .replace(/_([^_\n]+)_/g, '<span class="highlight-box">$1</span>'));
 }
 
 // 첫 강한 방향 문자로 LTR/RTL 판정 — 마크업(`*_<tag>`) 제거 후 검사.
@@ -1295,16 +1495,46 @@ function firstStrongDir(raw) {
 // ── parseDrillBlank — 드릴B 전용: *X* → 같은 배경색 박스로 가리기 ──
 function parseDrillBlank(str) {
   if (!str) return '';
-  return str
+  return protectNewUnitHighlight(str
     .replace(/<br\s*\/?>/gi, '<br>')
     .replace(/\n|\r\n|\r/g, '<br>')
     .replace(/_([^_\n]+)_/g, '<span class="highlight-box">$1</span>')
-    .replace(/\*([^*\n]+)\*/g, '<span class="drill-blank">$1</span>');
+    .replace(/\*([^*\n]+)\*/g, '<span class="drill-blank">$1</span>'));
 }
 
 // ── applyNomDivider — `css = 'nom'` 명사문 구분자: `|` → 옅은 회색 분리자
 function applyNomDivider(html) {
   return html.replace(/\s*\|\s*/g, '<span class="nom-divider">|</span>');
+}
+
+function parseJadwalRows(html) {
+  const rows = [];
+  String(html || '').replace(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi, (_, rowHtml) => {
+    const cells = [];
+    rowHtml.replace(/<(t[dh])\b[^>]*>([\s\S]*?)<\/t[dh]>/gi, (match, tag, cellHtml) => {
+      cells.push({
+        tag: tag.toLowerCase() === 'th' ? 'th' : 'td',
+        text: cellHtml.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').trim(),
+      });
+      return match;
+    });
+    if (cells.length) rows.push(cells);
+    return rowHtml;
+  });
+  return rows;
+}
+
+function pushJadwalSlides(push, row, baseUnit) {
+  const rows = parseJadwalRows(row.script);
+  const head = rows.length && rows[0].every(cell => cell.tag === 'th') ? rows[0] : null;
+  const body = head ? rows.slice(1) : rows;
+  body.forEach((cells, index) => push('jadwal', row, {
+    pg: baseUnit,
+    jdCells: cells,
+    jdHead: head,
+    jdIdx: index,
+    jdTotal: body.length,
+  }));
 }
 
 // ── buildSlides ────────────────────────────────────────
@@ -1323,17 +1553,27 @@ async function buildSlides(baseUnit) {
     fetchSheetData(TAB_KALIMAT),
     fetchSheetData(TAB_NASS),
   ]);
-  const [repertoryRaw, expressionRaw] = await Promise.all([
+  const [repertoryRaw, expressionRaw, appendixRaw] = await Promise.all([
     fetchSheetData(TAB_REPERTORY),
     fetchSheetData(TAB_EXPRESSION),
+    fetchSheetData(TAB_APPENDIX),
   ]);
 
   const ok  = okStatus;
   const inU = r => (r.u || '') === baseUnit;
-  const push = (type, r) => slides.push({ type, data: r, pg: baseUnit });
+  const push = (type, r, extra = {}) => slides.push({ type, data: r, pg: baseUnit, ...extra });
+  const jadwalAll = appendixRaw
+    .filter(r => inU(r) && ok(r) && normalizeType(r.type) === 'jadwal');
+  const pushJadwal = r => pushJadwalSlides(push, r, baseUnit);
 
   // 1. 유닛 슬라이드
   unitRaw.filter(r => inU(r) && ok(r)).forEach(r => push('unit', r));
+
+  // 1.5. ref_ptn 없는 표는 유닛 공통 보조 슬라이드다.
+  // ref_ptn이 있는 표는 아래에서 해당 패턴 직전에 넣는다.
+  jadwalAll
+    .filter(r => !(r.ref_ptn || '').trim())
+    .forEach(pushJadwal);
 
   // 2. 패턴별: 패턴 → 레퍼토리(예문) → 그 패턴에 걸린 드릴(drillA, ref_ptn 매칭)
   //    ref_ptn이 걸려 있으면 page 값이 있어도 패턴 뒤로 인터리브한다.
@@ -1344,8 +1584,11 @@ async function buildSlides(baseUnit) {
   const interleaved = new Set();
 
   patternRaw.filter(r => inU(r) && ok(r)).forEach(ptn => {
-    push('ptn', ptn);
     const ref = ptn['id_ptn(no)'] || ptn.id_ptn || '';
+    jadwalAll
+      .filter(r => (r.ref_ptn || '').trim() && sameRef(r.ref_ptn, ref))
+      .forEach(pushJadwal);
+    push('ptn', ptn);
     repertoryRaw
       .filter(r => inU(r) && ok(r) && sameRef(r.ref_ptn, ref))
       .forEach(r => push(normalizeType(r.type), r));
@@ -1378,8 +1621,17 @@ async function buildSlides(baseUnit) {
   expressionRaw.filter(r => inU(r) && ok(r) && normalizeType(r.type) === 'exp')
     .forEach(r => push('exp', r));
 
-  // 5. nass (지문)
-  nassRaw.filter(r => inU(r) && ok(r)).forEach(r => push('nass', r));
+  // 5. nass (지문): 푸스하를 먼저, 걸프 암미야를 뒤에 표시한다.
+  const nassDialectOrder = r => {
+    const lahja = String(r.lahja || '').trim().toUpperCase();
+    if (lahja === 'MSA') return 0;
+    if (['GLF', 'UAE', 'KSA'].includes(lahja)) return 1;
+    return 2;
+  };
+  nassRaw.filter(r => inU(r) && ok(r))
+    .map((r, index) => ({ r, index }))
+    .sort((a, b) => nassDialectOrder(a.r) - nassDialectOrder(b.r) || a.index - b.index)
+    .forEach(({ r }) => push('nass', r));
 
   // 6. kalimat (단어)
   kalimatRaw.filter(r => inU(r) && ok(r) && normalizeType(r.type) === 'kalimat')
@@ -1593,6 +1845,7 @@ async function renderUnitBook(baseUnit) {
 function renderSlide() {
   if (!slides.length) return;
   const s = slides[current];
+  reportRenderChip();
 
   // 진행바
   document.getElementById('progress').style.width = ((current+1)/slides.length*100)+'%';
@@ -1623,12 +1876,16 @@ function renderSlide() {
   buildSectionTabs();
 
   // (btn-nass 제거됨 — 지문은 항상 자동 표시)
-  // 오디오 버튼: 패턴 슬라이드에서는 숨김
-  document.getElementById('btn-audio').style.display = s.type === 'ptn' ? 'none' : '';
+  // 오디오 버튼: 패턴·숫자표 슬라이드에서는 숨김
+  document.getElementById('btn-audio').style.display = ['ptn', 'jadwal'].includes(s.type) ? 'none' : '';
 
   // ── 나스 슬라이드 ──
   if (s.type === 'nass') {
     renderNass(s); updateIndex(); return;
+  }
+
+  if (s.type === 'jadwal') {
+    renderJadwal(s); updateIndex(); return;
   }
 
   // ── 일반 슬라이드 (pattern / repertory / drill / exp / writing) ──
@@ -1675,8 +1932,38 @@ function renderSlide() {
   updateIndex();
 }
 
+const AR_DIGITS = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+function toArabicDigits(value) {
+  return String(value == null ? '' : value).replace(/[0-9]/g, digit => AR_DIGITS[Number(digit)]);
+}
+
+function renderJadwal(s) {
+  const d = s.data;
+  const cells = s.jdCells || [];
+  if (!cells.length) return;
+
+  const number = (cells[0].text || '').split('\n')[0];
+  const forms = cells.slice(1).map(cell => cell.text.split('\n'));
+  const arabicForms = forms.map(parts => (parts[0] || '').trim()).filter(Boolean);
+  const notes = forms.map(parts => parts.slice(1).join(' ').trim()).filter(Boolean);
+  const arabicOpacity = arabicVisible ? '1' : '0';
+  const koreanOpacity = koreanVisible ? '1' : '0';
+  const noteOpacity = noteVisible ? '1' : '0';
+
+  document.getElementById('arabic-area').innerHTML =
+    `<div class="jd-one" style="opacity:${arabicOpacity};transition:opacity 0.3s;">`
+      + `<div class="jd-num">${toArabicDigits(number)}</div>`
+      + `<div class="jd-forms" dir="rtl">${arabicForms.map(parseText).join('<span class="jd-sep">، </span>')}</div>`
+    + `</div>`;
+
+  document.getElementById('text-area').innerHTML =
+    (notes.length ? `<div class="jd-trans" style="opacity:${noteOpacity};">${notes.join(' , ')}</div>` : '')
+    + (d.korean ? `<div class="jadwal-cap" style="opacity:${koreanOpacity};">${parseText(d.korean)}</div>` : '');
+}
+
 // ── 아랍어 자동 맞춤 — 최대 2줄 + 세로 공간 안에 들어올 때까지 축소 ──
 function fitArabicText() {
+  fitBaselineText();
   const area = document.getElementById('arabic-area');
   const el = area?.querySelector('.arabic');
   if (!el || el.closest('.nass-arabic-wrap')) return;
@@ -1774,13 +2061,11 @@ function renderBaseline(s, opts = {}) {
   grid.style.setProperty('--items', letters.length || 4);
 
   // 행 1: 단일 글자
-  let firstLetter = null;
   letters.forEach(ch => {
     const letter = document.createElement('span');
     letter.className = 'bl-letter';
     letter.innerHTML = parseText(ch);
     grid.appendChild(letter);
-    if (!firstLetter) firstLetter = letter;
   });
 
   // 행 2: 위치별 연결형 (데이터에 두 번째 줄이 있을 때만)
@@ -1805,30 +2090,44 @@ function renderBaseline(s, opts = {}) {
   arabicArea.appendChild(wrap);
   document.getElementById('text-area').innerHTML = buildLahjaBlock(d);
 
-  // 오버플로 축소 + baseline 선 위치 (noLine이면 선 측정 스킵)
-  requestAnimationFrame(() => {
-    if (!grid.isConnected) return;
-    const avail = (arabicArea.clientWidth ?? 0) - 48;
-    const actual = grid.scrollWidth;
-    if (actual > avail && avail > 0) {
-      const sc = Math.max(0.65, avail / actual);
-      grid.style.transform = `scale(${sc.toFixed(4)})`;
-      grid.style.transformOrigin = 'center top';
-    }
-    if (line) {
-      requestAnimationFrame(() => {
-        if (!grid.isConnected || !firstLetter) return;
-        const probe = document.createElement('span');
-        probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;overflow:hidden;';
-        firstLetter.appendChild(probe);
-        const wrapRect  = wrap.getBoundingClientRect();
-        const probeRect = probe.getBoundingClientRect();
-        probe.remove();
-        if (wrapRect.height > 0)
-          line.style.top = (probeRect.bottom - wrapRect.top) + 'px';
-      });
-    }
-  });
+  requestAnimationFrame(fitBaselineText);
+}
+
+// Measure the glyphs, not an overflowing RTL grid's client box.
+function fitBaselineText() {
+  const wrap = document.querySelector('#arabic-area .bl-wrap');
+  const grid = wrap?.querySelector('.bl-grid');
+  if (!grid || !wrap.clientWidth) return;
+  grid.style.transform = 'none';
+  grid.style.width = '100%';
+  grid.style.marginLeft = '0';
+  wrap.style.height = '';
+  const columns = grid.querySelectorAll('.bl-letter').length;
+  if (!columns) return;
+  const range = document.createRange();
+  let widest = 0;
+  for (const cell of grid.children) {
+    range.selectNodeContents(cell);
+    widest = Math.max(widest, range.getBoundingClientRect().width);
+  }
+  const gap = parseFloat(getComputedStyle(grid).columnGap) || 0;
+  const available = wrap.clientWidth;
+  const width = Math.max(available, Math.ceil(widest * columns + gap * (columns - 1)));
+  grid.style.width = width + 'px';
+  grid.style.marginLeft = (available - width) / 2 + 'px';
+  grid.style.transformOrigin = 'center top';
+  grid.style.transform = `scale(${available / width})`;
+  wrap.style.height = grid.getBoundingClientRect().height + 'px';
+
+  const line = wrap.querySelector('.bl-line');
+  const letter = grid.querySelector('.bl-letter');
+  if (line && letter) {
+    const probe = document.createElement('span');
+    probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;overflow:hidden;';
+    letter.appendChild(probe);
+    line.style.top = (probe.getBoundingClientRect().bottom - wrap.getBoundingClientRect().top) + 'px';
+    probe.remove();
+  }
 }
 
 function renderWrite(s) {
@@ -1913,16 +2212,23 @@ function renderNass(s) {
 
   const promptHtml = `<div class="nass-prompt"></div>`;
 
-  document.getElementById('arabic-area').innerHTML =
-    showArabic ? (nassTextHtml + promptHtml) : promptHtml;
+  const supportHtml = `
+    <div class="nass-support">
+      ${d.korean ? `<div class="nass-korean-hint" style="opacity:${koreanVisible ? '1' : '0'}">${parseText(d.korean)}</div>` : ''}
+      ${d.note ? `<div class="nass-note" style="opacity:${noteVisible ? '1' : '0'}">${parseText(d.note)}</div>` : ''}
+      ${sual ? `<div class="nass-sual-note">${parseText(sual)}</div>` : ''}
+      ${buildLahjaBlock(d)}
+    </div>`;
 
-  // 라하 깃발 (nass도 일반 슬라이드처럼 표시 — 멀티 라하 지원, MSA 배지 포함)
-  document.getElementById('text-area').innerHTML = `
-    ${d.korean ? `<div class="nass-korean-hint" style="opacity:${koreanVisible ? '1' : '0'}">${parseText(d.korean)}</div>` : ''}
-    ${d.note ? `<div class="nass-note" style="opacity:${noteVisible ? '1' : '0'}">${parseText(d.note)}</div>` : ''}
-    ${sual ? `<div class="nass-sual-note">${parseText(sual)}</div>` : ''}
-    ${buildLahjaBlock(d)}
-  `;
+  // 긴 지문에서도 번역과 음가가 화면 밖으로 밀려나지 않도록
+  // 아랍어·한국어·음가를 하나의 스크롤 영역으로 묶는다.
+  document.getElementById('arabic-area').innerHTML = `
+    <div class="nass-scroll">
+      ${showArabic ? nassTextHtml : ''}
+      ${promptHtml}
+      ${supportHtml}
+    </div>`;
+  document.getElementById('text-area').innerHTML = '';
 }
 
 // ── 한국어/음가 토글 — 모든 슬라이드 타입에서 동작 (현재 슬라이드 재렌더) ──
@@ -2136,7 +2442,12 @@ document.addEventListener('keydown', e => {
     case 'm': case 'M': toggleSidebar(); break;
     case 't': case 'T': if (slides[current]?.type === 'nass') toggleNass(); break;
     case 's': case 'S': toggleAudio(); break;
-    case 'Escape': if (sidebarOpen) toggleSidebar(); break;
+    case 'f': case 'F': reportOpen(); break;
+    case 'c': case 'C': reportToggleConfirm(); break;
+    case 'Escape':
+      if (document.getElementById('report-panel').classList.contains('open')) reportClose();
+      else if (sidebarOpen) toggleSidebar();
+      break;
     case 'End':  e.preventDefault(); goTo(slides.length - 1); break;
     case 'Home': e.preventDefault(); goTo(0); break;
   }
@@ -2158,6 +2469,311 @@ document.getElementById('btn-next').onclick    = () => goTo(current + 1);
 
 // ── 슬라이드 넘김은 키보드 ←→ 와 ‹ › 버튼만 사용 ─────────
 // (터치·클릭·스와이프로는 넘어가지 않음 — 수업 중 오조작 방지, 2026-07-27 확정)
+
+
+// ── 수업 중 수정 신고 ─────────────────────────────────
+// 사바흐가 2026-11-09에 요청한 창구. 항목 하나(= 지금 보고 있는 슬라이드 하나)에 대해
+// 대상(내용·음원·둘 다)과 한 줄 사유를 남기면 끝난다. 정본은 ATA-1.4.4 시트이므로
+// 여기서는 신고만 받고 본문은 고치지 않는다.
+//
+// 켜는 법: 선생님마다 다른 링크를 한 번 연다 — ?key=…&reviewer=사바흐&role=1
+// 열쇠를 이 파일에 박지 않는 이유는 공개 페이지이기 때문이다. 받은 링크의 값은 이
+// 브라우저에만 저장하고 주소에서는 지운다. 열쇠가 없으면 버튼이 아예 안 보인다.
+// IS_DEV(localhost·file:)에서만 ?reportApi= 로 갈아 끼울 수 있다. 공개 페이지에서는
+// 주소로 바꿀 수 없게 막아 둔다 — 열쇠가 남의 서버로 가면 안 된다.
+const REPORT_API    = (IS_DEV && new URLSearchParams(location.search).get('reportApi'))
+  || 'https://ata144-review-feedback-287996655031.asia-northeast3.run.app';
+const REPORT_REVIEW = 'class144';
+const REPORT_STORE  = 'ata144-report-auth-v1';
+const REPORT_TARGET_KO = { content: '내용', audio: '음원', both: '내용+음원' };
+
+const reportAuth = (() => {
+  const q = new URLSearchParams(location.search);
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(REPORT_STORE) || '{}') || {}; } catch (e) {}
+  const fromUrl = q.has('key') || q.has('reviewer') || q.has('role');
+  const key      = String(q.get('key')      || saved.key      || '').trim();
+  const reviewer = String(q.get('reviewer') || saved.reviewer || '').trim().slice(0, 40);
+  const role     = String(q.get('role')     || saved.role     || '1').trim() === '2' ? '2' : '1';
+  const auth = { key, reviewer, role, enabled: Boolean(key && reviewer) };
+  if (fromUrl) {
+    if (auth.enabled) {
+      try { localStorage.setItem(REPORT_STORE, JSON.stringify({ key, reviewer, role })); } catch (e) {}
+    }
+    // 수업 화면을 띄워 놓거나 공유해도 열쇠가 주소창에 남지 않게 한다.
+    ['key', 'reviewer', 'role'].forEach(p => q.delete(p));
+    const qs = q.toString();
+    history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
+  }
+  return auth;
+})();
+
+let reportRecords = {};          // itemKey → 서버 기록
+let reportDraftTarget = '';      // 패널에서 고른 대상
+let reportBusy = false;
+
+function reportSlide() { return slides[current] || null; }
+
+// 신고 열쇠 — `{과}/{종류}:{행 id}`. 기존 신고 API가 받는 모양(^A\d{2}/…)과 같다.
+function reportItemKey(s) {
+  if (!s) return '';
+  const unit = String(s.pg || s.data?.u || '').trim();
+  if (!/^A\d{2}$/.test(unit)) return '';
+  const id = String(getRowId(s.data) || '').trim().replace(/\s+/g, '_');
+  if (!id) return '';
+  return unit + '/' + (s.type || 'item') + ':' + id;
+}
+
+function reportSnapshot(s) {
+  const d = (s && s.data) || {};
+  return {
+    unit: String(s?.pg || d.u || ''),
+    type: String(s?.type || ''),
+    arabic: String(d.arabic || ''),
+    korean: String(d.korean || ''),
+    note: String(d.note || ''),
+    id: String(getRowId(d) || ''),
+  };
+}
+
+function reportRecord(key) { return (key && reportRecords[key]) || null; }
+function reportIsReported(rec) {
+  return Boolean(rec && (rec.needed || rec.target || String(rec.reason || '').trim()));
+}
+
+async function reportApi(body) {
+  const url = new URL(REPORT_API + '/feedback');
+  url.searchParams.set('key', reportAuth.key);
+  const response = await fetch(url.toString(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ review: REPORT_REVIEW, reviewer: reportAuth.reviewer, ...body }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.ok) throw new Error(data.error || ('HTTP ' + response.status));
+  if (data.deleted) delete reportRecords[body.itemKey];
+  else if (data.item) reportRecords[body.itemKey] = data.item;
+  return data;
+}
+
+async function reportLoad() {
+  if (!reportAuth.enabled) return;
+  const url = new URL(REPORT_API + '/feedback');
+  url.searchParams.set('review', REPORT_REVIEW);
+  url.searchParams.set('key', reportAuth.key);
+  try {
+    const response = await fetch(url.toString(), { cache: 'no-store' });
+    const data = await response.json();
+    if (data && data.ok && data.items) reportRecords = data.items;
+  } catch (e) {
+    console.warn('신고 목록을 못 읽었습니다', e);
+  }
+  reportRenderChip();
+}
+
+// 슬라이드마다 상태를 보여 준다 — 신고 있음 / 봤음(확인) / 처리됨.
+// 신고가 없다는 것과 아직 안 봤다는 것을 구별하기 위한 칸이다.
+function reportRenderChip() {
+  const chip = document.getElementById('report-chip');
+  const button = document.getElementById('btn-report');
+  if (!chip || !button) return;
+  if (!reportAuth.enabled) { chip.className = ''; button.className = 'tb-btn'; return; }
+  button.classList.add('on');
+
+  const key = reportItemKey(reportSlide());
+  if (!key) {
+    chip.className = 'on';
+    chip.innerHTML = '<span class="dot"></span><span>신고 대상 아님</span>';
+    button.classList.remove('has-report');
+    button.disabled = true;
+    return;
+  }
+  button.disabled = false;
+
+  const rec = reportRecord(key);
+  const reported = reportIsReported(rec);
+  const seen = Boolean(rec && (rec.confirm1?.active || rec.confirm2?.active));
+  const done = Boolean(rec && rec.done);
+  button.classList.toggle('has-report', reported && !done);
+
+  const marks = [];
+  if (reported) marks.push('신고 ' + (REPORT_TARGET_KO[rec.target] || '내용'));
+  if (rec?.confirm1?.active) marks.push('확인1');
+  if (rec?.confirm2?.active) marks.push('확인2');
+  if (done) marks.push('처리됨');
+  chip.className = 'on' + (done ? ' done' : reported ? ' reported' : seen ? ' seen' : '');
+  chip.innerHTML = '<span class="dot"></span><span>' +
+    (marks.length ? escapeHtmlReport(marks.join(' · ')) : reportAuth.reviewer + ' · 신고 없음') +
+    '</span>';
+}
+
+function escapeHtmlReport(text) {
+  return String(text).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+function reportSetMessage(text, kind = '') {
+  const el = document.getElementById('rp-msg');
+  if (el) { el.textContent = text; el.className = 'rp-msg' + (kind ? ' ' + kind : ''); }
+}
+
+function reportRenderPanel() {
+  const s = reportSlide();
+  const key = reportItemKey(s);
+  if (!key) return;
+  const rec = reportRecord(key);
+  const snap = reportSnapshot(s);
+
+  document.getElementById('rp-where').innerHTML =
+    escapeHtmlReport((snap.unit || '') + ' · ' + (TYPE_KO[snap.type] || snap.type)) +
+    '<span class="rp-ar">' + escapeHtmlReport(snap.arabic.slice(0, 90)) + '</span>' +
+    '<span class="rp-sub">' + escapeHtmlReport(snap.id) + '</span>';
+
+  document.querySelectorAll('.rp-target').forEach(b => {
+    b.classList.toggle('sel', b.dataset.target === reportDraftTarget);
+  });
+  document.getElementById('rp-reason').value = rec ? String(rec.reason || '') : '';
+  document.getElementById('rp-del').style.display = reportIsReported(rec) ? '' : 'none';
+  document.getElementById('rp-cf1').classList.toggle('on', Boolean(rec?.confirm1?.active));
+  document.getElementById('rp-cf2').classList.toggle('on', Boolean(rec?.confirm2?.active));
+  document.getElementById('rp-cf1').textContent = '확인1' + (rec?.confirm1?.reviewer ? ' · ' + rec.confirm1.reviewer : '');
+  document.getElementById('rp-cf2').textContent = '확인2' + (rec?.confirm2?.reviewer ? ' · ' + rec.confirm2.reviewer : '');
+
+  const history = Array.isArray(rec?.history) ? rec.history.slice(-6).reverse() : [];
+  document.getElementById('rp-hist').innerHTML = history.map(entry => {
+    const when = String(entry.at || '').slice(5, 16).replace('T', ' ');
+    const what = entry.action === 'report'
+      ? (REPORT_TARGET_KO[entry.target] || '내용') + ' · ' + (entry.reason || '사유 없음')
+      : ({ clear: '신고 취소', confirm1: '확인1', confirm2: '확인2', confirm1_off: '확인1 해제',
+           confirm2_off: '확인2 해제', done: '처리 완료', done_off: '처리 해제' }[entry.action] || entry.action);
+    return '<div>' + escapeHtmlReport(when + ' ' + (entry.reviewer || '') + ' — ' + what) + '</div>';
+  }).join('');
+}
+
+function reportOpen() {
+  if (!reportAuth.enabled) return;
+  const key = reportItemKey(reportSlide());
+  if (!key) { reportRenderChip(); return; }
+  const rec = reportRecord(key);
+  reportDraftTarget = (rec && rec.target) || '';
+  reportSetMessage('');
+  reportRenderPanel();
+  document.getElementById('report-panel').classList.add('open');
+  // 수업 중이므로 포커스를 바로 사유 칸에 둔다 — 대상은 1·2·3 또는 눌러서 고른다.
+  setTimeout(() => document.getElementById('rp-reason').focus(), 30);
+}
+
+function reportClose() {
+  document.getElementById('report-panel').classList.remove('open');
+  document.getElementById('rp-reason').blur();
+}
+
+function reportPickTarget(target) {
+  reportDraftTarget = target;
+  document.querySelectorAll('.rp-target').forEach(b => {
+    b.classList.toggle('sel', b.dataset.target === target);
+  });
+  document.getElementById('rp-reason').focus();
+}
+
+async function reportSubmit() {
+  if (reportBusy) return;
+  const s = reportSlide();
+  const key = reportItemKey(s);
+  if (!key) return;
+  const reason = document.getElementById('rp-reason').value.trim();
+  const target = reportDraftTarget || 'content';
+  if (!reason && !reportDraftTarget) {
+    reportSetMessage('대상을 고르거나 사유를 한 줄 적어 주세요.', 'bad');
+    return;
+  }
+  reportBusy = true;
+  reportSetMessage('저장 중…');
+  try {
+    await reportApi({
+      itemKey: key, target, reason, needed: true,
+      snapshot: reportSnapshot(s),
+      // 신고한 사람은 그 자리를 본 것이므로 자기 확인 칸도 같이 켠다.
+      ['confirm' + reportAuth.role]: true,
+    });
+    reportSetMessage('저장했습니다 — ' + REPORT_TARGET_KO[target], 'good');
+    reportRenderChip();
+    reportRenderPanel();
+    setTimeout(reportClose, 550);
+  } catch (e) {
+    reportSetMessage('저장 실패: ' + e.message, 'bad');
+  } finally {
+    reportBusy = false;
+  }
+}
+
+async function reportDelete() {
+  const key = reportItemKey(reportSlide());
+  if (!key || reportBusy) return;
+  reportBusy = true;
+  reportSetMessage('신고를 지우는 중…');
+  try {
+    await reportApi({ itemKey: key, target: '', reason: '', needed: false });
+    reportDraftTarget = '';
+    reportSetMessage('신고를 취소했습니다.', 'good');
+    reportRenderChip();
+    reportRenderPanel();
+  } catch (e) {
+    reportSetMessage('취소 실패: ' + e.message, 'bad');
+  } finally {
+    reportBusy = false;
+  }
+}
+
+// 확인 — 「봤다」는 표시. C 한 번으로 자기 칸(링크의 role)을 켜고 끈다.
+async function reportToggleConfirm(slot = reportAuth.role, fromPanel = false) {
+  if (!reportAuth.enabled || reportBusy) return;
+  const key = reportItemKey(reportSlide());
+  if (!key) return;
+  const field = 'confirm' + (String(slot) === '2' ? '2' : '1');
+  const next = !(reportRecord(key)?.[field]?.active);
+  reportBusy = true;
+  if (fromPanel) reportSetMessage('저장 중…');
+  try {
+    await reportApi({ itemKey: key, [field]: next });
+    reportRenderChip();
+    if (fromPanel) {
+      reportSetMessage((field === 'confirm1' ? '확인1' : '확인2') + (next ? ' 켰습니다.' : ' 껐습니다.'), 'good');
+      reportRenderPanel();
+    }
+  } catch (e) {
+    if (fromPanel) reportSetMessage('저장 실패: ' + e.message, 'bad');
+    else console.warn('확인 저장 실패', e);
+  } finally {
+    reportBusy = false;
+  }
+}
+
+function reportBind() {
+  if (!reportAuth.enabled) return;
+  document.getElementById('btn-report').onclick = reportOpen;
+  document.getElementById('rp-close').onclick = reportClose;
+  document.getElementById('rp-save').onclick = reportSubmit;
+  document.getElementById('rp-del').onclick = reportDelete;
+  document.getElementById('rp-cf1').onclick = () => reportToggleConfirm('1', true);
+  document.getElementById('rp-cf2').onclick = () => reportToggleConfirm('2', true);
+  document.querySelectorAll('.rp-target').forEach(b => {
+    b.onclick = () => reportPickTarget(b.dataset.target);
+  });
+  // 배경을 눌러도 닫는다.
+  document.getElementById('report-panel').addEventListener('click', e => {
+    if (e.target.id === 'report-panel') reportClose();
+  });
+  // 사유 칸 안에서는 전역 단축키가 안 먹으므로 따로 받는다.
+  document.getElementById('rp-reason').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); reportSubmit(); }
+    else if (e.key === 'Escape') { e.preventDefault(); reportClose(); }
+    else if (['1', '2', '3'].includes(e.key) && !e.target.value) {
+      e.preventDefault();
+      reportPickTarget({ '1': 'content', '2': 'audio', '3': 'both' }[e.key]);
+    }
+  });
+  reportLoad();
+}
 
 // ── 초기화 ────────────────────────────────────────────
 // 내비게이터 클릭 — 이벤트 위임
@@ -2201,6 +2817,7 @@ async function init() {
     console.error(e); return;
   }
   document.getElementById('loading').style.display = 'none';
+  reportBind();
 }
 
 init();
