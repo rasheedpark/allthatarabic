@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>ATA 1.4.4 수정 신고</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F2F4F6; --surface: #FFFFFF; --accent: #1D49FF; --text: #12205A;
+  --sub: #888FAC; --border: #D5DAE8; --accent-wash: #EAF0FF;
+  --red: #D6336C; --green: #0C8A5F;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: 'Noto Sans KR', -apple-system, sans-serif;
+  font-size: 14px; line-height: 1.6;
+}
+header {
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(242,244,246,0.94); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem clamp(0.8rem,3vw,2rem) 0.8rem;
+}
+h1 { font-size: 1rem; margin: 0 0 0.2rem; }
+.sub { color: var(--sub); font-size: 0.82rem; }
+.sub a { color: var(--accent); }
+.bar { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.8rem; align-items: center; }
+.chip {
+  background: var(--surface); border: 1.5px solid var(--border); border-radius: 18px;
+  padding: 0.25rem 0.75rem; cursor: pointer; font: inherit; font-size: 0.8rem;
+  color: var(--text);
+}
+.chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+select, input[type=search] {
+  font: inherit; font-size: 0.8rem; padding: 0.25rem 0.5rem;
+  border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text);
+}
+main { padding: 1rem clamp(0.8rem,3vw,2rem) 4rem; }
+.count { color: var(--sub); font-size: 0.8rem; margin-bottom: 0.7rem; }
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--border);
+  border-radius: 10px; padding: 0.8rem 1rem; margin-bottom: 0.6rem;
+}
+.card.content { border-left-color: var(--red); }
+.card.audio { border-left-color: var(--accent); }
+.card.both { border-left-color: #8B2FD6; }
+.card.done { border-left-color: var(--green); opacity: 0.6; }
+.card-top { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline; }
+.tag {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.4px;
+  padding: 0.1rem 0.45rem; border-radius: 5px; background: var(--accent-wash); color: var(--accent);
+}
+.tag.content { background: #FCE4ED; color: var(--red); }
+.tag.both { background: #F0E4FC; color: #8B2FD6; }
+.tag.done { background: #DFF3EB; color: var(--green); }
+.where { font-weight: 700; }
+.idcell { color: var(--sub); font-size: 0.78rem; font-family: ui-monospace, monospace; }
+.reason { margin: 0.5rem 0 0.4rem; }
+.arabic {
+  font-family: 'Noto Sans Arabic', serif; direction: rtl; text-align: right;
+  font-size: 1.15rem; line-height: 1.9; margin: 0.2rem 0;
+}
+.korean { color: var(--sub); font-size: 0.85rem; }
+.meta { color: var(--sub); font-size: 0.76rem; margin-top: 0.45rem; display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.meta b { color: var(--text); font-weight: 500; }
+.acts { display: flex; gap: 0.4rem; margin-top: 0.6rem; flex-wrap: wrap; }
+.acts button, .acts a {
+  font: inherit; font-size: 0.76rem; cursor: pointer; text-decoration: none;
+  border: 1.5px solid var(--border); background: var(--surface); color: var(--text);
+  border-radius: 7px; padding: 0.25rem 0.6rem;
+}
+.acts button:hover, .acts a:hover { border-color: var(--accent); color: var(--accent); }
+.acts button.done-on { background: var(--green); border-color: var(--green); color: #fff; }
+.empty { color: var(--sub); padding: 2rem 0; text-align: center; }
+.hist { margin-top: 0.4rem; color: var(--sub); font-size: 0.74rem; }
+.hist summary { cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>ATA 1.4.4 수정 신고</h1>
+  <div class="sub" id="head-sub">열쇠를 읽는 중…</div>
+  <div class="bar">
+    <button class="chip on" data-filter="open">미처리</button>
+    <button class="chip" data-filter="all">전체</button>
+    <button class="chip" data-filter="content">내용</button>
+    <button class="chip" data-filter="audio">음원</button>
+    <button class="chip" data-filter="done">처리됨</button>
+    <select id="unit-filter"><option value="">모든 과</option></select>
+    <input type="search" id="q" placeholder="사유·본문 검색">
+    <button class="chip" id="reload">다시 읽기</button>
+  </div>
+</header>
+<main>
+  <div class="count" id="count"></div>
+  <div id="list"></div>
+</main>
+<script>
+// 1.4.4 수정 신고를 한자리에서 본다. 신고는 교재 화면(ata144_teacher)에서 들어오고,
+// 본문 수정은 ATA-1.4.4 시트에서 한다 — 이 페이지는 읽기와 「처리됨」 표시만 한다.
+const IS_DEV = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || location.protocol === 'file:';
+// 주소로 서버를 갈아 끼우는 것은 localhost에서만 — 열쇠가 남의 서버로 가면 안 된다.
+const API = (IS_DEV && new URLSearchParams(location.search).get('reportApi'))
+  || 'https://ata144-review-feedback-287996655031.asia-northeast3.run.app';
+const REVIEW = 'class144';
+const SHEET_ID = '1w7e0mLLgFhzU7Ixs6CUfzgrwUG6EEy8jHijXF5UJwY8';
+const TEACHER_APP = './ata144_teacher/ata144_teacher.html';
+const STORE = 'ata144-report-view-key-v1';
+
+// 종류 → 시트 탭. 신고를 어느 탭에서 고치면 되는지 바로 보이게 한다.
+const TYPE_TAB = {
+  unit: 'units', ptn: 'pattern', repertory: 'repertory',
+  drilla: 'drill', drillb: 'drill', drillc: 'drill',
+  exp: 'expression', kalimat: 'kalimat', nass: 'nass',
+  jadwal: 'appendix', writing: 'drill',
+};
+const TYPE_KO = {
+  unit: '유닛', ptn: '패턴', repertory: '예문', drilla: '드릴A', drillb: '드릴B',
+  drillc: '드릴C', exp: '표현', kalimat: '단어', nass: '지문', jadwal: '표', writing: '쓰기',
+};
+const TARGET_KO = { content: '내용', audio: '음원', both: '내용+음원' };
+
+const query = new URLSearchParams(location.search);
+let key = String(query.get('key') || '').trim();
+if (key) {
+  try { localStorage.setItem(STORE, key); } catch (e) {}
+  query.delete('key');
+  history.replaceState(null, '', location.pathname + (query.toString() ? '?' + query : ''));
+} else {
+  try { key = localStorage.getItem(STORE) || ''; } catch (e) {}
+}
+
+let items = [];
+let filter = 'open';
+
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function parseKey(itemKey) {
+  const slash = String(itemKey).indexOf('/');
+  const unit = slash < 0 ? '' : itemKey.slice(0, slash);
+  const rest = slash < 0 ? String(itemKey) : itemKey.slice(slash + 1);
+  const colon = rest.indexOf(':');
+  return { unit, type: colon < 0 ? rest : rest.slice(0, colon), id: colon < 0 ? '' : rest.slice(colon + 1) };
+}
+
+async function load() {
+  if (!key) {
+    document.getElementById('head-sub').textContent =
+      '열쇠가 없습니다. ?key=… 를 붙여 한 번 열어 주세요 (.review-feedback-144.env의 ATA144_REVIEW_KEY).';
+    return;
+  }
+  document.getElementById('head-sub').textContent = '읽는 중…';
+  try {
+    const url = new URL(API + '/feedback');
+    url.searchParams.set('review', REVIEW);
+    url.searchParams.set('key', key);
+    const response = await fetch(url.toString(), { cache: 'no-store' });
+    const data = await response.json();
+    if (!data.ok) throw new Error(data.error || '읽기 실패');
+    items = Object.values(data.items || {}).map(record => ({ ...record, ...parseKey(record.itemKey) }));
+    items.sort((a, b) => a.unit.localeCompare(b.unit) || String(b.updatedAt).localeCompare(String(a.updatedAt)));
+    const units = [...new Set(items.map(i => i.unit))].sort();
+    const select = document.getElementById('unit-filter');
+    select.innerHTML = '<option value="">모든 과</option>' +
+      units.map(u => `<option value="${esc(u)}">${esc(u)}</option>`).join('');
+    document.getElementById('head-sub').innerHTML =
+      '정본은 <a href="https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit" target="_blank" rel="noopener">ATA-1.4.4 시트</a>입니다 — ' +
+      '여기서는 신고를 읽고 「처리됨」만 표시합니다.';
+    render();
+  } catch (e) {
+    document.getElementById('head-sub').textContent = '읽기 실패: ' + e.message;
+  }
+}
+
+function reported(item) {
+  return Boolean(item.needed || item.target || String(item.reason || '').trim());
+}
+
+function visible() {
+  const unit = document.getElementById('unit-filter').value;
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  return items.filter(item => {
+    if (!reported(item)) return false;
+    if (filter === 'open' && item.done) return false;
+    if (filter === 'done' && !item.done) return false;
+    if (filter === 'content' && !['content', 'both'].includes(item.target)) return false;
+    if (filter === 'audio' && !['audio', 'both'].includes(item.target)) return false;
+    if (unit && item.unit !== unit) return false;
+    if (q) {
+      const hay = [item.reason, item.snapshot?.arabic, item.snapshot?.korean, item.snapshot?.note, item.id]
+        .join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function render() {
+  const rows = visible();
+  const open = items.filter(i => reported(i) && !i.done).length;
+  document.getElementById('count').textContent =
+    `${rows.length}건 표시 · 미처리 ${open}건 · 신고 전체 ${items.filter(reported).length}건`;
+  document.getElementById('list').innerHTML = rows.length
+    ? rows.map(card).join('')
+    : '<div class="empty">해당하는 신고가 없습니다.</div>';
+}
+
+function card(item) {
+  const target = item.target || 'content';
+  const tab = TYPE_TAB[item.type] || item.type;
+  const snap = item.snapshot || {};
+  const when = String(item.reportedAt || item.updatedAt || '').slice(0, 16).replace('T', ' ');
+  const history = Array.isArray(item.history) ? item.history.slice().reverse() : [];
+  return `
+  <article class="card ${item.done ? 'done' : esc(target)}">
+    <div class="card-top">
+      <span class="tag ${esc(target)}">${esc(TARGET_KO[target] || target)}</span>
+      ${item.done ? '<span class="tag done">처리됨</span>' : ''}
+      <span class="where">${esc(item.unit)} · ${esc(TYPE_KO[item.type] || item.type)}</span>
+      <span class="idcell">${esc(tab)} 탭 · ${esc(item.id)}</span>
+    </div>
+    <div class="reason"><b>${esc(item.reason || '사유 미입력')}</b></div>
+    ${snap.arabic ? `<div class="arabic">${esc(snap.arabic)}</div>` : ''}
+    ${snap.korean ? `<div class="korean">${esc(snap.korean)}</div>` : ''}
+    <div class="meta">
+      <span>신고 <b>${esc(item.reportedBy || item.reviewer || '')}</b></span>
+      <span>${esc(when)}</span>
+      <span>확인1 <b>${item.confirm1?.active ? esc(item.confirm1.reviewer || '○') : '—'}</b></span>
+      <span>확인2 <b>${item.confirm2?.active ? esc(item.confirm2.reviewer || '○') : '—'}</b></span>
+    </div>
+    <div class="acts">
+      <button data-done="${esc(item.itemKey)}" class="${item.done ? 'done-on' : ''}">${item.done ? '처리됨 해제' : '시트에 반영했음'}</button>
+      <a href="https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit" target="_blank" rel="noopener">시트 ${esc(tab)}</a>
+      <a href="${TEACHER_APP}?unit=${encodeURIComponent(item.unit)}" target="_blank" rel="noopener">교재 ${esc(item.unit)}</a>
+      <button data-copy="${esc(item.id)}">id 복사</button>
+    </div>
+    ${history.length ? `<details class="hist"><summary>이력 ${history.length}건</summary>${history.map(entry => {
+      const label = entry.action === 'report'
+        ? (TARGET_KO[entry.target] || '내용') + ' · ' + (entry.reason || '사유 없음')
+        : ({ clear: '신고 취소', confirm1: '확인1', confirm2: '확인2', confirm1_off: '확인1 해제',
+             confirm2_off: '확인2 해제', done: '처리 완료', done_off: '처리 해제',
+             checked: '점검', checked_off: '점검 해제' }[entry.action] || entry.action);
+      return `<div>${esc(String(entry.at || '').slice(0, 16).replace('T', ' '))} ${esc(entry.reviewer || '')} — ${esc(label)}</div>`;
+    }).join('')}</details>` : ''}
+  </article>`;
+}
+
+document.addEventListener('click', async e => {
+  const chip = e.target.closest('.chip[data-filter]');
+  if (chip) {
+    filter = chip.dataset.filter;
+    document.querySelectorAll('.chip[data-filter]').forEach(c => c.classList.toggle('on', c === chip));
+    render();
+    return;
+  }
+  const copy = e.target.closest('[data-copy]');
+  if (copy) {
+    try { await navigator.clipboard.writeText(copy.dataset.copy); copy.textContent = '복사됨'; } catch (err) {}
+    setTimeout(() => { copy.textContent = 'id 복사'; }, 1200);
+    return;
+  }
+  const doneBtn = e.target.closest('[data-done]');
+  if (doneBtn) {
+    const itemKey = doneBtn.dataset.done;
+    const item = items.find(i => i.itemKey === itemKey);
+    if (!item) return;
+    doneBtn.disabled = true;
+    try {
+      const url = new URL(API + '/feedback');
+      url.searchParams.set('key', key);
+      const response = await fetch(url.toString(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ review: REVIEW, itemKey, done: !item.done, reviewer: 'rasheed' }),
+      });
+      const data = await response.json();
+      if (!data.ok) throw new Error(data.error || '저장 실패');
+      Object.assign(item, data.item || {}, parseKey(itemKey));
+      render();
+    } catch (err) {
+      alert('저장 실패: ' + err.message);
+    } finally {
+      doneBtn.disabled = false;
+    }
+  }
+});
+document.getElementById('unit-filter').onchange = render;
+document.getElementById('q').oninput = render;
+document.getElementById('reload').onclick = load;
+load();
+</script>
+</body>
+</html>
