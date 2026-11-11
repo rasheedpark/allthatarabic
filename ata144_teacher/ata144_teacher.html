@@ -1845,6 +1845,7 @@ async function renderUnitBook(baseUnit) {
 function renderSlide() {
   if (!slides.length) return;
   const s = slides[current];
+  reportSyncUnit();
   reportRenderChip();
 
   // 진행바
@@ -2443,7 +2444,6 @@ document.addEventListener('keydown', e => {
     case 't': case 'T': if (slides[current]?.type === 'nass') toggleNass(); break;
     case 's': case 'S': toggleAudio(); break;
     case 'f': case 'F': reportOpen(); break;
-    case 'c': case 'C': reportToggleConfirm(); break;
     case 'Escape':
       if (document.getElementById('report-panel').classList.contains('open')) reportClose();
       else if (sidebarOpen) toggleSidebar();
@@ -2482,43 +2482,55 @@ document.getElementById('btn-next').onclick    = () => goTo(current + 1);
 // IS_DEV(localhost·file:)에서만 ?reportApi= 로 갈아 끼울 수 있다. 공개 페이지에서는
 // 주소로 바꿀 수 없게 막아 둔다 — 열쇠가 남의 서버로 가면 안 된다.
 const REPORT_API    = (IS_DEV && new URLSearchParams(location.search).get('reportApi'))
-  || 'https://ata144-review-feedback-287996655031.asia-northeast3.run.app';
-const REPORT_REVIEW = 'class144';
-const REPORT_STORE  = 'ata144-report-auth-v1';
+  || 'https://a151-admin-juvmljiw3q-du.a.run.app';
+const REPORT_STORE  = 'ata144-report-auth-v2';
 const REPORT_TARGET_KO = { content: '내용', audio: '음원', both: '내용+음원' };
 
 const reportAuth = (() => {
   const q = new URLSearchParams(location.search);
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(REPORT_STORE) || '{}') || {}; } catch (e) {}
-  const fromUrl = q.has('key') || q.has('reviewer') || q.has('role');
+  const fromUrl = q.has('key') || q.has('reviewer');
   const key      = String(q.get('key')      || saved.key      || '').trim();
+  // 이름과 확인 칸은 서버가 알려 준다. 링크의 이름은 첫 동기화 전에 보여 줄 값일 뿐이다.
   const reviewer = String(q.get('reviewer') || saved.reviewer || '').trim().slice(0, 40);
-  const role     = String(q.get('role')     || saved.role     || '1').trim() === '2' ? '2' : '1';
-  const auth = { key, reviewer, role, enabled: Boolean(key && reviewer) };
+  const auth = { key, reviewer, role: String(saved.role || '1'), enabled: Boolean(key) };
   if (fromUrl) {
     if (auth.enabled) {
-      try { localStorage.setItem(REPORT_STORE, JSON.stringify({ key, reviewer, role })); } catch (e) {}
+      try { localStorage.setItem(REPORT_STORE, JSON.stringify({ key, reviewer, role: auth.role })); } catch (e) {}
     }
     // 수업 화면을 띄워 놓거나 공유해도 열쇠가 주소창에 남지 않게 한다.
-    ['key', 'reviewer', 'role'].forEach(p => q.delete(p));
+    ['key', 'reviewer', 'role'].forEach(x => q.delete(x));
     const qs = q.toString();
     history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
   }
   return auth;
 })();
 
-let reportRecords = {};          // itemKey → 서버 기록
+function reportRemember() {
+  try {
+    localStorage.setItem(REPORT_STORE, JSON.stringify({
+      key: reportAuth.key, reviewer: reportAuth.reviewer, role: reportAuth.role,
+    }));
+  } catch (e) {}
+}
+
+let reportRecords = {};          // itemKey → 어드민 기록
+let reportLoadedUnit = '';       // 동기화해 둔 유닛
 let reportDraftTarget = '';      // 패널에서 고른 대상
 let reportBusy = false;
 
 function reportSlide() { return slides[current] || null; }
 
-// 신고 열쇠 — `{과}/{종류}:{행 id}`. 기존 신고 API가 받는 모양(^A\d{2}/…)과 같다.
+function reportUnit(s) {
+  const unit = String((s && (s.pg || s.data?.u)) || '').trim();
+  return /^A\d{2}$/.test(unit) ? unit : '';
+}
+
+// 신고 열쇠 — `{과}/{종류}:{행 id}`. 시트의 행 id를 그대로 쓰므로 이관도 재동기화도 없다.
 function reportItemKey(s) {
-  if (!s) return '';
-  const unit = String(s.pg || s.data?.u || '').trim();
-  if (!/^A\d{2}$/.test(unit)) return '';
+  const unit = reportUnit(s);
+  if (!unit) return '';
   const id = String(getRowId(s.data) || '').trim().replace(/\s+/g, '_');
   if (!id) return '';
   return unit + '/' + (s.type || 'item') + ':' + id;
@@ -2527,7 +2539,7 @@ function reportItemKey(s) {
 function reportSnapshot(s) {
   const d = (s && s.data) || {};
   return {
-    unit: String(s?.pg || d.u || ''),
+    unit: reportUnit(s),
     type: String(s?.type || ''),
     arabic: String(d.arabic || ''),
     korean: String(d.korean || ''),
@@ -2537,41 +2549,47 @@ function reportSnapshot(s) {
 }
 
 function reportRecord(key) { return (key && reportRecords[key]) || null; }
-function reportIsReported(rec) {
-  return Boolean(rec && (rec.needed || rec.target || String(rec.reason || '').trim()));
-}
+function reportIsReported(rec) { return Boolean(rec && rec.target); }
 
-async function reportApi(body) {
-  const url = new URL(REPORT_API + '/feedback');
-  url.searchParams.set('key', reportAuth.key);
-  const response = await fetch(url.toString(), {
+// 어드민은 다른 출처라 단순 요청(text/plain)으로 보낸다 — preflight가 없고 쿠키도 보내지 않는다.
+// 인증은 선생님마다 다른 열쇠 하나뿐이다.
+async function reportPost(path, body) {
+  const response = await fetch(REPORT_API + path, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ review: REPORT_REVIEW, reviewer: reportAuth.reviewer, ...body }),
+    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+    body: JSON.stringify({ key: reportAuth.key, ...body }),
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok || !data.ok) throw new Error(data.error || ('HTTP ' + response.status));
-  if (data.deleted) delete reportRecords[body.itemKey];
-  else if (data.item) reportRecords[body.itemKey] = data.item;
+  if (!response.ok) throw new Error(data.message || ('HTTP ' + response.status));
   return data;
 }
 
-async function reportLoad() {
+// 유닛 단위로 받아 둔다. 수업은 한 유닛을 쭉 넘기므로 유닛이 바뀔 때만 다시 받는다.
+async function reportLoad(unit) {
   if (!reportAuth.enabled) return;
-  const url = new URL(REPORT_API + '/feedback');
-  url.searchParams.set('review', REPORT_REVIEW);
-  url.searchParams.set('key', reportAuth.key);
+  const target = unit || reportUnit(reportSlide());
+  if (!target) return;
   try {
-    const response = await fetch(url.toString(), { cache: 'no-store' });
-    const data = await response.json();
-    if (data && data.ok && data.items) reportRecords = data.items;
+    const data = await reportPost('/api/ata144/reports/sync', { unit: target });
+    if (data.reviewer) reportAuth.reviewer = data.reviewer;
+    if (data.slot) reportAuth.role = String(data.slot);
+    reportRemember();
+    reportRecords = {};
+    for (const item of (data.items || [])) reportRecords[item.item] = item;
+    reportLoadedUnit = target;
   } catch (e) {
     console.warn('신고 목록을 못 읽었습니다', e);
   }
   reportRenderChip();
 }
 
-// 슬라이드마다 상태를 보여 준다 — 신고 있음 / 봤음(확인) / 처리됨.
+function reportSyncUnit() {
+  if (!reportAuth.enabled) return;
+  const unit = reportUnit(reportSlide());
+  if (unit && unit !== reportLoadedUnit) reportLoad(unit);
+}
+
+// 슬라이드마다 상태를 보여 준다 — 신고 있음 / 봤음(확인) / 시트에 반영됨.
 // 신고가 없다는 것과 아직 안 봤다는 것을 구별하기 위한 칸이다.
 function reportRenderChip() {
   const chip = document.getElementById('report-chip');
@@ -2592,18 +2610,18 @@ function reportRenderChip() {
 
   const rec = reportRecord(key);
   const reported = reportIsReported(rec);
-  const seen = Boolean(rec && (rec.confirm1?.active || rec.confirm2?.active));
-  const done = Boolean(rec && rec.done);
+  const seen = Boolean(rec && (rec.confirm1 || rec.confirm2));
+  const done = Boolean(rec && rec.fixed_at);
   button.classList.toggle('has-report', reported && !done);
 
   const marks = [];
   if (reported) marks.push('신고 ' + (REPORT_TARGET_KO[rec.target] || '내용'));
-  if (rec?.confirm1?.active) marks.push('확인1');
-  if (rec?.confirm2?.active) marks.push('확인2');
-  if (done) marks.push('처리됨');
+  if (rec?.confirm1) marks.push('확인1');
+  if (rec?.confirm2) marks.push('확인2');
+  if (done) marks.push('시트 반영됨');
   chip.className = 'on' + (done ? ' done' : reported ? ' reported' : seen ? ' seen' : '');
   chip.innerHTML = '<span class="dot"></span><span>' +
-    (marks.length ? escapeHtmlReport(marks.join(' · ')) : reportAuth.reviewer + ' · 신고 없음') +
+    (marks.length ? escapeHtmlReport(marks.join(' · ')) : (reportAuth.reviewer || '신고') + ' · 신고 없음') +
     '</span>';
 }
 
@@ -2633,19 +2651,16 @@ function reportRenderPanel() {
   });
   document.getElementById('rp-reason').value = rec ? String(rec.reason || '') : '';
   document.getElementById('rp-del').style.display = reportIsReported(rec) ? '' : 'none';
-  document.getElementById('rp-cf1').classList.toggle('on', Boolean(rec?.confirm1?.active));
-  document.getElementById('rp-cf2').classList.toggle('on', Boolean(rec?.confirm2?.active));
-  document.getElementById('rp-cf1').textContent = '확인1' + (rec?.confirm1?.reviewer ? ' · ' + rec.confirm1.reviewer : '');
-  document.getElementById('rp-cf2').textContent = '확인2' + (rec?.confirm2?.reviewer ? ' · ' + rec.confirm2.reviewer : '');
+  // 확인 칸은 보여 주기만 한다 — 신고하면 그 선생님 칸이 켜지고, 끄는 것은 어드민에서 한다.
+  document.getElementById('rp-cf1').classList.toggle('on', Boolean(rec?.confirm1));
+  document.getElementById('rp-cf2').classList.toggle('on', Boolean(rec?.confirm2));
+  document.getElementById('rp-cf1').textContent = '확인1';
+  document.getElementById('rp-cf2').textContent = '확인2';
 
   const history = Array.isArray(rec?.history) ? rec.history.slice(-6).reverse() : [];
   document.getElementById('rp-hist').innerHTML = history.map(entry => {
     const when = String(entry.at || '').slice(5, 16).replace('T', ' ');
-    const what = entry.action === 'report'
-      ? (REPORT_TARGET_KO[entry.target] || '내용') + ' · ' + (entry.reason || '사유 없음')
-      : ({ clear: '신고 취소', confirm1: '확인1', confirm2: '확인2', confirm1_off: '확인1 해제',
-           confirm2_off: '확인2 해제', done: '처리 완료', done_off: '처리 해제' }[entry.action] || entry.action);
-    return '<div>' + escapeHtmlReport(when + ' ' + (entry.reviewer || '') + ' — ' + what) + '</div>';
+    return '<div>' + escapeHtmlReport(when + ' ' + (entry.by || '') + ' — ' + (entry.what || '')) + '</div>';
   }).join('');
 }
 
@@ -2679,22 +2694,26 @@ async function reportSubmit() {
   if (reportBusy) return;
   const s = reportSlide();
   const key = reportItemKey(s);
-  if (!key) return;
+  const unit = reportUnit(s);
+  if (!key || !unit) return;
   const reason = document.getElementById('rp-reason').value.trim();
   const target = reportDraftTarget || 'content';
-  if (!reason && !reportDraftTarget) {
-    reportSetMessage('대상을 고르거나 사유를 한 줄 적어 주세요.', 'bad');
+  // 사유가 없으면 시트에서 무엇을 고칠지 알 수 없다. 서버도 받지 않는다.
+  if (!reason) {
+    reportSetMessage('무엇을 고쳐야 하는지 한 줄 적어 주세요.', 'bad');
     return;
   }
+  const snap = reportSnapshot(s);
   reportBusy = true;
   reportSetMessage('저장 중…');
   try {
-    await reportApi({
-      itemKey: key, target, reason, needed: true,
-      snapshot: reportSnapshot(s),
-      // 신고한 사람은 그 자리를 본 것이므로 자기 확인 칸도 같이 켠다.
-      ['confirm' + reportAuth.role]: true,
+    const data = await reportPost('/api/ata144/reports/save', {
+      item: key, unit, kind: String(s.type || 'item'),
+      row_id: snap.id.trim().replace(/\s+/g, '_'),
+      target, reason,
+      snapshot: { arabic: snap.arabic.slice(0, 400), korean: snap.korean.slice(0, 400), note: snap.note.slice(0, 400) },
     });
+    if (data.item) reportRecords[key] = data.item;
     reportSetMessage('저장했습니다 — ' + REPORT_TARGET_KO[target], 'good');
     reportRenderChip();
     reportRenderPanel();
@@ -2707,12 +2726,21 @@ async function reportSubmit() {
 }
 
 async function reportDelete() {
-  const key = reportItemKey(reportSlide());
-  if (!key || reportBusy) return;
+  const s = reportSlide();
+  const key = reportItemKey(s);
+  const unit = reportUnit(s);
+  if (!key || !unit || reportBusy) return;
+  const snap = reportSnapshot(s);
   reportBusy = true;
   reportSetMessage('신고를 지우는 중…');
   try {
-    await reportApi({ itemKey: key, target: '', reason: '', needed: false });
+    await reportPost('/api/ata144/reports/save', {
+      item: key, unit, kind: String(s.type || 'item'),
+      row_id: snap.id.trim().replace(/\s+/g, '_'),
+      target: '', reason: '',
+      snapshot: { arabic: '', korean: '', note: '' },
+    });
+    delete reportRecords[key];
     reportDraftTarget = '';
     reportSetMessage('신고를 취소했습니다.', 'good');
     reportRenderChip();
@@ -2724,38 +2752,12 @@ async function reportDelete() {
   }
 }
 
-// 확인 — 「봤다」는 표시. C 한 번으로 자기 칸(링크의 role)을 켜고 끈다.
-async function reportToggleConfirm(slot = reportAuth.role, fromPanel = false) {
-  if (!reportAuth.enabled || reportBusy) return;
-  const key = reportItemKey(reportSlide());
-  if (!key) return;
-  const field = 'confirm' + (String(slot) === '2' ? '2' : '1');
-  const next = !(reportRecord(key)?.[field]?.active);
-  reportBusy = true;
-  if (fromPanel) reportSetMessage('저장 중…');
-  try {
-    await reportApi({ itemKey: key, [field]: next });
-    reportRenderChip();
-    if (fromPanel) {
-      reportSetMessage((field === 'confirm1' ? '확인1' : '확인2') + (next ? ' 켰습니다.' : ' 껐습니다.'), 'good');
-      reportRenderPanel();
-    }
-  } catch (e) {
-    if (fromPanel) reportSetMessage('저장 실패: ' + e.message, 'bad');
-    else console.warn('확인 저장 실패', e);
-  } finally {
-    reportBusy = false;
-  }
-}
-
 function reportBind() {
   if (!reportAuth.enabled) return;
   document.getElementById('btn-report').onclick = reportOpen;
   document.getElementById('rp-close').onclick = reportClose;
   document.getElementById('rp-save').onclick = reportSubmit;
   document.getElementById('rp-del').onclick = reportDelete;
-  document.getElementById('rp-cf1').onclick = () => reportToggleConfirm('1', true);
-  document.getElementById('rp-cf2').onclick = () => reportToggleConfirm('2', true);
   document.querySelectorAll('.rp-target').forEach(b => {
     b.onclick = () => reportPickTarget(b.dataset.target);
   });
