@@ -790,6 +790,22 @@ body {
   object-fit: cover;
   display: block;
 }
+/* 푸쓰하 배지 — 글자라 원형이 아니라 알약 모양으로 둔다 */
+.lahja-fusha {
+  width: auto; height: 14px;
+  padding: 0 4px;
+  border-radius: 7px;
+  overflow: visible;
+  background: #fff;
+  border: 1px solid rgba(18,32,90,0.35);
+  color: rgba(18,32,90,0.75);
+  font-family: 'Noto Sans Arabic', serif;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 12px;
+  align-items: center;
+  justify-content: center;
+}
 /* 다중 라하 컨테이너 (2개 이상일 때) */
 .lahja-flags {
   display: inline-flex;
@@ -1363,12 +1379,18 @@ const LAHJA_FLAG = {
   LEV: '../assets/icons/icon-lebanon.png',
   GLF: '../assets/icons/icon-saudi.png',
 };
+// 2026-11-12: 푸쓰하(MSA)도 제 표기를 단다. 방언 국기만 보이면 표준어 자료는
+// 아무 표시가 없어, 표시가 붙은 것만 눈에 들어와 모두 암미야처럼 보였다.
+const LAHJA_MSA = new Set(['MSA', 'FUS', 'FUSHA']);
 function lahjaFlag(lahja) {
   if (!lahja) return '';
   const codes = String(lahja).split(/[,\s]+/).map(s => s.trim().toUpperCase()).filter(Boolean);
   const flags = codes.map(code => {
     const src = LAHJA_FLAG[code];
-    return src ? `<span class="lahja-flag" title="${code}"><img src="${src}" alt="${code}"></span>` : '';
+    if (src) return `<span class="lahja-flag" title="${code}"><img src="${src}" alt="${code}"></span>`;
+    if (LAHJA_MSA.has(code))
+      return `<span class="lahja-flag lahja-fusha" title="푸쓰하(표준어)">فصحى</span>`;
+    return '';
   }).filter(Boolean);
   if (!flags.length) return '';
   return flags.length === 1 ? flags[0] : `<span class="lahja-flags">${flags.join('')}</span>`;
