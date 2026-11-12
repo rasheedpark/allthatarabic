@@ -356,6 +356,13 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
 .tap-audio { cursor:pointer; transition:color .18s; }
 .tap-audio:active { opacity:.7; }
 .tap-audio.playing { color:var(--accent) !important; }
+/* 듣기 표시 — 음원이 있는 것에만 붙는다. 표시가 없으면 소리도 없고 눌리지도 않는다. */
+.m-audio-mark { display:inline-block; width:.6em; height:.6em; margin:0 .34em; vertical-align:.04em; opacity:.5; color:inherit; }
+.m-audio-mark svg { display:block; width:100%; height:100%; }
+.tap-audio:hover .m-audio-mark { opacity:.85; }
+.tap-audio.playing .m-audio-mark { opacity:1; color:var(--accent); }
+.m-bl-audio { display:flex; justify-content:flex-end; margin:0 0 -2px; cursor:pointer; }
+.m-bl-audio .m-audio-mark { width:14px; height:14px; margin:0; }
 
 /* ───────── 패턴 카드 ───────── */
 .m-card.pattern {
@@ -1088,6 +1095,52 @@ function audioCacheBust(u, row) {
   return `${u}${u.includes('?') ? '&' : '?'}_v=${suffix}`;
 }
 
+// 듣기 표시 — 과를 열 때 버킷 목록을 한 번 받아(공개 목록이라 인증이 없고 가장 큰 과가 9KB
+// 남짓이다) 음원이 있는 항목에만 표시를 달고 없는 항목은 누르지 못하게 한다. 목록을 못 받으면
+// 예전처럼 전부 누를 수 있게 둔다 — 표시가 없을 뿐 듣기가 막히지는 않는다.
+const AUDIO_LIST_API = 'https://storage.googleapis.com/storage/v1/b/all-that-arabic-14/o';
+const _audioHave = new Map();   // 과 -> Set(파일이름) | null(받는 중)
+const AUDIO_MARK = '<span class="m-audio-mark" title="눌러서 듣기">'
+  + '<svg viewBox="0 0 14 16" aria-hidden="true" focusable="false">'
+  + '<path d="M1 6h2.2L7 3v10L3.2 10H1z" fill="currentColor"/>'
+  + '<path d="M9.3 5.6a3.2 3.2 0 0 1 0 4.8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>'
+  + '</svg></span>';
+
+async function loadAudioList(unit) {
+  if (!unit || _audioHave.has(unit)) return;
+  _audioHave.set(unit, null);
+  const base = `${AUDIO_LIST_API}?prefix=${encodeURIComponent('audio/' + unit + '/')}`
+    + '&fields=items(name),nextPageToken&maxResults=1000';
+  try {
+    const have = new Set();
+    let url = base;
+    for (let page = 0; page < 5 && url; page++) {
+      const res = await fetch(url);
+      if (!res.ok) throw Error('list ' + res.status);
+      const data = await res.json();
+      (data.items || []).forEach(o => {
+        const file = String(o.name || '').split('/').pop();
+        const stem = file.replace(/\.(mp3|wav)$/i, '');
+        if (stem && stem !== file) have.add(stem.normalize('NFC'));
+      });
+      url = data.nextPageToken ? base + '&pageToken=' + encodeURIComponent(data.nextPageToken) : '';
+    }
+    _audioHave.set(unit, have);
+    if (unit === state.unit) paintCurrent();
+  } catch (err) {
+    _audioHave.delete(unit);   // 다음에 다시 해 본다
+    console.warn('audio list failed', unit, err);
+  }
+}
+
+function hasAudio(row) {
+  if (row?.url) return true;
+  const have = _audioHave.get(row?.u || state.unit);
+  if (!have) return true;   // 아직 모르면 예전처럼 둔다
+  const id = getRowId(row) || fallbackAudioKey(row);
+  return !!id && have.has(String(id).normalize('NFC'));
+}
+
 function audioUrlsFor(row) {
   if (row?.url) return [audioCacheBust(row.url.trim(), row)];
   const id = getRowId(row) || fallbackAudioKey(row);
@@ -1442,9 +1495,10 @@ function renderCard(row) {
   const flagsHtml = renderFlags(row);
   if (row.arabic) {
     const ar = document.createElement('div');
-    ar.className = 'm-ar tap-audio';
-    ar.innerHTML = parseInline(row.arabic);
-    ar.addEventListener('click', () => playAudio(row, ar));
+    const canPlay = hasAudio(row);
+    ar.className = 'm-ar' + (canPlay ? ' tap-audio' : '');
+    ar.innerHTML = parseInline(row.arabic) + (canPlay ? AUDIO_MARK : '');
+    if (canPlay) ar.addEventListener('click', () => playAudio(row, ar));
     // 표현 카드: 깃발 인라인 / 나스 카드: 좌측 한국어 칸 하단
     if (flagsHtml && row._kind !== 'nass') {
       const line = document.createElement('div');
@@ -1515,9 +1569,10 @@ function renderPatternCard(row, hero) {
     el.appendChild(renderBaseline(row, { noLine }));
   } else if (row.arabic) {
     const ar = document.createElement('div');
-    ar.className = 'm-ar tap-audio';
-    ar.innerHTML = parseInline(row.arabic);
-    ar.addEventListener('click', () => playAudio(row, ar));
+    const canPlay = hasAudio(row);
+    ar.className = 'm-ar' + (canPlay ? ' tap-audio' : '');
+    ar.innerHTML = parseInline(row.arabic) + (canPlay ? AUDIO_MARK : '');
+    if (canPlay) ar.addEventListener('click', () => playAudio(row, ar));
     el.appendChild(ar);
   }
   if (row.korean) {
@@ -1660,8 +1715,9 @@ function renderGridTable(rows, className = 'm-drill-table', blanks = false, cols
     const ar = blanks ? parseDrillBlank(r.arabic || '') : parseInline(r.arabic || '');
     const tr = blanks ? parseDrillBlank(r.note || r.transliteration || '') : parseTrans(r.note || r.transliteration || '');
     const flagsHtml = renderFlags(r);
+    const canPlay = hasAudio(r);
     let html = `
-      <span class="m-ar-line"><span class="dc-ar tap-audio">${ar}</span>${flagsHtml}</span>
+      <span class="m-ar-line"><span class="dc-ar${canPlay ? ' tap-audio' : ''}">${ar}${canPlay ? AUDIO_MARK : ''}</span>${flagsHtml}</span>
       <span class="dc-trans m-trans">${tr}</span>`;
     if (cols === 2 && r.korean) {
       html += `<span class="dc-ko m-ko">${parseInline(r.korean)}</span>`;
@@ -1681,10 +1737,11 @@ function renderPairRow(r, blanks = false) {
   const ar = blanks ? parseDrillBlank(r.arabic || '') : parseInline(r.arabic || '');
   const tr = blanks ? parseDrillBlank(r.note || r.transliteration || '') : parseTrans(r.note || r.transliteration || '');
   const flagsHtml = renderFlags(r);
+  const canPlay = hasAudio(r);
   row.innerHTML = `
     <div class="m-row-ko m-ko">${parseInline(r.korean || '')}</div>
     <div>
-      <div class="m-ar-line"><div class="m-row-ar tap-audio">${ar}</div>${flagsHtml}</div>
+      <div class="m-ar-line"><div class="m-row-ar${canPlay ? ' tap-audio' : ''}">${ar}${canPlay ? AUDIO_MARK : ''}</div>${flagsHtml}</div>
       <div class="m-row-trans m-trans">${tr}</div>
     </div>`;
   if (isNomRow(r)) row.innerHTML = applyNomDivider(row.innerHTML);  // 명사문 행
@@ -1766,6 +1823,14 @@ function renderBaseline(row, opts = {}) {
   const noLine = !!opts.noLine;  // css='baseline2'면 가로 기준선 미표시
   const wrap = document.createElement('div');
   wrap.className = 'm-baseline' + (noLine ? ' no-line' : '');
+  const canPlay = hasAudio(row);
+  if (canPlay) {
+    const badge = document.createElement('div');
+    badge.className = 'm-bl-audio tap-audio';
+    badge.innerHTML = AUDIO_MARK;
+    badge.addEventListener('click', () => playAudio(row, badge));
+    wrap.appendChild(badge);
+  }
   const grid = document.createElement('div');
   grid.className = 'm-bl-grid';
   const lines = String(row.arabic || '').split(/\n+/);
@@ -1780,9 +1845,9 @@ function renderBaseline(row, opts = {}) {
     const cell = document.createElement('div');
     cell.className = 'm-bl-cell';
     const sp = document.createElement('div');
-    sp.className = 'm-bl-letter tap-audio';
+    sp.className = 'm-bl-letter' + (canPlay ? ' tap-audio' : '');
     sp.innerHTML = parseInline(ch);
-    sp.addEventListener('click', () => playAudio(row, sp));
+    if (canPlay) sp.addEventListener('click', () => playAudio(row, sp));
     cell.appendChild(sp);
     if (triples[i]) {
       const tri = document.createElement('div');
@@ -1911,6 +1976,7 @@ window.addEventListener('resize', () => {
 
 /* ───────── refresh ───────── */
 function refresh() {
+  void loadAudioList(state.unit);
   state.pages = buildPagesForUnit(state.unit);
   state.page = Math.min(state.page, Math.max(0, state.pages.length - 1));
   buildUnitList();
