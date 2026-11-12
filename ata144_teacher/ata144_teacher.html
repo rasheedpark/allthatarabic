@@ -1328,16 +1328,26 @@ const LAHJA_FLAG = {
   GLF: '../assets/icons/icon-saudi.png',
 };
 
-// 라하 표시 블록 — 모든 렌더 경로 공용. 아이콘 없는 코드(MSA 등)는 원형 배지로 표시해
+// 라하 표시 블록 — 모든 렌더 경로 공용. 아이콘 없는 코드는 원형 배지로 표시해
 // lahja 값이 있는 슬라이드에서는 항상 무언가 보이게 한다.
+// 2026-11-12: 푸쓰하(MSA)도 제 표기를 단다. 방언 국기만 보이면 표준어 슬라이드는
+// 아무 표시가 없어, 표시가 붙은 것만 눈에 들어와 모두 암미야처럼 보였다.
+const LAHJA_MSA = new Set(['MSA', 'FUS', 'FUSHA', 'FUSHĀ']);
 function buildLahjaBlock(d) {
-  // MSA(표준어)는 무표시 — 방언만 국기로 표시한다.
-  const codes = (d?.lahja || '').toUpperCase().split(/[,\s]+/).map(t => t.trim()).filter(c => c && c !== 'MSA');
+  const codes = (d?.lahja || '').toUpperCase().split(/[,\s]+/).map(t => t.trim()).filter(Boolean);
   if (!codes.length) return '';
   const size = 'width:clamp(26px,2.2vw,40px); height:clamp(26px,2.2vw,40px);';
   const items = codes.map(c => {
     const src = LAHJA_FLAG[c];
     if (src) return `<img src="${src}" style="${size} border-radius:50%; opacity:0.92;">`;
+    // 글자라 원형이 아니라 알약 모양으로 둔다 — 국기와 높이를 맞춘다.
+    if (LAHJA_MSA.has(c))
+      return `<span title="푸쓰하(표준어)" style="height:clamp(26px,2.2vw,40px);` +
+        ` padding:0 clamp(7px,0.6vw,11px); border-radius:999px; background:#fff;` +
+        ` border:1.5px solid var(--text); color:var(--text);` +
+        ` display:inline-flex; align-items:center; justify-content:center;` +
+        ` font-family:'Noto Sans Arabic',serif; font-size:clamp(11px,1vw,18px);` +
+        ` font-weight:700; line-height:1; opacity:0.92;">فصحى</span>`;
     return `<span style="${size} border-radius:50%; background:var(--text); color:#fff;` +
       ` display:inline-flex; align-items:center; justify-content:center;` +
       ` font-size:clamp(8px,0.65vw,12px); font-weight:700; letter-spacing:0.5px; opacity:0.92;">${c}</span>`;
