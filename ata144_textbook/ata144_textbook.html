@@ -327,6 +327,13 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   gap:4px;
   vertical-align:middle;
 }
+/* 푸쓰하 배지 — 글자라 원형이 아니라 알약 모양 */
+.m-fusha {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:auto; height:14px; padding:0 4px;
+  border:1px solid currentColor; border-radius:999px;
+  font-family:'Noto Sans Arabic',serif; font-size:10px; font-weight:700; line-height:1;
+}
 /* 아랍어 라인 안 인라인 깃발 (표현/래퍼토리 페어/드릴 non-five) */
 .m-ar-line {
   display:flex;
@@ -1090,18 +1097,25 @@ function audioUrlsFor(row) {
   ];
 }
 
-function lahjaFlags(row) {
+// 푸쓰하(MSA)도 제 표기를 단다 — 방언 국기만 보이면 전부 암미야처럼 보인다.
+// 라하는 쉼표로 여럿 적는다(「MSA, GLF」) — 적힌 차례대로 나란히 세운다.
+const LAHJA_MSA = new Set(['MSA', 'FUS', 'FUSHA']);
+function lahjaMarks(row) {
   return (row?.lahja || '')
     .toUpperCase()
     .split(/[,\s]+/)
-    .map(k => LAHJA_FLAG[k])
+    .map(k => k.trim())
+    .filter(Boolean)
+    .map(k => LAHJA_FLAG[k]
+      ? `<img class="m-flag" src="${LAHJA_FLAG[k]}" alt="">`
+      : (LAHJA_MSA.has(k) ? `<span class="m-flag m-fusha" title="푸쓰하(표준어)">فصحى</span>` : ''))
     .filter(Boolean);
 }
 
 function renderFlags(row) {
-  const flags = lahjaFlags(row);
-  if (!flags.length) return '';
-  return `<span class="m-flags">${flags.map(src => `<img class="m-flag" src="${src}" alt="">`).join('')}</span>`;
+  const marks = lahjaMarks(row);
+  if (!marks.length) return '';
+  return `<span class="m-flags">${marks.join('')}</span>`;
 }
 
 function getUnitRow(unit) {
