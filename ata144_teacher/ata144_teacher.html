@@ -485,6 +485,8 @@ body {
 }
 .tb-btn.tb-nav:hover { opacity: 1; }
 .tb-btn.tb-nav:disabled { opacity: 0.25; pointer-events: none; }
+/* 음원이 없는 슬라이드 — 눌리지 않게 두고 흐리게 보인다 (교재앱 듣기 표시와 같은 규칙) */
+.tb-btn:disabled { opacity: 0.22; pointer-events: none; }
 #btn-nass { display: none; }
 
 /* ── 로딩 ── */
@@ -1887,8 +1889,9 @@ function renderSlide() {
   buildSectionTabs();
 
   // (btn-nass 제거됨 — 지문은 항상 자동 표시)
-  // 오디오 버튼: 패턴·숫자표 슬라이드에서는 숨김
-  document.getElementById('btn-audio').style.display = ['ptn', 'jadwal'].includes(s.type) ? 'none' : '';
+  // 오디오 버튼: 패턴·숫자표에서는 숨기고, 음원이 없는 슬라이드에서는 눌리지 않게 둔다
+  void loadAudioList(slideUnit(s));
+  paintAudioBtn();
 
   // ── 나스 슬라이드 ──
   if (s.type === 'nass') {
@@ -2382,6 +2385,66 @@ function updateIndex() {
 
 // buildUnitButtons 제거 — 내비게이터로 대체
 
+// ── 음원이 실제로 있는지 (공개 버킷 목록을 과 단위로 한 번씩 받아 둔다) ──
+// 교재앱(ata144_textbook)의 듣기 표시와 같은 규칙이다.
+const AUDIO_LIST_API = 'https://storage.googleapis.com/storage/v1/b/all-that-arabic-14/o';
+const _audioHave = new Map();   // 과 -> Set(파일이름) | null(받는 중)
+
+async function loadAudioList(unit) {
+  if (!unit || _audioHave.has(unit)) return;
+  _audioHave.set(unit, null);
+  const base = `${AUDIO_LIST_API}?prefix=${encodeURIComponent('audio/' + unit + '/')}`
+    + '&fields=items(name),nextPageToken&maxResults=1000';
+  try {
+    const have = new Set();
+    let url = base;
+    for (let page = 0; page < 5 && url; page++) {
+      const res = await fetch(url);
+      if (!res.ok) throw Error('list ' + res.status);
+      const data = await res.json();
+      (data.items || []).forEach(o => {
+        const file = String(o.name || '').split('/').pop();
+        const stem = file.replace(/\.(mp3|wav)$/i, '');
+        if (stem && stem !== file) have.add(stem.normalize('NFC'));
+      });
+      url = data.nextPageToken ? base + '&pageToken=' + encodeURIComponent(data.nextPageToken) : '';
+    }
+    _audioHave.set(unit, have);
+    paintAudioBtn();
+  } catch (err) {
+    _audioHave.delete(unit);   // 다음에 다시 해 본다
+    console.warn('audio list failed', unit, err);
+  }
+}
+
+function slideUnit(s) {
+  return String(s?.data?.u || s?.pg || '').trim();
+}
+
+function hasAudio(s) {
+  if (!s) return false;
+  if (s.data?.url) return true;
+  const id = getRowId(s.data || {});
+  if (!id) return false;
+  const have = _audioHave.get(slideUnit(s));
+  if (!have) return true;   // 아직 모르면 예전처럼 둔다
+  return have.has(String(id).normalize('NFC'));
+}
+
+// 오디오 버튼 모양만 다시 칠한다 (슬라이드를 다시 그리지 않는다)
+function paintAudioBtn() {
+  const btn = document.getElementById('btn-audio');
+  if (!btn) return;
+  const s = slides[current];
+  if (!s) return;
+  const off = ['ptn', 'jadwal'].includes(s.type);
+  btn.style.display = off ? 'none' : '';
+  if (off) return;
+  const can = hasAudio(s);
+  btn.disabled = !can;
+  btn.title = can ? '' : '이 슬라이드에는 음원이 없습니다';
+}
+
 // ── 오디오 URL (1.4.4 신구조: audio/{유닛}/{id}.{ext}) ─────────
 // datasheet url 컬럼 우선, 없으면 GCS 자동 조합 (mp3 → wav 순)
 function getAudioUrls(s) {
@@ -2402,6 +2465,7 @@ function toggleAudio() {
   const s = slides[current];
   const urls = getAudioUrls(s);
   const btn = document.getElementById('btn-audio');
+  if (!audioPlaying && !hasAudio(s)) return;   // 버킷에 없는 것은 누르지 않은 셈으로
   if (audioPlaying) {
     audio.pause(); audio.currentTime = 0;
     audioPlaying = false;
