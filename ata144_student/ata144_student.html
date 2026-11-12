@@ -141,6 +141,14 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; }
   width:1.4em; height:1.4em;
   border-radius:50%; vertical-align:middle; opacity:0.9;
 }
+/* 푸쓰하 배지 — 글자라 원형이 아니라 알약 모양 */
+.lahja-fusha {
+  display:inline-flex; align-items:center; justify-content:center;
+  height:1.5em; padding:0 0.4em;
+  border:1px solid currentColor; border-radius:999px;
+  font-family:var(--font-ar); font-size:max(10px, 0.95em); font-weight:700; line-height:1;
+  vertical-align:middle; opacity:0.85;
+}
 
 /* ── 아랍어 ── */
 .arabic-text {
@@ -533,6 +541,7 @@ const LAHJA_FLAG = {
   LEV: '../assets/icons/icon-lebanon.png',
   GLF: '../assets/icons/icon-saudi.png',
 };
+const LAHJA_MSA = new Set(['MSA', 'FUS', 'FUSHA']);
 
 /* ━━━━ 상태 ━━━━ */
 let slides = [], current = 0;
@@ -764,13 +773,17 @@ function renderContent(area, s) {
 
   // 타입 태그 + 라흐자 국기
   const typeKo = TYPE_KO[s.type] || s.type;
-  const lahja  = (s.data?.lahja || '').toUpperCase().trim();
-  const flagSrc = LAHJA_FLAG[lahja];
+  // 라하는 쉼표로 여럿 적는다(「MSA, GLF」). 통째로 찾으면 그런 행은 아무것도 안 떴다.
+  // 푸쓰하(MSA)도 제 표기를 단다 — 방언 국기만 보이면 전부 암미야처럼 보인다.
+  const lahjaMarks = (s.data?.lahja || '').toUpperCase()
+    .split(/[,\s]+/).map(c => c.trim()).filter(Boolean)
+    .map(c => LAHJA_FLAG[c]
+      ? `<img src="${LAHJA_FLAG[c]}" class="lahja-flag">`
+      : (LAHJA_MSA.has(c) ? `<span class="lahja-fusha" title="푸쓰하(표준어)">فصحى</span>` : ''))
+    .join('');
   const tag = document.createElement('div');
   tag.className = 'slide-type-tag';
-  tag.innerHTML = typeKo + (flagSrc
-    ? `<img src="${flagSrc}" class="lahja-flag">`
-    : '');
+  tag.innerHTML = typeKo + lahjaMarks;
   inner.appendChild(tag);
 
   const cssMode = (s.data.css||'').trim().toLowerCase();
