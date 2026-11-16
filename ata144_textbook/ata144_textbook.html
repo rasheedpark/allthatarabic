@@ -830,6 +830,49 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
   padding:30px 20px; text-align:center;
   color:#fff; font-size:13px; line-height:1.6;
 }
+
+/* ── 수업 중 수정 신고 ──────────────────────────────────
+   열쇠를 가진 선생님에게만 보인다. 학생 화면에서는 아무것도 달리지 않는다. */
+.rp-mark { display:none; }
+body.rp-on .rp-mark {
+  display:inline-block; width:.62em; height:.62em; margin:0 .3em; vertical-align:.04em;
+  border-radius:50%; border:1.5px solid currentColor; opacity:.3; cursor:pointer;
+}
+body.rp-on .rp-mark:hover { opacity:.75; }
+body.rp-on .rp-mark.has { background:#D6336C; border-color:#D6336C; opacity:.9; }
+body.rp-on .rp-mark.fixed { background:#9aa0a6; border-color:#9aa0a6; opacity:.6; }
+#report-panel {
+  position:fixed; inset:auto 0 0 0; z-index:60; display:none;
+  max-width:var(--max-w); margin:0 auto;   /* 교재 칸과 같은 너비로 선다 */
+  background:#fff; border-top:1px solid #e2e2e2; box-shadow:0 -8px 28px rgba(0,0,0,.13);
+  padding:14px 16px 16px; max-height:70vh; overflow:auto;
+}
+#report-panel.open { display:block; }
+.rp-where { font-size:13px; color:#555; line-height:1.7; margin-bottom:8px; }
+.rp-where .rp-ar { display:block; font-size:19px; color:#111; direction:rtl; margin:2px 0; }
+.rp-where .rp-sub { display:block; font-size:11px; color:#999; }
+.rp-targets { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+.rp-target {
+  font:inherit; font-size:13px; padding:5px 12px; border:1px solid #d4d4d4;
+  border-radius:999px; background:#fff; color:#444; cursor:pointer;
+}
+.rp-target.sel { border-color:#D6336C; background:#D6336C; color:#fff; }
+#rp-reason {
+  width:100%; box-sizing:border-box; font:inherit; font-size:14px; padding:8px 10px;
+  border:1px solid #d4d4d4; border-radius:6px; resize:vertical; line-height:1.6;
+}
+.rp-acts { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:9px; }
+.rp-acts button {
+  font:inherit; font-size:13px; height:30px; padding:0 13px; border:1px solid #d4d4d4;
+  border-radius:5px; background:#fff; color:#444; cursor:pointer;
+}
+.rp-acts .rp-save { border-color:#D6336C; color:#D6336C; font-weight:600; }
+.rp-cf { font-size:12px; color:#bbb; border:1px solid #e5e5e5; border-radius:999px; padding:2px 9px; }
+.rp-cf.on { color:#2f9e44; border-color:#b2f2bb; background:#ebfbee; }
+.rp-msg { font-size:12.5px; color:#777; margin:7px 0 0; min-height:1em; }
+.rp-msg.bad { color:#D6336C; }
+.rp-msg.good { color:#2f9e44; }
+.rp-hist { font-size:11.5px; color:#999; line-height:1.7; margin-top:7px; }
 </style>
 <link rel="stylesheet" href="../assets/arabic-highlight.css?v=20261014">
 <script src="../assets/arabic-highlight.js?v=20261014"></script>
@@ -887,6 +930,26 @@ button { font-family:var(--font-kr); cursor:pointer; border:none; background:non
 
 <audio id="player"></audio>
 
+
+<!-- 수정 신고 (열쇠를 가진 선생님에게만 보인다) -->
+<div id="report-panel">
+  <div class="rp-where" id="rp-where"></div>
+  <div class="rp-targets">
+    <button class="rp-target" data-target="content">1 내용</button>
+    <button class="rp-target" data-target="audio">2 음원</button>
+    <button class="rp-target" data-target="both">3 둘 다</button>
+    <span class="rp-cf" id="rp-cf1">확인1</span>
+    <span class="rp-cf" id="rp-cf2">확인2</span>
+  </div>
+  <textarea id="rp-reason" rows="2" placeholder="무엇을 어떻게 고쳐야 하는지 한 줄"></textarea>
+  <div class="rp-acts">
+    <button class="rp-save" id="rp-save">신고 저장</button>
+    <button class="rp-del" id="rp-del">신고 취소</button>
+    <button id="rp-cancel">닫기</button>
+  </div>
+  <p class="rp-msg" id="rp-msg"></p>
+  <div class="rp-hist" id="rp-hist"></div>
+</div>
 <script>
 /* ============================================================
    ATA 1.4.4 — 교재 모바일 앱 초안 (textbook144m.html)
@@ -1499,6 +1562,7 @@ function renderCard(row) {
     ar.className = 'm-ar' + (canPlay ? ' tap-audio' : '');
     ar.innerHTML = parseInline(row.arabic) + (canPlay ? AUDIO_MARK : '');
     if (canPlay) ar.addEventListener('click', () => playAudio(row, ar));
+    reportMark(ar, row);
     // 표현 카드: 깃발 인라인 / 나스 카드: 좌측 한국어 칸 하단
     if (flagsHtml && row._kind !== 'nass') {
       const line = document.createElement('div');
@@ -1573,6 +1637,7 @@ function renderPatternCard(row, hero) {
     ar.className = 'm-ar' + (canPlay ? ' tap-audio' : '');
     ar.innerHTML = parseInline(row.arabic) + (canPlay ? AUDIO_MARK : '');
     if (canPlay) ar.addEventListener('click', () => playAudio(row, ar));
+    reportMark(ar, row);
     el.appendChild(ar);
   }
   if (row.korean) {
@@ -1725,6 +1790,7 @@ function renderGridTable(rows, className = 'm-drill-table', blanks = false, cols
     cell.innerHTML = html;
     if (isNomRow(r)) cell.innerHTML = applyNomDivider(cell.innerHTML);  // 명사문 셀
     cell.querySelector('.tap-audio')?.addEventListener('click', e => playAudio(r, e.currentTarget));
+    reportMark(cell.querySelector('.dc-ar'), r);
     grid.appendChild(cell);
   });
   wrap.appendChild(grid);
@@ -1746,6 +1812,7 @@ function renderPairRow(r, blanks = false) {
     </div>`;
   if (isNomRow(r)) row.innerHTML = applyNomDivider(row.innerHTML);  // 명사문 행
   row.querySelector('.tap-audio')?.addEventListener('click', e => playAudio(r, e.currentTarget));
+  reportMark(row.querySelector('.m-row-ar'), r);
   return row;
 }
 
@@ -1829,7 +1896,14 @@ function renderBaseline(row, opts = {}) {
     badge.className = 'm-bl-audio tap-audio';
     badge.innerHTML = AUDIO_MARK;
     badge.addEventListener('click', () => playAudio(row, badge));
+    reportMark(badge, row);
     wrap.appendChild(badge);
+  } else if (reportAuth.enabled) {
+    // 음원이 없어도 내용 신고는 할 수 있어야 한다 — 같은 자리에 점만 둔다.
+    const slot = document.createElement('div');
+    slot.className = 'm-bl-audio';
+    reportMark(slot, row);
+    if (slot.childElementCount) wrap.appendChild(slot);
   }
   const grid = document.createElement('div');
   grid.className = 'm-bl-grid';
@@ -1977,6 +2051,7 @@ window.addEventListener('resize', () => {
 /* ───────── refresh ───────── */
 function refresh() {
   void loadAudioList(state.unit);
+  void reportLoad(state.unit);
   state.pages = buildPagesForUnit(state.unit);
   state.page = Math.min(state.page, Math.max(0, state.pages.length - 1));
   buildUnitList();
@@ -2150,6 +2225,248 @@ async function init() {
     console.error(e);
   }
 }
+
+
+/* ───────── 수업 중 수정 신고 ─────────
+   선생님 앱(ata144_teacher)과 같은 창구다. 같은 열쇠 링크를 한 번 열면
+   이 화면에서도 켜지고, 열쇠가 없으면 아무것도 달리지 않는다 — 학생 화면은 그대로다.
+   신고는 어드민 `academy.ata144_reports`로 가고, 정본 시트는 건드리지 않는다. */
+const REPORT_API = 'https://a151-admin-juvmljiw3q-du.a.run.app';
+const REPORT_STORE = 'ata144-report-auth-v2';   // 선생님 앱과 같은 자리를 쓴다
+const REPORT_TARGET_KO = { content: '내용', audio: '음원', both: '내용+음원' };
+const TYPE_KO = { unit:'유닛', ptn:'패턴', repertory:'예문', drilla:'드릴A', drillb:'드릴B',
+  drillc:'드릴C', writing:'쓰기', exp:'표현', kalimat:'단어', nass:'지문', jadwal:'숫자' };
+
+const reportAuth = (() => {
+  const q = new URLSearchParams(location.search);
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(REPORT_STORE) || '{}') || {}; } catch (e) {}
+  const fromUrl = q.has('key') || q.has('reviewer');
+  const key = String(q.get('key') || saved.key || '').trim();
+  const reviewer = String(q.get('reviewer') || saved.reviewer || '').trim().slice(0, 40);
+  const auth = { key, reviewer, role: String(saved.role || '1'), enabled: Boolean(key) };
+  if (fromUrl) {
+    if (auth.enabled) {
+      try { localStorage.setItem(REPORT_STORE, JSON.stringify({ key, reviewer, role: auth.role })); } catch (e) {}
+    }
+    // 수업 화면을 띄워 놓거나 공유해도 열쇠가 주소창에 남지 않게 한다.
+    ['key', 'reviewer', 'role'].forEach(x => q.delete(x));
+    const qs = q.toString();
+    history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
+  }
+  return auth;
+})();
+
+let reportRecords = {};     // itemKey → 어드민 기록
+let reportLoadedUnit = '';
+let reportPick = null;      // 지금 패널이 보고 있는 항목 { row, key, unit, kind }
+let reportDraftTarget = '';
+let reportBusy = false;
+
+function reportRemember() {
+  try {
+    localStorage.setItem(REPORT_STORE, JSON.stringify({
+      key: reportAuth.key, reviewer: reportAuth.reviewer, role: reportAuth.role,
+    }));
+  } catch (e) {}
+}
+
+function reportUnitOf(row) {
+  const unit = String((row && row.u) || state.unit || '').trim();
+  return /^A\d{2}$/.test(unit) ? unit : '';
+}
+
+// 열쇠는 `{과}/{시트 type}:{행 id}` — 어드민·선생님 앱과 같은 모양이라 한 자리에 쌓인다.
+function reportItemKey(row) {
+  const unit = reportUnitOf(row);
+  if (!unit) return '';
+  const id = String(getRowId(row) || '').trim().replace(/\s+/g, '_');
+  if (!id) return '';
+  return unit + '/' + (String(row.type || '').trim() || 'item') + ':' + id;
+}
+
+function reportRecord(key) { return (key && reportRecords[key]) || null; }
+
+async function reportPost(path, body) {
+  const response = await fetch(REPORT_API + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+    body: JSON.stringify({ key: reportAuth.key, ...body }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.message || ('HTTP ' + response.status));
+  return data;
+}
+
+// 과 단위로 받아 둔다. 수업은 한 과를 쭉 넘기므로 과가 바뀔 때만 다시 받는다.
+async function reportLoad(unit) {
+  if (!reportAuth.enabled) return;
+  const target = String(unit || state.unit || '').trim();
+  if (!/^A\d{2}$/.test(target) || target === reportLoadedUnit) return;
+  try {
+    const data = await reportPost('/api/ata144/reports/sync', { unit: target });
+    if (data.reviewer) reportAuth.reviewer = data.reviewer;
+    if (data.slot) reportAuth.role = String(data.slot);
+    reportRemember();
+    reportRecords = {};
+    for (const item of (data.items || [])) reportRecords[item.item] = item;
+    reportLoadedUnit = target;
+    paintCurrent();
+  } catch (e) {
+    console.warn('신고 목록을 못 읽었습니다', e);
+  }
+}
+
+// 항목 옆 점 하나. 눌리면 그 항목으로 패널이 열린다(듣기와 섞이지 않게 전파를 막는다).
+function reportMark(el, row) {
+  if (!reportAuth.enabled || !el) return;
+  const key = reportItemKey(row);
+  if (!key) return;
+  const rec = reportRecord(key);
+  const dot = document.createElement('span');
+  dot.className = 'rp-mark'
+    + (rec && rec.fixed_at ? ' fixed' : (rec && rec.target ? ' has' : ''));
+  dot.title = rec && rec.target
+    ? (REPORT_TARGET_KO[rec.target] || '내용') + ' 신고 있음 — ' + (rec.reason || '')
+    : '이 항목을 신고합니다';
+  dot.addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    reportOpen(row);
+  });
+  el.appendChild(dot);
+}
+
+function escapeHtmlReport(text) {
+  return String(text).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+function reportSetMessage(text, kind = '') {
+  const el = document.getElementById('rp-msg');
+  if (el) { el.textContent = text; el.className = 'rp-msg' + (kind ? ' ' + kind : ''); }
+}
+
+function reportRenderPanel() {
+  if (!reportPick) return;
+  const row = reportPick.row;
+  const rec = reportRecord(reportPick.key);
+  document.getElementById('rp-where').innerHTML =
+    escapeHtmlReport(reportPick.unit + ' · ' + (TYPE_KO[reportPick.kind] || reportPick.kind)) +
+    '<span class="rp-ar">' + escapeHtmlReport(String(row.arabic || '').slice(0, 90)) + '</span>' +
+    '<span class="rp-sub">' + escapeHtmlReport(String(getRowId(row) || '')) + '</span>';
+  document.querySelectorAll('.rp-target').forEach(b => {
+    b.classList.toggle('sel', b.dataset.target === reportDraftTarget);
+  });
+  document.getElementById('rp-reason').value = rec ? String(rec.reason || '') : '';
+  document.getElementById('rp-del').style.display = rec && rec.target ? '' : 'none';
+  document.getElementById('rp-cf1').classList.toggle('on', Boolean(rec && rec.confirm1));
+  document.getElementById('rp-cf2').classList.toggle('on', Boolean(rec && rec.confirm2));
+  const history = Array.isArray(rec && rec.history) ? rec.history.slice(-6).reverse() : [];
+  document.getElementById('rp-hist').innerHTML = history.map(entry => {
+    const when = String(entry.at || '').slice(5, 16).replace('T', ' ');
+    return '<div>' + escapeHtmlReport(when + ' ' + (entry.by || '') + ' — ' + (entry.what || '')) + '</div>';
+  }).join('');
+}
+
+function reportOpen(row) {
+  if (!reportAuth.enabled) return;
+  const key = reportItemKey(row);
+  const unit = reportUnitOf(row);
+  if (!key || !unit) return;
+  const rec = reportRecord(key);
+  reportPick = { row, key, unit, kind: String(row.type || '').trim() || 'item' };
+  reportDraftTarget = (rec && rec.target) || '';
+  reportSetMessage('');
+  reportRenderPanel();
+  document.getElementById('report-panel').classList.add('open');
+  setTimeout(() => document.getElementById('rp-reason').focus(), 30);
+}
+
+function reportClose() {
+  document.getElementById('report-panel').classList.remove('open');
+  document.getElementById('rp-reason').blur();
+}
+
+function reportPickTarget(target) {
+  reportDraftTarget = target;
+  document.querySelectorAll('.rp-target').forEach(b => {
+    b.classList.toggle('sel', b.dataset.target === target);
+  });
+  document.getElementById('rp-reason').focus();
+}
+
+async function reportSubmit() {
+  if (reportBusy || !reportPick) return;
+  const { row, key, unit, kind } = reportPick;
+  const reason = document.getElementById('rp-reason').value.trim();
+  const target = reportDraftTarget || 'content';
+  // 사유가 없으면 시트에서 무엇을 고칠지 알 수 없다. 서버도 받지 않는다.
+  if (!reason) { reportSetMessage('무엇을 고쳐야 하는지 한 줄 적어 주세요.', 'bad'); return; }
+  reportBusy = true;
+  reportSetMessage('저장 중…');
+  try {
+    const data = await reportPost('/api/ata144/reports/save', {
+      item: key, unit, kind,
+      row_id: String(getRowId(row) || '').trim().replace(/\s+/g, '_'),
+      target, reason,
+      snapshot: {
+        arabic: String(row.arabic || '').slice(0, 400),
+        korean: String(row.korean || '').slice(0, 400),
+        note: String(row.note || '').slice(0, 400),
+      },
+    });
+    if (data.item) reportRecords[key] = data.item;
+    reportSetMessage('저장했습니다 — ' + REPORT_TARGET_KO[target], 'good');
+    paintCurrent();
+    setTimeout(reportClose, 550);
+  } catch (e) {
+    reportSetMessage('저장 실패: ' + e.message, 'bad');
+  } finally {
+    reportBusy = false;
+  }
+}
+
+async function reportDelete() {
+  if (reportBusy || !reportPick) return;
+  const { row, key, unit, kind } = reportPick;
+  reportBusy = true;
+  reportSetMessage('신고를 지우는 중…');
+  try {
+    await reportPost('/api/ata144/reports/save', {
+      item: key, unit, kind,
+      row_id: String(getRowId(row) || '').trim().replace(/\s+/g, '_'),
+      target: '', reason: '',
+    });
+    delete reportRecords[key];
+    reportSetMessage('신고를 지웠습니다', 'good');
+    paintCurrent();
+    setTimeout(reportClose, 450);
+  } catch (e) {
+    reportSetMessage('지우지 못했습니다: ' + e.message, 'bad');
+  } finally {
+    reportBusy = false;
+  }
+}
+
+if (reportAuth.enabled) {
+  document.body.classList.add('rp-on');
+  document.querySelectorAll('.rp-target').forEach(b => {
+    b.addEventListener('click', () => reportPickTarget(b.dataset.target));
+  });
+  document.getElementById('rp-save').addEventListener('click', () => void reportSubmit());
+  document.getElementById('rp-del').addEventListener('click', () => void reportDelete());
+  document.getElementById('rp-cancel').addEventListener('click', reportClose);
+  // 선생님 앱과 같은 손놀림 — 사유 칸이 비어 있을 때만 1·2·3이 대상을 고른다.
+  document.getElementById('rp-reason').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void reportSubmit(); }
+    else if (e.key === 'Escape') { e.preventDefault(); reportClose(); }
+    else if (['1', '2', '3'].includes(e.key) && !e.target.value) {
+      e.preventDefault();
+      reportPickTarget({ '1': 'content', '2': 'audio', '3': 'both' }[e.key]);
+    }
+  });
+}
+
 
 init();
 </script>
